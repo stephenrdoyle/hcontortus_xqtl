@@ -698,7 +698,9 @@ rm *tmp*
 </div>
 <br/>
 
-<a href="#top"> ↥ Back to top</a>
+<a href="#top"> ↥ **Back to top**</a>
+[↥ **Back to top**](#top)
+[Google](http://google.com/) <a href="http://google.com/">Google</a>
 
 ```bash
 # load R - using 3.6.0
