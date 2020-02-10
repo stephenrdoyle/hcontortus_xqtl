@@ -130,4 +130,4 @@ pathfind -t lane -i 23241_6 --filetype fastq -l ./ --rename
 pathfind -t lane -i 23241_8 --filetype fastq -l ./ --rename
 pathfind -t lane -i 23241_7 --filetype fastq -l ./ --rename
 pathfind -t lane -i 23204_7 --filetype fastq -l ./ --rename
-pathfind -t lane -i 23204_8 --filet
+pathfind -t lane -i 23204_8 --filetype fastq -l ./ --rename
