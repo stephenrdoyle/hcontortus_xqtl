@@ -698,7 +698,7 @@ rm *tmp*
 </div>
 <br/>
 
-<a href="#top">Back to top</a>
+<a href="#top"> ↥ Back to top</a>
 
 ```bash
 # load R - using 3.6.0
