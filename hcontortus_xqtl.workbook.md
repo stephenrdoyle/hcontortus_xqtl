@@ -2,13 +2,14 @@
 - lab workbook for the XQTL project
 
 1. [Preparing the reference](#reference)
-2.1. [Mapping Parental strains](#mapping_parents)  
-2.2. [Mapping XQTL](#mapping_xqtl)
-2.3. [Mapping Advanced Intercross](#mapping_ai)
-2.4. [Mapping Dose response](#mapping_doseresponse)
-2.5. [Mapping Canadian Field Samples from John Gilleard](#mapping_canada_field)
-2.6. [Mapping US farm samples from Ray Kaplan](#mapping_us_field)
-3. Analysis
+2. MAPPING
+     1. [Mapping Parental strains](#mapping_parents)  
+     2. [Mapping XQTL](#mapping_xqtl)
+     3. [Mapping Advanced Intercross](#mapping_ai)
+     4. [Mapping Dose response](#mapping_doseresponse)
+     5. [Mapping Canadian Field Samples from John Gilleard](#mapping_canada_field)
+     6. [Mapping US farm samples from Ray Kaplan](#mapping_us_field)
+3. [Analysis](#analysis)
 
 working directory: /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL
 
