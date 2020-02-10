@@ -738,61 +738,8 @@ ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.num
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-
-
-###---------------------------------------------------------------------------------------        
-#L3_5000
-
-L3_5000 <- read.table("XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
-data<-L3_5000
-
-ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000_c2<-L3_5000[L3_5000$V1=="hcontortus_chr2_Celeg_TT_arrow_pilon",]
-data<-L3_5000_c2
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.035)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(,labels=comma)+
-  #xlim(45000000,55000000)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000_c5<-L3_5000[L3_5000$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-data<-L3_5000_c5
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(,labels=comma)+
-  #xlim(45000000,55000000)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
+ggsave("PARENTS/XQTL_parents_fst.pdf",useDingbats=FALSE)
+```
 
 
 ###---------------------------------------------------------------------------------------        
@@ -2003,4 +1950,60 @@ bsub.py 20 --threads 8 starmap_${i} /nfs/users/nfs_s/sd21/lustre118_link/softwar
 --outWigType bedGraph \
 --twopassMode Basic \
 ; done
+```
+```
+
+
+#L3_5000
+```
+L3_5000 <- read.table("XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
+data<-L3_5000
+
+ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+  ylim(0,0.1)+
+  xlab("Relative window position in genome")+
+  ylab("Fst")+
+  scale_color_manual(values=pal)+
+  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
+  theme_bw()+
+  theme(legend.position="none",
+        panel.background=element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(colour = "grey70", size = 0.2),
+        panel.grid.major = element_line(colour = "grey70", size = 0.2),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+L3_5000_c2<-L3_5000[L3_5000$V1=="hcontortus_chr2_Celeg_TT_arrow_pilon",]
+data<-L3_5000_c2
+ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+  ylim(0,0.035)+
+  xlab("Relative window position in genome")+
+  ylab("Fst")+
+  scale_color_manual(values=pal)+
+  scale_x_continuous(,labels=comma)+
+  xlim(2.4e6,3.5e6)+
+  theme_bw()+
+  theme(legend.position="none",
+        panel.background=element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(colour = "grey70", size = 0.2),
+        panel.grid.major = element_line(colour = "grey70", size = 0.2),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+
+L3_5000_c5<-L3_5000[L3_5000$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+data<-L3_5000_c5
+ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+  ylim(0,0.1)+
+  xlab("Relative window position in genome")+
+  ylab("Fst")+
+  scale_color_manual(values=pal)+
+  scale_x_continuous(,labels=comma)+
+  xlim(37.25e6,37.5e6)+
+  theme_bw()+
+  theme(legend.position="none",
+        panel.background=element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(colour = "grey70", size = 0.2),
+        panel.grid.major = element_line(colour = "grey70", size = 0.2),
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
 ```
