@@ -3,12 +3,12 @@
 
 1. [Preparing the reference](#reference)
 2.1. [Mapping Parental strains](#mapping_parents)  
-2.2. Mapping XQTL
-2.3. Mapping Advanced Intercross
-2.4. Mapping Dose response
-2.5. Mapping Canadian Field Samples from John Gilleard
-2.6. Mapping US farm samples from Ray Kaplan
-
+2.2. [Mapping XQTL](#mapping_xqtl)
+2.3. [Mapping Advanced Intercross](#mapping_ai)
+2.4. [Mapping Dose response](#mapping_doseresponse)
+2.5. [Mapping Canadian Field Samples from John Gilleard](#mapping_canada_field)
+2.6. [Mapping US farm samples from Ray Kaplan](#mapping_us_field)
+3. Analysis
 
 working directory: /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL
 
@@ -125,7 +125,7 @@ rm *tmp*
 
 
 
-# Mapping - XQTL
+# Mapping - XQTL <a name="mapping_xqtl"></a>
 
 
 ```shell  
@@ -236,7 +236,7 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADUL
 
 
 
-## Advanced Intercross
+## Advanced Intercross <a name="mapping_ai"></a>
 
 ```
 mkdir 02_RAW/RAW_ADVANCED_INTERCROSS
@@ -341,9 +341,9 @@ rm *tmp*
 
 
 
-################################################################################
-## Dose Response
-################################################################################
+
+## Dose Response <a name="mapping_doseresponse"></a>
+
 
 ```
 mkdir 02_RAW/RAW_DOSE_RESPONSE
@@ -440,7 +440,7 @@ rm *tmp*
 
 
 
-## Canadian Field Samples from John Gilleard
+## Canadian Field Samples from John Gilleard <a name="mapping_canada_field"></a>
 
 
 ```
@@ -535,7 +535,7 @@ rm *tmp*
 
 
 
-# Analysis of US farm samples from Ray Kaplan
+# Analysis of US farm samples from Ray Kaplan <a name="mapping_us_field"></a>
 
 ```shell
 mkdir 02_RAW/RAW_US_FIELD
@@ -690,7 +690,7 @@ rm *tmp*
 
 
 
-# Analyses
+# Analyses <a name="analysis"></a>
 ```bash
 # load R - using 3.6.0
 R
