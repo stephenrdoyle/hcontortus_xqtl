@@ -597,7 +597,7 @@ rm *unpaired*
 mkdir ../../../03_MAPPING/US_FIELD
 
 ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPING/US_FIELD/sample.list
-```
+
 
 
 
@@ -697,6 +697,7 @@ rm *tmp*
     <b><a href="#----">↥ back to top</a></b>
 </div>
 <br/>
+
 ```bash
 # load R - using 3.6.0
 R
