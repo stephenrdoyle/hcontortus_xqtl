@@ -38,7 +38,7 @@ cp /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa .
 samtools faidx HAEM_V4_final.chr.fa
 samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 ```
-
+[↥ **Back to top**](#top)
 
 
 
@@ -121,7 +121,7 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_PARE
 
 rm *tmp*
 ```
-
+[↥ **Back to top**](#top)
 
 
 
@@ -231,6 +231,7 @@ rm *tmp*
 
 cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADULTS.mpileup &
 ```
+[↥ **Back to top**](#top)
 
 
 
@@ -339,12 +340,11 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADVA
 
 rm *tmp*
 ```
-
+[↥ **Back to top**](#top)
 
 
 
 ## Dose Response <a name="mapping_doseresponse"></a>
-
 
 ```
 mkdir 02_RAW/RAW_DOSE_RESPONSE
@@ -432,7 +432,7 @@ rm *tmp*
 #mpileup to popoolation2
 ./run_mpileup2popoolation2_lowcov ../../01_REFERENCE/HAEM_V4_final.chr.fa XQTL_DOSE_RESPONSE.mpileup 200 5000 &
 ```
-
+[↥ **Back to top**](#top)
 
 
 
@@ -533,7 +533,7 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE
 
 rm *tmp*
 ```
-
+[↥ **Back to top**](#top)
 
 
 # Analysis of US farm samples from Ray Kaplan <a name="mapping_us_field"></a>
@@ -677,7 +677,7 @@ rm *tmp*
 ~sd21/bash_scripts/run_mpileup2popoolation2 XQTL_US_FIELD ~sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa $PWD/XQTL_US_FIELD.mpileup 200 10000
 
 ```
-
+[↥ **Back to top**](#top)
 
 
 
@@ -692,15 +692,6 @@ rm *tmp*
 
 
 # Analyses <a name="analysis"></a>
-<br/>
-<div align="right">
-    <b><a href="#----">↥ back to top</a></b>
-</div>
-<br/>
-
-<a href="#top"> ↥ **Back to top**</a>
-[↥ **Back to top**](#top)
-[Google](http://google.com/) <a href="http://google.com/">Google</a>
 
 ```bash
 # load R - using 3.6.0
@@ -1974,18 +1965,18 @@ bsub.py 20 --threads 8 starmap_${i} /nfs/users/nfs_s/sd21/lustre118_link/softwar
 
 
 #----- SNPeff
-
+```shell
 # setup for HCON_V4
 
 cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
 
-mkdir data/HCON_V4_Dec2019
+mkdir data/HCON_V4_20200130
 
-cd  data/HCON_V4_Dec2019
+cd  data/HCON_V4_20200130
 ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa HCON_V4_Dec2019.fa
 ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20191212/UPDATED_annotation.gff3 genes.gff
-gffread genes.gff -g HCON_V4_Dec2019.fa -y protein.fa
-cp HCON_V4_Dec2019.fa ../genomes/
+gffread genes.gff -g HCON_V4_20200130.fa -y protein.fa
+cp HCON_V4_20200130.fa ../genomes/
 
 # modify config file
 cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
@@ -1993,7 +1984,7 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
 echo "
 
 # Haemonchus contortus chromosomes V4
-HCON_V4_Dec2019.genome : HCON_V4_Dec2019
+HCON_V4_20200130.genome : HCON_V4_20200130
 
 " > new.genome
 
@@ -2001,20 +1992,12 @@ cat snpEff.config new.genome > tmp; mv tmp snpEff.config
 
 
 # build database
-bbsub.py 10 build  "java -jar snpEff.jar build -v HCON_V4_Dec2019"
+bbsub.py 10 build  "java -jar snpEff.jar build -v HCON_V4_20200130"
 
 
 
 
 # run SNPeff
-
-
-#bsub.py --queue small 20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 1.hcontortus_chr1_Celeg_TT_arrow_pilon.tmp.vcf \> 1.hcontortus_chr1_Celeg_TT_arrow_pilon.snpeff.vcf"
-#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 2.hcontortus_chr2_Celeg_TT_arrow_pilon.tmp.vcf \> 2.hcontortus_chr2_Celeg_TT_arrow_pilon.snpeff.vcf"
-#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 3.hcontortus_chr3_Celeg_TT_arrow_pilon.tmp.vcf \> 3.hcontortus_chr3_Celeg_TT_arrow_pilon.snpeff.vcf"
-#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 4.hcontortus_chr4_Celeg_TT_arrow_pilon.tmp.vcf \> 4.hcontortus_chr4_Celeg_TT_arrow_pilon.snpeff.vcf"
-#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 5.hcontortus_chr5_Celeg_TT_arrow_pilon.tmp.vcf \> 5.hcontortus_chr5_Celeg_TT_arrow_pilon.snpeff.vcf"
-#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 6.hcontortus_chrX_Celeg_TT_arrow_pilon.tmp.vcf \> 6.hcontortus_chrX_Celeg_TT_arrow_pilon.snpeff.vcf"
 
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_AI.raw.vcf >  XQTL_AI.raw.snpeff.vcf"
 
@@ -2023,3 +2006,5 @@ bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e sn
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_IVM.raw.vcf > XQTL_IVM.raw.snpeff.vcf"
 
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_LEV.raw.vcf > XQTL_LEV.raw.snpeff.vcf"
+```
+[↥ **Back to top**](#top)
