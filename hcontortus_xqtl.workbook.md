@@ -971,6 +971,8 @@ control_0.5x.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V17,alpha=V4,col
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -985,6 +987,8 @@ control_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colou
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -999,6 +1003,8 @@ ivm_0.5X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V251,alpha=V4,colour
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1013,6 +1019,8 @@ ivm_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V287,alpha=V4,colour =
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1031,6 +1039,8 @@ control_0.5x.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V51,alpha=V4,col
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1045,6 +1055,8 @@ control_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V135,alpha=V4,colo
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1059,6 +1071,8 @@ ivm_0.5X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V267,alpha=V4,colour
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1073,6 +1087,8 @@ ivm_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,alpha=V4,colour =
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1091,6 +1107,8 @@ control_0.5x.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V83,alpha=V4,col
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1105,6 +1123,8 @@ control_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V161,alpha=V4,colo
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1119,6 +1139,8 @@ ivm_0.5X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V281,alpha=V4,colour
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1133,6 +1155,8 @@ ivm_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V305,alpha=V4,colour =
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -1145,7 +1169,7 @@ control_0.5x.3 + ivm_0.5X.3 + control_2X.3 + ivm_2X.3 + plot_layout(ncol=2)
 
 
 
-# summary of XQTL adn AI endpoints
+# summary of XQTL and AI endpoints
 ivm_r1 + ivm_2X.1 + ivm_2X.2 + ivm_2X.3 + plot_layout(ncol=1)
 
 ###---------------------------------------------------------------------------------------        
