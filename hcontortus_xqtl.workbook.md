@@ -1935,36 +1935,7 @@ plot10in + lev_plo1v5 + lev_plot2v6 + lev_plot3v7 + lev_plot4v8 +  plot_layout(n
 
 
 
-
-
-
-
-
-# mapping gilleard ISE, CAVR, WRS RNAseq to compare with XQTL data
-
-
-
-#--- map reads
-
-for i in `ls -1 | grep "_1.fastq.gz" | sed 's/_1.fastq.gz//g'  `; do \
-bsub.py 20 --threads 8 starmap_${i} /nfs/users/nfs_s/sd21/lustre118_link/software/TRANSCRIPTOME/STAR/bin/Linux_x86_64/STAR \
---runThreadN 8 \
---genomeDir /nfs/users/nfs_s/sd21/lustre118_link/REFERENCE_SEQUENCES/haemonchus_contortus/hc_v4chr_rnaseq_star_index \
---readFilesIn ${i}_1.fastq.gz ${i}_2.fastq.gz \
---readFilesCommand zcat \
---alignIntronMin 10 \
---outTmpDir starmap_${i}_tmp \
---outFileNamePrefix starmap_${i}_other_out \
---outSAMtype BAM SortedByCoordinate \
---outWigType bedGraph \
---twopassMode Basic \
-; done
-
-
-
-
-
-#----- SNPeff
+#----- SNPeff analysis of functional variants
 ```shell
 # setup for HCON_V4
 
@@ -2008,3 +1979,28 @@ bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e sn
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_LEV.raw.vcf > XQTL_LEV.raw.snpeff.vcf"
 ```
 [↥ **Back to top**](#top)
+
+
+
+
+
+## Other stuff
+
+# mapping gilleard ISE, CAVR, WRS RNAseq to compare with XQTL data
+```
+#--- map reads
+
+for i in `ls -1 | grep "_1.fastq.gz" | sed 's/_1.fastq.gz//g'  `; do \
+bsub.py 20 --threads 8 starmap_${i} /nfs/users/nfs_s/sd21/lustre118_link/software/TRANSCRIPTOME/STAR/bin/Linux_x86_64/STAR \
+--runThreadN 8 \
+--genomeDir /nfs/users/nfs_s/sd21/lustre118_link/REFERENCE_SEQUENCES/haemonchus_contortus/hc_v4chr_rnaseq_star_index \
+--readFilesIn ${i}_1.fastq.gz ${i}_2.fastq.gz \
+--readFilesCommand zcat \
+--alignIntronMin 10 \
+--outTmpDir starmap_${i}_tmp \
+--outFileNamePrefix starmap_${i}_other_out \
+--outSAMtype BAM SortedByCoordinate \
+--outWigType bedGraph \
+--twopassMode Basic \
+; done
+```
