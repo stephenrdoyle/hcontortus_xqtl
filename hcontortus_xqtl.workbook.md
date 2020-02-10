@@ -13,9 +13,9 @@ mkdir 03_MAPPING
 mkdir 04_VARIANTS
 ```
 
-################################################################################################
-# Step 1 -reference
-################################################################################################
+################################################################################
+## Step 1 -reference
+################################################################################
 ```shell
 cd 01_REFERENCE
 
@@ -29,9 +29,9 @@ samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 
 
 
-################################################################################################
-# Parents
-################################################################################################
+################################################################################
+## Parents
+################################################################################
 
 ```shell
 mkdir 02_RAW/RAW_PARENTS
@@ -66,14 +66,14 @@ ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPIN
 
 
 
-#--- map reads
-
+###--- map reads
+```
 cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/03_MAPPING/PARENTS
 screen
 while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
 
 
-#--- clean up
+###--- clean up
 mv *out/*.marked.bam .
 mv *out/*.marked.bam.bai .
 
@@ -93,7 +93,7 @@ rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/*.gz
 
 
 
-# setup for mpileup
+## setup for mpileup
 mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/PARENTS
 
 ls $PWD/*bam > /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/PARENTS/bam.list
@@ -107,16 +107,16 @@ cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/PARENTS
 cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_PARENTS.mpileup &
 
 rm *tmp*
+```
 
 
 
 
-
-################################################################################################
+################################################################################
 # XQTL
-################################################################################################
+################################################################################
 
-
+```shell  
 mkdir 02_RAW/RAW_XQTL
 cd 02_RAW/RAW_XQTL
 
@@ -217,16 +217,16 @@ rm *tmp*
 
 
 cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADULTS.mpileup &
+```
 
 
 
 
 
-
-################################################################################################
-# Advanced Intercross
-################################################################################################
-
+################################################################################
+## Advanced Intercross
+################################################################################
+```
 mkdir 02_RAW/RAW_ADVANCED_INTERCROSS
 
 cd 02_RAW/RAW_ADVANCED_INTERCROSS
@@ -325,15 +325,15 @@ cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/ADVANCED_INTERCROS
 cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADVANCED_INTERCROSS.mpileup &
 
 rm *tmp*
+```
 
 
 
+################################################################################
+## Dose Response
+################################################################################
 
-################################################################################################
-# Dose Response
-################################################################################################
-
-
+```
 mkdir 02_RAW/RAW_DOSE_RESPONSE
 
 cd 02_RAW/RAW_DOSE_RESPONSE
@@ -418,6 +418,7 @@ rm *tmp*
 
 #mpileup to popoolation2
 ./run_mpileup2popoolation2_lowcov ../../01_REFERENCE/HAEM_V4_final.chr.fa XQTL_DOSE_RESPONSE.mpileup 200 5000 &
+```
 
 
 
@@ -426,12 +427,11 @@ rm *tmp*
 
 
 
+################################################################################
+## Canadian Field Samples from John Gilleard
+################################################################################
 
-################################################################################################
-# Canadian Field Samples from John Gilleard
-################################################################################################
-
-
+```
 mkdir 02_RAW/RAW_CAN_FIELD
 
 cd 02_RAW/RAW_CAN_FIELD
@@ -519,6 +519,7 @@ cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
 cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE_RESPONSE.mpileup &
 
 rm *tmp*
+```
 
 
 
@@ -529,27 +530,13 @@ rm *tmp*
 
 
 
+# Analyses
+```bash
+# load R - using 3.6.0
+R
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```R
 library(ggplot2)
 library(ggrepel)
 library(RColorBrewer)
@@ -1403,6 +1390,7 @@ plot<-ggplot()+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2
 fst_plot<-ggplot()+geom_point(aes(a_fst$V2,a_fst$V13),alpha=0.5)+theme_bw()+ylab("Fst - pre vs post treatment")
 
 fst_plot + plot + plot_layout(ncol=1)
+```
 
 
 
@@ -1414,12 +1402,15 @@ fst_plot + plot + plot_layout(ncol=1)
 
 
 
-
-########################################################################################
-# Dose response data - quick look
+################################################################################
+## Dose response data - quick look
+```shell
 cd ~/lustre118_link/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
 
-R-3.5.0
+R
+```
+
+```R
 library(ggplot2)
 library(ggrepel)
 
@@ -1433,6 +1424,7 @@ chr5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
 
 ggplot(chr5,aes(V2,V7,label=V2))+geom_point()+xlim(2.5e7,4.5e7)+geom_text_repel(data = subset(chr5,V7 > 0.25))+theme_bw()
 
+```
 
 
 
@@ -1442,8 +1434,7 @@ ggplot(chr5,aes(V2,V7,label=V2))+geom_point()+xlim(2.5e7,4.5e7)+geom_text_repel(
 
 
 
-
-########################################################################################
+################################################################################
 
 
 chromosome.labels <- c("I","II","III","IV","V", "X" )
@@ -1986,9 +1977,17 @@ bbsub.py 10 build  "java -jar snpEff.jar build -v HCON_V4_Dec2019"
 # run SNPeff
 
 
-bsub.py --queue small 20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 1.hcontortus_chr1_Celeg_TT_arrow_pilon.tmp.vcf \> 1.hcontortus_chr1_Celeg_TT_arrow_pilon.snpeff.vcf"
-bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 2.hcontortus_chr2_Celeg_TT_arrow_pilon.tmp.vcf \> 2.hcontortus_chr2_Celeg_TT_arrow_pilon.snpeff.vcf"
-bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 3.hcontortus_chr3_Celeg_TT_arrow_pilon.tmp.vcf \> 3.hcontortus_chr3_Celeg_TT_arrow_pilon.snpeff.vcf"
-bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 4.hcontortus_chr4_Celeg_TT_arrow_pilon.tmp.vcf \> 4.hcontortus_chr4_Celeg_TT_arrow_pilon.snpeff.vcf"
-bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 5.hcontortus_chr5_Celeg_TT_arrow_pilon.tmp.vcf \> 5.hcontortus_chr5_Celeg_TT_arrow_pilon.snpeff.vcf"
-bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 6.hcontortus_chrX_Celeg_TT_arrow_pilon.tmp.vcf \> 6.hcontortus_chrX_Celeg_TT_arrow_pilon.snpeff.vcf"
+#bsub.py --queue small 20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 1.hcontortus_chr1_Celeg_TT_arrow_pilon.tmp.vcf \> 1.hcontortus_chr1_Celeg_TT_arrow_pilon.snpeff.vcf"
+#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 2.hcontortus_chr2_Celeg_TT_arrow_pilon.tmp.vcf \> 2.hcontortus_chr2_Celeg_TT_arrow_pilon.snpeff.vcf"
+#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 3.hcontortus_chr3_Celeg_TT_arrow_pilon.tmp.vcf \> 3.hcontortus_chr3_Celeg_TT_arrow_pilon.snpeff.vcf"
+#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 4.hcontortus_chr4_Celeg_TT_arrow_pilon.tmp.vcf \> 4.hcontortus_chr4_Celeg_TT_arrow_pilon.snpeff.vcf"
+#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 5.hcontortus_chr5_Celeg_TT_arrow_pilon.tmp.vcf \> 5.hcontortus_chr5_Celeg_TT_arrow_pilon.snpeff.vcf"
+#bsub.py --queue small  20 snpeff "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_Dec2019 6.hcontortus_chrX_Celeg_TT_arrow_pilon.tmp.vcf \> 6.hcontortus_chrX_Celeg_TT_arrow_pilon.snpeff.vcf"
+
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_AI.raw.vcf >  XQTL_AI.raw.snpeff.vcf"
+
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_BZ.raw.vcf >  XQTL_BZ.raw.snpeff.vcf"
+
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_IVM.raw.vcf > XQTL_IVM.raw.snpeff.vcf"
+
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_LEV.raw.vcf > XQTL_LEV.raw.snpeff.vcf"
