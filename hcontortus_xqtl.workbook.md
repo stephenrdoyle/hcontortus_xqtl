@@ -566,13 +566,22 @@ pal<-palette(c("cornflowerblue","blue"))
 parents<-read.table("PARENTS/XQTL_PARENTS.merged.fst",header=F)
 data<-parents
 
-ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+
+# genome wide levels of significance
+#--- mean of replicates Fst
+gwide_sig3_fst_p0 <- mean(c(parents$V7))+(3*sd(c(parents$V7)))
+gwide_sig5_fst_p0 <- mean(c(parents$V7))+(5*sd(c(parents$V7)))
+
+
+ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept = gwide_sig3_fst_p0, linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept = gwide_sig5_fst_p0, linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -588,7 +597,7 @@ ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.num
 L3_5000 <- read.table("XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
 data<-L3_5000
 
-ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -604,7 +613,7 @@ ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.num
 
 L3_5000_c2<-L3_5000[L3_5000$V1=="hcontortus_chr2_Celeg_TT_arrow_pilon",]
 data<-L3_5000_c2
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.035)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -621,7 +630,7 @@ ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "blac
 
 L3_5000_c5<-L3_5000[L3_5000$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
 data<-L3_5000_c5
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -644,16 +653,24 @@ ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "blac
 xqtl_control <- read.table("XQTL_CONTROL/XQTL_CONTROL.merged.fst",header=F)
 data<-xqtl_control
 
+# genome wide levels of significance
+#--- mean of replicates Fst
+gwide_sig3_fst <- mean(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29))+(3*sd(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29)))
+gwide_sig5_fst <- mean(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29))+(5*sd(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29)))
+
+
 #Rep1	Rep2	Rep3
 #V11	V21	V29
 
-control_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -661,13 +678,15 @@ control_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour 
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V21,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V21,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -675,13 +694,15 @@ control_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V21,alpha=V4,colour 
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V29,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V29,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -700,13 +721,15 @@ data<-xqtl_bz
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-bz_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+bz_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -714,13 +737,15 @@ bz_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ife
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-bz_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+bz_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -728,13 +753,15 @@ bz_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ife
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-bz_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+bz_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -742,13 +769,15 @@ bz_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ife
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-bz_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+bz_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -769,13 +798,15 @@ data<-xqtl_lev
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-lev_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+lev_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -783,13 +814,15 @@ lev_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-lev_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+lev_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -797,13 +830,15 @@ lev_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-lev_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+lev_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.3)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -811,13 +846,15 @@ lev_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-lev_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+lev_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.3)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -837,13 +874,15 @@ data<-xqtl_ivm
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-ivm_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -851,13 +890,15 @@ ivm_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -865,13 +906,15 @@ ivm_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -879,13 +922,15 @@ ivm_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
   theme_bw()+
+  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
+  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
   theme(legend.position="none",
         panel.background=element_blank(),
         axis.line = element_line(colour = "black"),
@@ -902,6 +947,14 @@ ivm_r1 + ivm_r2 + ivm_r3 + ivm_r4 + plot_layout(ncol=1)
 xqtl_ai <- read.table("ADVANCED_INTERCROSS/XQTL_ADVANCED_INTERCROSS.merged.fst",header=F)
 data<-xqtl_ai
 
+# genome wide levels of significance
+#--- mean of replicates Fst
+gwide_sig3_fst_0.5X <- mean(c(xqtl_ai$V17,xqtl_ai$V51,xqtl_ai$V83))+(3*sd(c(xqtl_ai$V21,xqtl_ai$V51,xqtl_ai$V83)))
+gwide_sig5_fst_0.5X <- mean(c(xqtl_ai$V21,xqtl_ai$V51,xqtl_ai$V83))+(5*sd(c(xqtl_ai$V21,xqtl_ai$V51,xqtl_ai$V83)))
+
+gwide_sig3_fst_2X <- mean(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161))+(3*sd(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161)))
+gwide_sig5_fst_2X <- mean(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161))+(5*sd(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161)))
+
 #						Rep1	Rep2	Rep3
 #control - pre v 0.5X	V17		V51		V83
 #control - pre v 2X		V11		V135	V161
@@ -911,7 +964,7 @@ data<-xqtl_ai
 
 
 #rep1
-control_0.5x.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V17,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_0.5x.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V17,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -925,7 +978,7 @@ control_0.5x.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V17,alpha=V4,col
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -939,7 +992,7 @@ control_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colou
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_0.5X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V251,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_0.5X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V251,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -953,7 +1006,7 @@ ivm_0.5X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V251,alpha=V4,colour
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V287,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V287,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -971,7 +1024,7 @@ control_0.5x.1 + ivm_0.5X.1 + control_2X.1 + ivm_2X.1 + plot_layout(ncol=2)
 
 
 #rep2
-control_0.5x.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V51,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_0.5x.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V51,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -985,7 +1038,7 @@ control_0.5x.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V51,alpha=V4,col
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V135,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V135,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -999,7 +1052,7 @@ control_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V135,alpha=V4,colo
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_0.5X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V267,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_0.5X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V267,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1013,7 +1066,7 @@ ivm_0.5X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V267,alpha=V4,colour
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1031,7 +1084,7 @@ control_0.5x.2 + ivm_0.5X.2 + control_2X.2 + ivm_2X.2 + plot_layout(ncol=2)
 
 
 #rep2
-control_0.5x.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V83,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_0.5x.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V83,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1045,7 +1098,7 @@ control_0.5x.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V83,alpha=V4,col
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V161,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+control_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V161,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1059,7 +1112,7 @@ control_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V161,alpha=V4,colo
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_0.5X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V281,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_0.5X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V281,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1073,7 +1126,7 @@ ivm_0.5X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V281,alpha=V4,colour
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V305,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+ivm_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V305,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1101,7 +1154,7 @@ ivm_r1 + ivm_2X.1 + ivm_2X.2 + ivm_2X.3 + plot_layout(ncol=1)
 xqtl_adultM <- read.table("XQTL_ADULT/XQTL_ADULTS.merged.fst",header=F)
 data<-xqtl_adultM
 
-adultM <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "black", "grey")),size=0.1)+
+adultM <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.2)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
