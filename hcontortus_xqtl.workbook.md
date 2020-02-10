@@ -1,11 +1,22 @@
 # XQTL analysis
+- lab workbook for the XQTL project
+
+1. [Preparing the reference](#reference)
+2.1. [Mapping Parental strains](#mapping_parents)  
+2.2. Mapping XQTL
+2.3. Mapping Advanced Intercross
+2.4. Mapping Dose response
+2.5. Mapping Canadian Field Samples from John Gilleard
+2.6. Mapping US farm samples from Ray Kaplan
+
 
 working directory: /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL
 
 ```shell
+# working directory
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL
 
-
+# project setup
 mkdir 00_SCRIPTS
 mkdir 01_REFERENCE
 mkdir 02_RAW
@@ -13,13 +24,16 @@ mkdir 03_MAPPING
 mkdir 04_VARIANTS
 ```
 
-################################################################################
-## Step 1 -reference
-################################################################################
+
+## Step 1 - get and format reference <a name="reference"></a>
+
 ```shell
 cd 01_REFERENCE
 
+# get reference - note it is the same reference as in WBP13
 cp /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa .
+
+# make a index and a dict file
 samtools faidx HAEM_V4_final.chr.fa
 samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 ```
@@ -29,9 +43,7 @@ samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 
 
 
-################################################################################
-## Parents
-################################################################################
+## Mapping - Parental strains <a name="mapping_parents"></a>
 
 ```shell
 mkdir 02_RAW/RAW_PARENTS
@@ -112,9 +124,9 @@ rm *tmp*
 
 
 
-################################################################################
-# XQTL
-################################################################################
+
+# Mapping - XQTL
+
 
 ```shell  
 mkdir 02_RAW/RAW_XQTL
@@ -223,9 +235,9 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADUL
 
 
 
-################################################################################
+
 ## Advanced Intercross
-################################################################################
+
 ```
 mkdir 02_RAW/RAW_ADVANCED_INTERCROSS
 
@@ -427,9 +439,9 @@ rm *tmp*
 
 
 
-################################################################################
+
 ## Canadian Field Samples from John Gilleard
-################################################################################
+
 
 ```
 mkdir 02_RAW/RAW_CAN_FIELD
@@ -520,6 +532,154 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE
 
 rm *tmp*
 ```
+
+
+
+# Analysis of US farm samples from Ray Kaplan
+
+```shell
+mkdir 02_RAW/RAW_US_FIELD
+cd 02_RAW/RAW_US_FIELD
+
+pathfind -t lane -i 31192_6 --rename -l ./ --filetype fastq
+pathfind -t lane -i 31192_7 --rename -l ./ --filetype fastq
+pathfind -t lane -i 31192_8 --rename -l ./ --filetype fastq
+
+cat samples_lanes.list
+Hc_RKUSA_L3_n200_FARM_001	31192_6_1
+Hc_RKUSA_L3_n200_FARM_002	31192_6_2
+Hc_RKUSA_L3_n200_FARM_003	31192_6_3
+Hc_RKUSA_L3_n200_FARM_004	31192_6_4
+Hc_RKUSA_L3_n200_FARM_005	31192_6_5
+Hc_RKUSA_L3_n200_FARM_006	31192_6_6
+Hc_RKUSA_L3_n200_FARM_007	31192_6_7
+Hc_RKUSA_L3_n200_FARM_008	31192_6_8
+Hc_RKUSA_L3_n200_FARM_009	31192_6_9
+Hc_RKUSA_L3_n200_FARM_010	31192_6_10
+Hc_RKUSA_L3_n200_FARM_001	31192_7_1
+Hc_RKUSA_L3_n200_FARM_002	31192_7_2
+Hc_RKUSA_L3_n200_FARM_003	31192_7_3
+Hc_RKUSA_L3_n200_FARM_004	31192_7_4
+Hc_RKUSA_L3_n200_FARM_005	31192_7_5
+Hc_RKUSA_L3_n200_FARM_006	31192_7_6
+Hc_RKUSA_L3_n200_FARM_007	31192_7_7
+Hc_RKUSA_L3_n200_FARM_008	31192_7_8
+Hc_RKUSA_L3_n200_FARM_009	31192_7_9
+Hc_RKUSA_L3_n200_FARM_010	31192_7_10
+Hc_RKUSA_L3_n200_FARM_001	31192_8_1
+Hc_RKUSA_L3_n200_FARM_002	31192_8_2
+Hc_RKUSA_L3_n200_FARM_003	31192_8_3
+Hc_RKUSA_L3_n200_FARM_004	31192_8_4
+Hc_RKUSA_L3_n200_FARM_005	31192_8_5
+Hc_RKUSA_L3_n200_FARM_006	31192_8_6
+Hc_RKUSA_L3_n200_FARM_007	31192_8_7
+Hc_RKUSA_L3_n200_FARM_008	31192_8_8
+Hc_RKUSA_L3_n200_FARM_009	31192_8_9
+Hc_RKUSA_L3_n200_FARM_010	31192_8_10
+
+mkdir TRIM
+cd TRIM
+
+rm run_trim_all
+while read name lane; do \
+echo "bsub.py --queue yesterday --threads 7 20 trim_P /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
+done < ../samples_lanes.list ; \
+chmod a+x run_trim_all; \
+./run_trim_all
+
+
+
+# get rid of the unpaired fraction
+rm *unpaired*
+
+# make a sample list for mapping
+mkdir ../../../03_MAPPING/US_FIELD
+
+ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPING/US_FIELD/sample.list
+```
+
+
+
+#--- map reads
+
+cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/03_MAPPING/US_FIELD
+screen
+while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
+
+
+mv *out/*.marked.bam .
+mv *out/*.marked.bam.bai .
+
+
+# run_merge-bams_multisample
+#
+# Setup script to collate multiple mapped lanes with same sample ID
+# Once all mapping jobs have finished, this script can be run to collate any individual mapped
+# samples that shre the same name, e.g. if a sample has been sequenced twice, or, has been
+# split into multiple fastq files due to high output
+
+touch run_merger.tmp
+for i in $( cat ../../02_RAW/RAW_US_FIELD/samples_lanes.list | cut -f1 | sort | uniq ); do echo "bsub.py 10 merge_${i}_tmp ./run_merge.tmp ${i} &" >> run_merger.tmp; done
+
+echo 'SAMPLE=$1; ls -1 ${SAMPLE}*.bam > ${SAMPLE}.tmp.bamlist ; samtools-1.3 merge -c -b ${SAMPLE}.tmp.bamlist ${SAMPLE}.merge.bam; samtools-1.3 index -b ${SAMPLE}.merge.bam' > run_merge.tmp
+
+chmod a+x run_merge.tmp
+chmod a+x run_merger.tmp
+./run_merger.tmp
+
+
+
+#--- clean up
+
+rm *bamlist
+rm *tmp*
+rm *marked.bam*
+
+
+
+#rm -r *out
+
+#--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
+ls -1 *bam > bam.list
+
+~sd21/bash_scripts/run_gatk_indel_realigner /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list
+
+#--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
+rm *marked.bam
+rm *marked.bam.bai
+rm *.merge.bam
+rm *.merge.bam.bai
+
+
+#--- remove the trimmed fastqs - they are only taking up disk space
+rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/*.gz
+
+
+
+# setup for mpileup
+mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD
+
+ls $PWD/*bam > /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD/bam.list
+
+cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD
+
+
+#--- run mpileup
+~sd21/bash_scripts/run_mpileup XQTL_US_FIELD /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list
+
+
+
+rm *tmp*
+
+
+
+~sd21/bash_scripts/run_mpileup2popoolation2 XQTL_US_FIELD ~sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa $PWD/XQTL_US_FIELD.mpileup 200 10000
+
+```
+
+
+
+
 
 
 
@@ -1499,146 +1659,7 @@ plot+geom_vline(aes(x=genes$V2))
 
 
 
-########################################################################################
-# Analysis of US farm samples from Ray Kaplan
-########################################################################################
-```shell
-mkdir 02_RAW/RAW_US_FIELD
-cd 02_RAW/RAW_US_FIELD
 
-pathfind -t lane -i 31192_6 --rename -l ./ --filetype fastq
-pathfind -t lane -i 31192_7 --rename -l ./ --filetype fastq
-pathfind -t lane -i 31192_8 --rename -l ./ --filetype fastq
-
-cat samples_lanes.list
-Hc_RKUSA_L3_n200_FARM_001	31192_6_1
-Hc_RKUSA_L3_n200_FARM_002	31192_6_2
-Hc_RKUSA_L3_n200_FARM_003	31192_6_3
-Hc_RKUSA_L3_n200_FARM_004	31192_6_4
-Hc_RKUSA_L3_n200_FARM_005	31192_6_5
-Hc_RKUSA_L3_n200_FARM_006	31192_6_6
-Hc_RKUSA_L3_n200_FARM_007	31192_6_7
-Hc_RKUSA_L3_n200_FARM_008	31192_6_8
-Hc_RKUSA_L3_n200_FARM_009	31192_6_9
-Hc_RKUSA_L3_n200_FARM_010	31192_6_10
-Hc_RKUSA_L3_n200_FARM_001	31192_7_1
-Hc_RKUSA_L3_n200_FARM_002	31192_7_2
-Hc_RKUSA_L3_n200_FARM_003	31192_7_3
-Hc_RKUSA_L3_n200_FARM_004	31192_7_4
-Hc_RKUSA_L3_n200_FARM_005	31192_7_5
-Hc_RKUSA_L3_n200_FARM_006	31192_7_6
-Hc_RKUSA_L3_n200_FARM_007	31192_7_7
-Hc_RKUSA_L3_n200_FARM_008	31192_7_8
-Hc_RKUSA_L3_n200_FARM_009	31192_7_9
-Hc_RKUSA_L3_n200_FARM_010	31192_7_10
-Hc_RKUSA_L3_n200_FARM_001	31192_8_1
-Hc_RKUSA_L3_n200_FARM_002	31192_8_2
-Hc_RKUSA_L3_n200_FARM_003	31192_8_3
-Hc_RKUSA_L3_n200_FARM_004	31192_8_4
-Hc_RKUSA_L3_n200_FARM_005	31192_8_5
-Hc_RKUSA_L3_n200_FARM_006	31192_8_6
-Hc_RKUSA_L3_n200_FARM_007	31192_8_7
-Hc_RKUSA_L3_n200_FARM_008	31192_8_8
-Hc_RKUSA_L3_n200_FARM_009	31192_8_9
-Hc_RKUSA_L3_n200_FARM_010	31192_8_10
-
-mkdir TRIM
-cd TRIM
-
-rm run_trim_all
-while read name lane; do \
-echo "bsub.py --queue yesterday --threads 7 20 trim_P /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
-done < ../samples_lanes.list ; \
-chmod a+x run_trim_all; \
-./run_trim_all
-
-
-
-# get rid of the unpaired fraction
-rm *unpaired*
-
-# make a sample list for mapping
-mkdir ../../../03_MAPPING/US_FIELD
-
-ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPING/US_FIELD/sample.list
-```
-
-
-
-#--- map reads
-
-cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/03_MAPPING/US_FIELD
-screen
-while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
-
-
-mv *out/*.marked.bam .
-mv *out/*.marked.bam.bai .
-
-
-# run_merge-bams_multisample
-#
-# Setup script to collate multiple mapped lanes with same sample ID
-# Once all mapping jobs have finished, this script can be run to collate any individual mapped
-# samples that shre the same name, e.g. if a sample has been sequenced twice, or, has been
-# split into multiple fastq files due to high output
-
-touch run_merger.tmp
-for i in $( cat ../../02_RAW/RAW_US_FIELD/samples_lanes.list | cut -f1 | sort | uniq ); do echo "bsub.py 10 merge_${i}_tmp ./run_merge.tmp ${i} &" >> run_merger.tmp; done
-
-echo 'SAMPLE=$1; ls -1 ${SAMPLE}*.bam > ${SAMPLE}.tmp.bamlist ; samtools-1.3 merge -c -b ${SAMPLE}.tmp.bamlist ${SAMPLE}.merge.bam; samtools-1.3 index -b ${SAMPLE}.merge.bam' > run_merge.tmp
-
-chmod a+x run_merge.tmp
-chmod a+x run_merger.tmp
-./run_merger.tmp
-
-
-
-#--- clean up
-
-rm *bamlist
-rm *tmp*
-rm *marked.bam*
-
-
-
-#rm -r *out
-
-#--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
-ls -1 *bam > bam.list
-
-~sd21/bash_scripts/run_gatk_indel_realigner /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list
-
-#--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
-rm *marked.bam
-rm *marked.bam.bai
-rm *.merge.bam
-rm *.merge.bam.bai
-
-
-#--- remove the trimmed fastqs - they are only taking up disk space
-rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/*.gz
-
-
-
-# setup for mpileup
-mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD
-
-ls $PWD/*bam > /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD/bam.list
-
-cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD
-
-
-#--- run mpileup
-~sd21/bash_scripts/run_mpileup XQTL_US_FIELD /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list
-
-
-
-rm *tmp*
-
-
-
-~sd21/bash_scripts/run_mpileup2popoolation2 XQTL_US_FIELD ~sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa $PWD/XQTL_US_FIELD.mpileup 200 10000
 
 
 
