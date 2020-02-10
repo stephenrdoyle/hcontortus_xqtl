@@ -691,6 +691,11 @@ rm *tmp*
 
 
 # Analyses <a name="analysis"></a>
+<br/>
+<div align="right">
+    <b><a href="#----">↥ back to top</a></b>
+</div>
+<br/>
 ```bash
 # load R - using 3.6.0
 R
