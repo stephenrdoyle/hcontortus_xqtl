@@ -706,14 +706,14 @@ library(scales)
 library(patchwork)
 
 pal<-palette(c("cornflowerblue","blue"))
-
+```
 
 ###---------------------------------------------------------------------------------------        
 # Parents
-
+```R
 
 parents<-read.table("PARENTS/XQTL_PARENTS.merged.fst",header=F)
-data<-parents
+
 
 
 # genome wide levels of significance
@@ -722,7 +722,7 @@ gwide_sig3_fst_p0 <- mean(c(parents$V7))+(3*sd(c(parents$V7)))
 gwide_sig5_fst_p0 <- mean(c(parents$V7))+(5*sd(c(parents$V7)))
 
 
-ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+ggplot(parents)+geom_point(aes(1:nrow(parents)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -745,9 +745,8 @@ ggsave("PARENTS/XQTL_parents_fst.pdf",useDingbats=FALSE)
 ###---------------------------------------------------------------------------------------        
 
 # XQTL
-
-xqtl_control <- read.table("XQTL_CONTROL/XQTL_CONTROL.merged.fst",header=F)
-data<-xqtl_control
+```R
+xqtl_control <- read.table("XQTL_CONTROL/XQTL_CONTROL.merged.fst",header=F)v
 
 # genome wide levels of significance
 #--- mean of replicates Fst
@@ -758,7 +757,7 @@ gwide_sig5_fst <- mean(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29))+(5
 #Rep1	Rep2	Rep3
 #V11	V21	V29
 
-control_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+control_r1 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -774,7 +773,7 @@ control_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour 
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V21,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+control_r2 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V21,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -790,7 +789,7 @@ control_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V21,alpha=V4,colour 
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V29,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+control_r3 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V29,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -808,16 +807,20 @@ control_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V29,alpha=V4,colour 
 
 control_r1 + control_r2 + control_r3 + plot_layout(ncol=1)
 
+ggsave("XQTL_CONTROL/XQTL_control_fst.pdf",useDingbats=FALSE)
+```
+
+
 ###---------------------------------------------------------------------------------------        
 #BZ
-
+```R
 xqtl_bz <- read.table("XQTL_BZ/XQTL_BZ.merged.fst",header=F)
-data<-xqtl_bz
+
 
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-bz_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+bz_r1 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -833,7 +836,7 @@ bz_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ife
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-bz_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+bz_r2 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -849,7 +852,7 @@ bz_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ife
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-bz_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+bz_r3 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -865,7 +868,7 @@ bz_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ife
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-bz_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+bz_r4 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -883,18 +886,20 @@ bz_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ife
 
 bz_r1 + bz_r2 + bz_r3 + bz_r4 +plot_layout(ncol=1)
 
+ggsave("XQTL_BZ/XQTL_BZ_fst.pdf",useDingbats=FALSE)
+```
 
 ###---------------------------------------------------------------------------------------        
 # XQTL_LEV
 
-
+```R
 xqtl_lev <- read.table("XQTL_LEV/XQTL_LEV.merged.fst",header=F)
-data<-xqtl_lev
+
 
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-lev_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+lev_r1 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -910,7 +915,7 @@ lev_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-lev_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+lev_r2 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -926,7 +931,7 @@ lev_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-lev_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+lev_r3 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.3)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -942,7 +947,7 @@ lev_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-lev_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+lev_r4 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.3)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -960,17 +965,18 @@ lev_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = if
 
 lev_r1 + lev_r2 + lev_r3 + lev_r4 +plot_layout(ncol=1)
 
-
+ggsave("XQTL_LEV/XQTL_LEV_fst.pdf",useDingbats=FALSE)
+```
 ###---------------------------------------------------------------------------------------        
 # XQTL_IVM
-
+```R
 xqtl_ivm <- read.table("XQTL_IVM/XQTL_IVM.merged.fst",header=F)
-data<-xqtl_ivm
+
 
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-ivm_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+ivm_r1 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -986,7 +992,7 @@ ivm_r1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V13,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+ivm_r2 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1002,7 +1008,7 @@ ivm_r2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V27,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+ivm_r3 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1018,7 +1024,7 @@ ivm_r3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V39,alpha=V4,colour = if
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+ivm_r4 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.075)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
@@ -1035,6 +1041,18 @@ ivm_r4 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V49,alpha=V4,colour = if
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 
 ivm_r1 + ivm_r2 + ivm_r3 + ivm_r4 + plot_layout(ncol=1)
+
+ggsave("XQTL_IVM/XQTL_IVM_fst.pdf",useDingbats=FALSE)
+```
+
+#--- Figure for paper
+```R
+control_r1 + bz_r1 + lev_r1 + ivm_r1 + plot_layout(ncol=1)
+ggsave("XQTL_all4plots_fst.pdf",useDingbats=FALSE)
+
+```
+
+
 
 
 ###---------------------------------------------------------------------------------------        
@@ -1933,6 +1951,36 @@ bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e sn
 
 ## Other stuff
 
+# Genome wide signficance
+- FET from popoolation2
+```shell
+cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_CONTROL
+
+# merge FETs from three control sample comparions of pre and post tim matched controls, and take mean and std dev
+cat <(cut -f13 XQTL_CONTROL.merged.fet) <(cut -f23 XQTL_CONTROL.merged.fet) <(cut -f29 XQTL_CONTROL.merged.fet) | datamash mean 1 pstdev 1
+= 0.34615931956459	0.42400180743679
+= 3*SD = 1.27
+= 5*SD = 2.12
+
+= mean + 3SD = 1.616
+1556627 SNPs in at least one control above this, only 2183 SNPs above this threshold in all three comparisons
+= mean + 5SD = 2.466
+257238 SNPs in at least one control above this, only 32 SNPs above this threshold in all three comparisons
+
+
+
+
+
+# bonferroni correction
+0.05 / 29417009 = 0.000000001699697 = 1.700 x 10^9
+-log10(0.000000001699697) = 8.77
+
+awk '{if($13>8.77 || $23>8.77 || $29>8.77) print }' XQTL_CONTROL.merged.fet
+- only 32 SNPs of 29417009 are above this threshold in at least one of the control populations. An additional 43 are above this in mtDNA.
+```
+
+
+
 # mapping gilleard ISE, CAVR, WRS RNAseq to compare with XQTL data
 ```
 #--- map reads
@@ -1950,7 +1998,6 @@ bsub.py 20 --threads 8 starmap_${i} /nfs/users/nfs_s/sd21/lustre118_link/softwar
 --outWigType bedGraph \
 --twopassMode Basic \
 ; done
-```
 ```
 
 
@@ -2006,4 +2053,78 @@ ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", 
         axis.ticks = element_line(colour = "grey70", size = 0.2),
         panel.grid.major = element_line(colour = "grey70", size = 0.2),
         panel.border = element_rect(colour = "black", fill=NA, size=1))
+```
+
+
+### mapping Gilleard parental strains to compare against XQTL data
+- gillard BC was mapped against the V3 version of the genome, so needs to be done again.
+
+
+
+
+
+```
+cd ~/lustre118_link/hc/XQTL/03_MAPPING/GILLEARD_BC/DNASEQ
+
+parental_ISE_susceptible_5764_1	5764_1
+parental_ISE_susceptible_6514_1	6514_1
+parental_ISE_susceptible_7756_1	7756_1
+parental_WRS_resistant_5764_2	5764_2
+parental_WRS_resistant_6474_1	6474_1
+parental_WRS_resistant_7756_2	7756_2
+parental_CAVR_resistant_5764_3	5764_3
+parental_CAVR_resistant_6474_2	6474_2
+parental_CAVR_resistant_7756_3	7756_3
+
+
+
+while read name id; do pf data --rename --filetype fastq -l ./ --type lane --id ${id}; done < sample_lanes.list
+
+
+
+while read name lane; do ~sd21/bash_scripts/run_bwamem_splitter ${name} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa $PWD/${lane}_1.fastq.gz $PWD/${lane}_2.fastq.gz; done < sample_lanes.list
+
+
+
+#--- clean up
+mv *out/*.marked.bam .
+mv *out/*.marked.bam.bai .
+
+rm -r *out
+
+#--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
+ls -1 *bam > bam.list
+ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa
+
+~sd21/bash_scripts/run_gatk_indel_realigner HAEM_V4_final.chr.fa bam.list
+
+
+#--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
+rm *marked.bam
+rm *marked.bam.bai
+
+
+
+
+#--- run mpileup
+ls -1 *bam > bam.list
+
+~sd21/bash_scripts/run_mpileup.sh GBX_PARENTS /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list &
+
+cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE_RESPONSE.mpileup &
+
+rm *tmp*
+
+
+#mpileup to popoolation2
+~sd21/bash_scripts/run_mpileup2popoolation2 GBX /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa GBX.mpileup 50 5000 &
+
+
+
+
+
+#snpeff
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 GBX_PARENTS.raw.vcf.gz > GBX_PARENTS.raw.snpeff.vcf.gz"
+
+
 ```
