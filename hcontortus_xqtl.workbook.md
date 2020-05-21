@@ -722,12 +722,12 @@ gwide_sig3_fst_p0 <- mean(c(parents$V7))+(3*sd(c(parents$V7)))
 gwide_sig5_fst_p0 <- mean(c(parents$V7))+(5*sd(c(parents$V7)))
 
 
-ggplot(parents)+geom_point(aes(1:nrow(parents)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+ggplot(parents)+geom_point(aes(1:nrow(parents)*5000,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
+  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
   theme_bw()+
   geom_hline(yintercept = gwide_sig3_fst_p0, linetype = "dashed", colour="orange",size=0.5)+
   geom_hline(yintercept = gwide_sig5_fst_p0, linetype = "dashed", colour="red",size=0.5)+
@@ -746,7 +746,7 @@ ggsave("PARENTS/XQTL_parents_fst.pdf",useDingbats=FALSE)
 
 # XQTL
 ```R
-xqtl_control <- read.table("XQTL_CONTROL/XQTL_CONTROL.merged.fst",header=F)v
+xqtl_control <- read.table("XQTL_CONTROL/XQTL_CONTROL.merged.fst",header=F)
 
 # genome wide levels of significance
 #--- mean of replicates Fst
@@ -757,12 +757,12 @@ gwide_sig5_fst <- mean(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29))+(5
 #Rep1	Rep2	Rep3
 #V11	V21	V29
 
-control_r1 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
+control_r1 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V11,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
   ylim(0,0.1)+
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
+  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
   theme_bw()+
   geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
   geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
@@ -2342,8 +2342,6 @@ hcontortus_chr5_Celeg_TT_arrow_pilon	34397500	0.50000000
 # rep 1 - V7
 7    hcontortus_chr5_Celeg_TT_arrow_pilon	37377500	0.19438392
 7    hcontortus_chr2_Celeg_TT_arrow_pilon	27157500	0.12806700
-
-
 
 
 
