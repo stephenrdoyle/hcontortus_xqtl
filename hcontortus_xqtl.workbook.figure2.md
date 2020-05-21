@@ -33,7 +33,7 @@ plot_a <- ggplot(data)+
      facet_grid(LABEL~.)
 
 
-
+# control
 control <- read.table("XQTL_CONTROL.merged.fst",header=F)
 control <- control[control$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 control <- dplyr::select(control, V1, V2, V11)
@@ -42,6 +42,7 @@ control$LABEL <- "1. F2: Control"
 control$ROW_ID <- 1:nrow(control)
 colnames(control) <- c("CHR","POS","FST","LABEL","ROW_ID")
 
+# benzimidazole
 bz <- read.table("XQTL_BZ.merged.fst",header=F)
 bz <- bz[bz$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 bz <- dplyr::select(bz, V1, V2, V13)
@@ -52,6 +53,8 @@ colnames(bz) <- c("CHR","POS","FST","LABEL","ROW_ID")
 
 data <- dplyr::bind_rows(control,bz)
 
+
+# levamisole
 lev <- read.table("XQTL_LEV.merged.fst",header=F)
 lev <- lev[lev$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 lev <- dplyr::select(lev, V1, V2, V13)
@@ -62,6 +65,7 @@ colnames(lev) <- c("CHR","POS","FST","LABEL","ROW_ID")
 
 data <- dplyr::bind_rows(data,lev)
 
+#ivermectin
 ivm <- read.table("XQTL_IVM.merged.fst",header=F)
 ivm <- ivm[ivm$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 ivm <- dplyr::select(ivm, V1, V2, V13)
@@ -72,13 +76,17 @@ colnames(ivm) <- c("CHR","POS","FST","LABEL","ROW_ID")
 
 data <- dplyr::bind_rows(data,ivm)
 
-# make the XQTL plot
-chr_colours<-c("blue","cornflowerblue","blue","cornflowerblue","blue","cornflowerblue")
 
 # genome wide signficance per sample
 data_gws <- data %>%
     group_by(LABEL) %>%
     summarise(GWS = mean(FST)+3*sd(FST))
+
+
+
+# make the XQTL plot
+chr_colours<-c("blue","cornflowerblue","blue","cornflowerblue","blue","cornflowerblue")
+
 
 plot_b <- ggplot(data)+
      geom_hline(data = data_gws, aes(yintercept=GWS), linetype="dashed",col="black")+
@@ -95,6 +103,9 @@ plot_b <- ggplot(data)+
 plot_a + plot_b + plot_layout(ncol=1, heights = c(1,4))
 ggsave("genomewide_fst_plots.pdf",useDingbats=FALSE,width=170,height=200,units="mm")
 
+
+
+# other stuff that wasn't used but worth keeping
 <!-- ```R
 R
 library(ggplot2)
