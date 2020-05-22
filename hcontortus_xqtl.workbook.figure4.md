@@ -414,3 +414,18 @@ plot_a + plot_b + ((plot_c / plot_d) | plot_e) + plot_layout(ncol=1, height=c(3,
 
 # deletion coordinates (size)
 31527022 to 31527119 (97 bp) / 31527121 (99 bp)
+
+
+
+
+
+
+#-----
+grep "pre" bam.list  > lev_pretreatment_samples.list
+grep "post" bam.list  > lev_posttreatment_samples.list
+
+grep "pre" ../XQTL_CONTROL/bam.list  > control_pretreatment_samples.list
+grep "post" ../XQTL_CONTROL/bam.list  > control_posttreatment_samples.list
+
+for i in $(ls *.list); do
+vcftools --gzvcf 5.hcontortus_chr5_Celeg_TT_arrow_pilon.cohort.vcf.gz --keep ${i} --positions acr8.positions --freq --out global_${i}; done
