@@ -408,7 +408,7 @@ plot_a + plot_b + (plot_c | (plot_d / plot_e)) + plot_layout(ncol=1, height=c(3,
 ggsave("XQTL_Figure_4.pdf", useDingbats=FALSE, width=170, height=170, units="mm")
 ggsave("XQTL_Figure_4.png")
 
-![](04_analysis/XQTL_Figure_4.png)
+![](04_analysis/ XQTL_Figure_4.png)
 
 ```
 
