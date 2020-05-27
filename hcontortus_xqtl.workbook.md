@@ -762,7 +762,7 @@ control_r1 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V11,
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
+  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comm)+
   theme_bw()+
   geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
   geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
