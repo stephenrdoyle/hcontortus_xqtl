@@ -425,8 +425,8 @@ ggsave("XQTL_Figure_4.png")
 
 
 
-
-
+### INCOMPLETE - get frequency of acr8 variant from global dataset
+```shell
 #-----
 grep "pre" bam.list > lev_pretreatment_samples.list
 grep "post" bam.list > lev_posttreatment_samples.list
@@ -436,7 +436,7 @@ grep "post" ../XQTL_CONTROL/bam.list > control_posttreatment_samples.list
 
 for i in $(ls *.list); do
 vcftools --gzvcf 5.hcontortus_chr5_Celeg_TT_arrow_pilon.cohort.vcf.gz --keep ${i} --positions acr8.positions --freq --out global_${i}; done
-
+```
 
 
 
