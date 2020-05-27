@@ -451,7 +451,7 @@ vcftools --gzvcf 5.hcontortus_chr5_Celeg_TT_arrow_pilon.cohort.vcf.gz --keep ${i
 # Supplementary Figure - multiple seqeunce alignment of acr-8 showing Ser168Thr conservation
 
 
-
+```shell
 # downloaded protein sequences from WBP frmo ortholog set of C. elegans acr-8
 
 WBGene00036931|cabrigprjna10731  Caenorhabditis_briggsae
@@ -506,9 +506,9 @@ while read old new; do samtools faidx wbp_acr8.fa ${new}; done < rename > wb_cla
 module load mafft/7.407 = 1
 
 mafft --localpair --maxiterate 16 --reorder "wb_cladeV_acr8.fa" > "wb_cladeV_acr8.aln"
+```
 
-
-
+```R
 # make a plot
 R
 library(ggmsa)
@@ -557,5 +557,7 @@ ggplot(data, aes(y = name, x = position)) +
    scale_fill_manual(values = colours)
 
 ggsave("acr8_multiple_sequence_alignment.pdf", width = 170, height = 180, units = "mm")
-
+ggsave("acr8_multiple_sequence_alignment.png")
+```
+![](04_analysis/acr8_multiple_sequence_alignment.png)
 #-------------------------------------------------------------------------------
