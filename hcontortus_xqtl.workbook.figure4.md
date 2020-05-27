@@ -38,12 +38,12 @@ genes <- read.table("candidategenes.data", header = T)
 
 plot_a <- ggplot(data)+
    geom_hline(data = data_gws, aes(yintercept = GWS), linetype = "dashed", col = "black")+
-   geom_vline(data = genes, aes(xintercept = POS), linetype = "dotted", col = "darkgrey", size = 1)+
+   geom_vline(data = genes, aes(xintercept = POS), col = "darkgrey", size = 1)+
    geom_point(aes(POS, FST, group = CHR), size = 0.5, col = "cornflowerblue")+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[1]) & (data$POS < = peaks$PEAK_END_COORD[1]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[2]) & (data$POS < = peaks$PEAK_END_COORD[2]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[3]) & (data$POS < = peaks$PEAK_END_COORD[3]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[4]) & (data$POS < = peaks$PEAK_END_COORD[4]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
+   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[1]) & (data$POS <= peaks$PEAK_END_COORD[1]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
+   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[2]) & (data$POS <= peaks$PEAK_END_COORD[2]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
+   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[3]) & (data$POS <= peaks$PEAK_END_COORD[3]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
+   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[4]) & (data$POS <= peaks$PEAK_END_COORD[4]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
    ylim(0, 0.1)+xlim(0, 50e6)+
    labs(title = "A", x = "Chromosome position (5 kbp window)", y = "Genetic differentiation (Fst)")+
    theme_bw()+theme(legend.position = "none", text = element_text(size = 10))+
@@ -157,18 +157,18 @@ plot_b <- ggplot()+
  geom_segment(data = intron1, aes(x = intron1$start, xend = intron1$start + intron1$midpoint, y = 1, yend = 1.5), size = 0.5)+
  geom_segment(data = intron1, aes(x = intron1$start + intron1$midpoint, xend = intron1$end, y = 1.5, yend = 1), size = 0.5)+
  geom_rect(data = cds1, aes(xmin = cds1$start, ymin = 0.5, xmax = cds1$end, ymax = 1.5), fill = "grey", col = NA)+
- geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 1, label = gene1))+
+ geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 1, label = gene1),size = 2)+
  geom_segment(aes(x = 31521884, xend = 31521884, y = 0.5, yend = 1.5), size = 1, col = "orange")+ # Ser168Thr
- geom_text(aes(x = 31521884, y = 0.35), label = "Ser168Thr", size = 3.5)+
+ geom_text(aes(x = 31521884, y = 0.35), label = "Ser168Thr", size = 2)+
 #gene2
  geom_rect(data = utr2, aes(xmin = utr2$start, ymin = 2, xmax = utr2$end, ymax = 3), fill = NA, col = "grey", size = 0.4)+
  geom_segment(data = intron2, aes(x = intron2$start, xend = intron2$start+intron2$midpoint, y = 2.5, yend = 3), size = 0.5)+
  geom_segment(data = intron2, aes(x = intron2$start+intron2$midpoint, xend = intron2$end, y = 3, yend = 2.5), size = 0.5)+
  geom_rect(data = cds2, aes(xmin = cds2$start, ymin = 2, xmax = cds2$end, ymax = 3), fill = "grey", col = NA)+
- geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 2.5, label = gene2))+
+ geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 2.5, label = gene2), size = 2)+
  # acr-8 indel
  geom_segment(aes(x = 31527022, xend = 31527022, y = 0.5, yend = 3), size = 1, col = "red")+
- geom_text(aes(x = 31527022, y = 0.35), label = "indel", size = 3.5)+
+ geom_text(aes(x = 31527022, y = 0.35), label = "indel", size = 2)+
  #geom_rect(aes(xmin = 31527022, ymin = 0, xmax = 31527121, ymax = 3), fill = NA, col = "grey", size = 0.4)+
  # plot layout
  theme_classic()+
@@ -410,11 +410,8 @@ plot_e <- ggplot()+geom_blank()
 library(patchwork)
 plot_a + plot_b + (plot_c | (plot_d / plot_e)) + plot_layout(ncol = 1, height = c(3, 1, 3))
 
-ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 170, height = 170, units = "mm")
+ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 170, height = 190, units = "mm")
 ggsave("XQTL_Figure_4.png")
-
-
-
 ```
 ![](04_analysis/XQTL_Figure_4.png)
 
