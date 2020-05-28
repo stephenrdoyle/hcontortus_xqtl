@@ -216,7 +216,7 @@ p.data <- dplyr::bind_rows(control_stat.test,  bz_stat.test)
 
 # make new plot with p values annotated on it
 plot_b <- plot +
-     geom_text(data = p.data,  aes(x = 1.5,  y = 0.95,  group = POS,  label = paste('P = ', p.adj)), size = 3)
+     geom_text(data = p.data,  aes(x = 1.5,  y = 0.95,  group = POS,  label = paste('P = ', p.adj)), size = 2.5)
 ```
 
 ---
@@ -271,13 +271,14 @@ af_bz_cor <- cor.test(us_btub2$ALLELE_FREQ,  us_btub2$BZ_CONCENTRATION,  method 
 plot_c <- ggplot(us_btub2)+
      geom_smooth(aes(BZ_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey')+
      geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2)+
-     geom_text(aes(10, 0.95, label = paste('r = ', signif(af_bz_cor$estimate, 3), '\n', 'P = ', signif(af_bz_cor$p.value, 3))), size = 3)+
+     geom_text(aes(15, 0.95, label = paste('r = ', signif(af_bz_cor$estimate, 3), '\n', 'P = ', signif(af_bz_cor$p.value, 3))), size = 2.5)+
      geom_text_repel(aes(BZ_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 3.5)+
-     labs(title = "C", y = "Variant Allele Frequency", x = "Benzimidazole EC50 (\u03BCM)", col="US farm ID") +
-     ylim(-0.05, 1)+
-     facet_grid(.~POS)+
+     labs(title = "C", y = "Variant Allele Frequency", x = "Benzimidazole EC50 (uM)", col = "US farm ID") +
+     ylim(-0.05, 1) +
+     #facet_grid(. ~ POS) +
+     facet_grid(POS ~ "US farm") +
      theme_bw()+
-     theme(legend.position = "none", text = element_text(size=10))
+     theme(legend.position = "none", text = element_text(size = 10))
 ```
 
 ```R
@@ -288,8 +289,9 @@ library(patchwork)
 # plot it
 plot_a / (plot_b | plot_c)
 
+
 # save it
-ggsave("Figure_benzimidazole.pdf",  useDingbats = FALSE, width = 170, height = 140, units = "mm")
+ggsave("Figure_benzimidazole.pdf",  useDingbats = FALSE, width = 170, height = 130, units = "mm")
 ggsave("Figure_benzimidazole.png")
 ```
 ![](04_analysis/Figure_benzimidazole.png)
