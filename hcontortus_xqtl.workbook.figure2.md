@@ -139,7 +139,7 @@ ggsave("genomewide_fst_plots.png")
 ![](04_analysis/genomewide_fst_plots.png)
 
 
-# other stuff that wasn't used but worth keeping
+### other stuff that wasn't used but worth keeping
 <!-- ```R
 R
 library(ggplot2)
