@@ -25,7 +25,7 @@ parents <- read.table("XQTL_PARENTS.merged.fst",  header = F)
 parents <- parents[parents$V1 != "hcontortus_chr_mtDNA_arrow_pilon",  ]
 parents <- dplyr::select(parents,  V1,  V2,  V7)
 colnames(parents) <- c("CHR",  "POS",  "FST")
-parents$LABEL <- "P0: MHco3(ISE) vs MHco18(UGA)"
+parents$LABEL <- "MHco3(ISE) vs MHco18(UGA)"
 parents$ROW_ID <- 1:nrow(parents)
 colnames(parents) <- c("CHR",  "POS",  "FST",  "LABEL",  "ROW_ID")
 
@@ -44,7 +44,7 @@ plot_a <- ggplot(data)+
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed",  col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL),  size = 0.1) +
      ylim(0, 1) +
-     labs(title = "A",  x = "Chromosome position (5 kbp window)",  y = "Genetic differentiation (Fst)") +
+     labs(title = "A",  x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw() + theme(legend.position = "none",  text = element_text(size = 10)) +
@@ -122,7 +122,7 @@ plot_b <- ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL), size = 0.1) +
      ylim(0, 0.1) +
-     labs(title = "B", x = "Chromosome position (5 kbp window)",  y = "Genetic differentiation between pre- and post-treatment (Fst)") +
+     labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between pre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
      theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
