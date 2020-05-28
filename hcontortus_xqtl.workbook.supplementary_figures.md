@@ -10,8 +10,11 @@
 
 #-----------------------------------------------------------------------------------------
 
-# Figure S1 - isotype 1 data from US farms <a name="Figure_S1"></a>
+## Figure S1 - isotype 1 data from US farms <a name="Figure_S1"></a>
 
+Aim is to determine the frequency of Phe167Tyr & Phe200Tyr variants in the US farm dataset
+
+## Prepare the data
 ```shell
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/US_FIELD/VCF
@@ -60,8 +63,11 @@ ggsave("FigureSX_USfarm_btub1.png")
 
 #-----------------------------------------------------------------------------------------
 
-# Figure S2 - panel a - ivermectin selection on btub P200 <a name="Figure_S2"></a>
+## Figure S2 - panel a - evidence of ivermectin selection on btub variants <a name="Figure_S2"></a>
 
+Aim is to show evidence (or lack thereof) of Phe167Tyr & Phe200Tyr variants in the ivermectin XQTL data.
+
+### Prepare the data
 ```shell
 #working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_IVM
@@ -83,9 +89,9 @@ done
 ```
 
 
-
+### R to plot
 ```R
-R
+# load required libraries
 library(reshape2)
 library(ggplot2)
 library(dplyr)
@@ -93,6 +99,7 @@ library(stringr)
 library(tidyr)
 library(rstatix)
 
+# reform the data
 pre <- read.table("ivm_btub_pretreatment.ADfreq")
 colnames(pre) <- c("CHR", "POS", "R1", "R1.2", "R2", "R3")
 pre <- melt(pre, id = c("CHR", "POS"), variable.name = "SAMPLE_ID")
@@ -105,12 +112,9 @@ data <- dplyr::full_join(pre, post, by = c("CHR", "POS", "SAMPLE_ID"))
 data$TREATMENT <- "Ivermectin"
 colnames(data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TREATMENT", "TREATMENT")
 
-
-
 # change the labels
 data <- data %>%
   mutate(POS = str_replace(POS, c("7029569", "7029790"), c("Phe167Tyr", "Phe200Tyr")))
-
 
 
 # make the plot
@@ -147,11 +151,11 @@ plot_a <- plot_a +
 plot_a
 ```
 
+## Figure SX - panel b - correlation between btubulin isotype 1 and ivermectin concentration
 
-#-------------------------------------------------------------------------------
+Aim is to show frequency of Phe167Tyr Phe200Tyr variants against EC50 for ivermectin in US farms
 
-# Figure SX - panel b - correlation between btubulin isotype 1 and ivermectin concentration
-
+### Prepare the data
 ```shell
 #working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/US_FIELD/VCF
@@ -165,8 +169,9 @@ vcftools --vcf 1.hcontortus_chr1_Celeg_TT_arrow_pilon.snpeff.vcf --keep samples.
 grep "^hcon" us_farms_btub1.AD.FORMAT | awk -F '[\t,]' '{print $1,$2,$4/($3+$4),$6/($5+$6),$8/($7+$8),$10/($9+$10),$12/($11+$12),$14/($13+$14),$16/($15+$16),$18/($17+$18),$20/($19+$20),$22/($21+$22)}' OFS="\t" > us_farms_btub1.ADfreq
 ```
 
+### R to plot
 ```R
-R
+# load required libraries
 library(reshape2)
 library(ggplot2)
 library(dplyr)
@@ -176,15 +181,14 @@ library(rstatix)
 library(ggrepel)
 library(patchwork)
 
+# reformat the data
 us_btub1 <- read.table("us_farms_btub1.ADfreq")
 colnames(us_btub1) <- c("CHR", "POS", "Farm 1", "Farm 2", "Farm 3", "Farm 4", "Farm 5", "Farm 6", "Farm 7", "Farm 8", "Farm 9", "Farm 10")
 
-
 us_btub1 <- melt(us_btub1,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
+# manually input the EC50 data from Table SX
 ivm_conc <- c(1.51, 1.51, 12.04, 12.04, 9.15, 9.15, 11.27, 11.27, 297.9, 297.9, 619, 619, 312.1, 312.1, NA, NA, 0.977, 0.977, 259.4, 259.4)
-
-
 
 us_btub1$IVM_CONCENTRATION <- ivm_conc
 colnames(us_btub1) <- c("CHR", "POS", "SAMPLE_ID", "ALLELE_FREQ", "IVM_CONCENTRATION")
@@ -215,22 +219,23 @@ cor.data$POS <-  c("Phe167Tyr", "Phe200Tyr")
 
 colnames(cor.data) <- c("COR", "PVALUE", "CHR", "POS")
 
+
 # make the plot
 plot_b <- ggplot(us_btub1) +
-     geom_smooth(aes(IVM_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey') +
+     geom_smooth(aes(IVM_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey', se = FALSE) +
      geom_jitter(aes(IVM_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2) +
      geom_text_repel(aes(IVM_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 2) +
-     labs(title = "B", y = "Resistant Allele Frequency", x = "Ivermectin concentration", col = "US farm ID") +
+     labs(title = "B", y = "Resistant Allele Frequency", x = "Ivermectin EC50 (nM)", col = "US farm ID") +
      ylim(-0.05, 1.05) +
      facet_grid(. ~ POS) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
-
 plot_b <- plot_b + geom_text(data = cor.data,  aes(x = 500,  y = 1,  group = POS,  label = paste('r = ', signif(COR, 3), '\n', 'P = ', signif(PVALUE, 3))), size = 3)
 
-
+# combine panels a and b using patchwork
 plot_a + plot_b + plot_layout(ncol = 2)
 
+# save it
 ggsave("FigureSX_USfarm_btub1vsIVM.pdf",  useDingbats = FALSE,  width = 170,  height = 100,  units = "mm")
 ggsave("FigureSX_USfarm_btub1vsIVM.png")
 
@@ -240,9 +245,11 @@ ggsave("FigureSX_USfarm_btub1vsIVM.png")
 
 
 #-------------------------------------------------------------------------------
-# Supplementary Figure - multiple seqeunce alignment of acr-8 showing Ser168Thr conservation
+## Supplementary Figure - multiple seqeunce alignment of acr-8 showing Ser168Thr conservation <a name="Figure_S3"></a>
 
+Aim is to show amino acid alignments of acr8 from all available clade V nematodes, and highlight conservation of the Serine at the Ser168Th variant position putatively linked to levamisole resistance
 
+### Prepare the data  
 ```shell
 # downloaded protein sequences from WBP frmo ortholog set of C. elegans acr-8
 
@@ -300,9 +307,9 @@ module load mafft/7.407=1
 mafft --localpair --maxiterate 16 --reorder "wb_cladeV_acr8.fa" > "wb_cladeV_acr8.aln"
 ```
 
+### R to plot
 ```R
-# make a plot
-R
+# load required libraries
 library(ggmsa)
 library(ggplot2)
 
@@ -341,13 +348,14 @@ colours <- c("A" = "#CD2127", "G" = "#CD2127", "I" = "#CD2127", "L" = "#CD2127",
 # make the plot
 ggplot(data, aes(y = name, x = position)) +
    geom_tile(aes(fill = character), col = "grey", na.rm = TRUE) +
-   geom_text(aes(label = character), col = "black", size = 2)+
-   geom_text(aes(x = 253, y = 31), label = "*")+
-   geom_text(aes(x = 253, y = 29.5), label = "H. contortus\nSer168Thr", size = 3)+
-   theme_minimal()+theme(legend.position = "none")+
-   labs(y = "Species", x = "Alignment position", text = element_text(size = 10))+
+   geom_text(aes(label = character), col = "black", size = 2) +
+   geom_text(aes(x = 253, y = 31), label = "*") +
+   geom_text(aes(x = 253, y = 29.5), label = "H. contortus\nSer168Thr", size = 3) +
+   theme_minimal() + theme(legend.position = "none")+
+   labs(y = "Species", x = "Alignment position", text = element_text(size = 10)) +
    scale_fill_manual(values = colours)
 
+# save it
 ggsave("acr8_multiple_sequence_alignment.pdf", width = 170, height = 180, units = "mm")
 ggsave("acr8_multiple_sequence_alignment.png")
 ```
