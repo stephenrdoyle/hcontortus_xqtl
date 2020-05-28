@@ -47,7 +47,7 @@ plot_a <- ggplot(data)+
      labs(title = "A",  x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw() + theme(legend.position = "none",  text = element_text(size = 10)) +
+     theme_bw() + theme(legend.position = "none",  text = element_text(size = 10), strip.text.y = element_text(size = 7)) +
      facet_grid(LABEL ~ .)
 
 ```
