@@ -14,6 +14,7 @@ working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/GENOMEWIDE
 ```
 
+### R to plot 
 ```R
 # load required libaries
 library(ggplot2)
