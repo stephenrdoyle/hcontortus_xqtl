@@ -16,7 +16,7 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/GENOMEWIDE
 
 ### R to plot
 ```R
-# load required libaries
+# load required libraries
 library(ggplot2)
 library(patchwork)
 library(dplyr)
