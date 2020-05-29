@@ -36,11 +36,15 @@ lev_chr5 <- lev[lev$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
 
 data <- dplyr::bind_rows(lev_chr4, lev_chr5)
 data <- data %>%
- mutate(CHR = str_replace(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon","hcontortus_chr5_Celeg_TT_arrow_pilon"), c("Chromosome 4","Chromosome 5")))
+ mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
 peaks <- read.table("XQTL_LEV.peak_windows", header = T)
+peaks <- peaks %>%
+ mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
 genes <- read.table("candidategenes.data", header = T)
+genes <- genes %>%
+ mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
 
 # set colour for chromosomes
@@ -102,7 +106,7 @@ gene2 = 'HCON_00151260'
 
 # filter data to select chromosome and mRNA
 mrna1_data <- gff[grep(gene1, gff$info), ]
-mrna1_data <- mrna1_data[mrna1_data$feature = = 'mRNA', ]
+mrna1_data <- mrna1_data[mrna1_data$feature == 'mRNA', ]
 mrna1_data <- cbind(mrna1_data, read.table(text = as.character(mrna1_data$info), sep = ";"))
 mrna1_data <- cbind(mrna1_data, read.table(text = as.character(mrna1_data$V3), sep = "=", col.names = c("ID", "unique_ID")))
 mrna1_id <- head(data.frame(mrna1_data$unique_ID), 1) # gives 1st isoform if multiple
@@ -116,37 +120,37 @@ cds1 <- data1[data1$feature == "CDS", ]
 mrna1 <- data1[data1$feature == "mRNA", ]
 
 # generate intron and utr data
-intron1<-data.frame(head(cds1$end, -1), tail(cds1$start, -1), (tail(cds1$start, -1)-head(cds1$end, -1))/2)
-colnames(intron1)<-c("start", "end", "midpoint")
+intron1 <- data.frame(head(cds1$end, -1), tail(cds1$start, -1), (tail(cds1$start, -1)-head(cds1$end, -1))/2)
+colnames(intron1) <- c("start", "end", "midpoint")
 
-utr5<-data.frame(head(mrna1$start, 1), head(sort(cds1$start), 1))
-colnames(utr5)<-c("start", "end")
-utr3<-data.frame(head(mrna1$end, 1), tail(sort(cds1$end), 1))
-colnames(utr3)<-c("start", "end")
-utr1<-rbind(utr5, utr3)
+utr5 <- data.frame(head(mrna1$start, 1), head(sort(cds1$start), 1))
+colnames(utr5) <- c("start", "end")
+utr3 <- data.frame(head(mrna1$end, 1), tail(sort(cds1$end), 1))
+colnames(utr3) <- c("start", "end")
+utr1 <- rbind(utr5, utr3)
 
 # repeat above now for gene2
 mrna2_data <- gff[grep(gene2, gff$info), ]
-mrna2_data <- mrna2_data[mrna2_data$feature = = 'mRNA', ]
+mrna2_data <- mrna2_data[mrna2_data$feature == 'mRNA', ]
 mrna2_data <- cbind(mrna2_data, read.table(text = as.character(mrna2_data$info), sep = ";"))
-mrna2_data <- cbind(mrna2_data, read.table(text = as.character(mrna2_data$V3), sep = " = ", col.names = c("ID", "unique_ID")))
+mrna2_data <- cbind(mrna2_data, read.table(text = as.character(mrna2_data$V3), sep = "=", col.names = c("ID", "unique_ID")))
 mrna2_id <- head(data.frame(mrna2_data$unique_ID), 1) # gives 1st isoform if multiple
 chromosome <- mrna2_data[1, 1]
-colnames(chromosome)<-c("chromosome_ID")
+colnames(chromosome) <- c("chromosome_ID")
 
 data2 <- gff[grep(mrna2_id$mrna2_data.unique_ID, gff$info), ]
 
-cds2 <- data2[data2$feature = = "CDS", ]
-mrna2 <- data2[data2$feature = = "mRNA", ]
+cds2 <- data2[data2$feature == "CDS", ]
+mrna2 <- data2[data2$feature == "mRNA", ]
 
-intron2<-data.frame(head(cds2$end, -1), tail(cds2$start, -1), (tail(cds2$start, -1)-head(cds2$end, -1))/2)
-colnames(intron2)<-c("start", "end", "midpoint")
+intron2 <- data.frame(head(cds2$end, -1), tail(cds2$start, -1), (tail(cds2$start, -1)-head(cds2$end, -1))/2)
+colnames(intron2) <- c("start", "end", "midpoint")
 
-utr52<-data.frame(head(mrna2$start, 1), head(sort(cds2$start), 1))
-colnames(utr52)<-c("start", "end")
-utr32<-data.frame(head(mrna2$end, 1), tail(sort(cds2$end), 1))
-colnames(utr32)<-c("start", "end")
-utr2<-rbind(utr52, utr32)
+utr52 <- data.frame(head(mrna2$start, 1), head(sort(cds2$start), 1))
+colnames(utr52) <- c("start", "end")
+utr32 <- data.frame(head(mrna2$end, 1), tail(sort(cds2$end), 1))
+colnames(utr32) <- c("start", "end")
+utr2 <- rbind(utr52, utr32)
 
 
 # indel coordinates (size)
@@ -226,7 +230,7 @@ data <- dplyr::bind_rows(data_pre, data_post)
 
 
 # find reads that have been softclipped, and determine the length of the softclip
-softclip_match <- "([:digit:]{1, })S"
+softclip_match <- "([:digit:]{1,})S"
 
 # for read 1
 cigars1 <- data$cigar.first
@@ -239,7 +243,6 @@ data$softclip1_length <- softclip1_data
 
 # for read 2
 cigars2 <- data$cigar.last
-softclip2_match <- "([:digit:]{1, })S"
 softclip2_data <- str_extract(cigars2, softclip_match)
 softclip2_data <- gsub("S", "", softclip2_data)
 softclip2_data[is.na(softclip2_data)] <- 0
@@ -351,7 +354,7 @@ colnames(control_data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TR
 data <- dplyr::bind_rows(control_data, lev_data)
 
 data <- data %>%
- mutate(POS = str_replace(POS, c("31521884"), c("Ser168Thr")))
+ mutate(POS = str_replace_all(POS, c("31521884" = "Ser168Thr")))
 
 
 
@@ -377,7 +380,7 @@ lev_stat.test <- lev_data_stats %>%
 
 lev_stat.test$TREATMENT <- "Levamisole treated"
 lev_stat.test <- lev_stat.test %>%
- mutate(POS = str_replace(POS, c("31521884"), c("Ser168Thr")))
+ mutate(POS = str_replace_all(POS, c("31521884" = "Ser168Thr")))
 
 # perform pairwise t tests between pre/post for each SNP on control samples
 control_data_stats <- control_data %>%
@@ -394,7 +397,7 @@ control_stat.test <- control_data_stats %>%
 
 control_stat.test$TREATMENT <- "Untreated control"
 control_stat.test <- control_stat.test %>%
- mutate(POS = str_replace(POS, c("31521884"), c("Ser168Thr")))
+ mutate(POS = str_replace_all(POS, c("31521884" = "Ser168Thr")))
 
 p.data <- dplyr::bind_rows(control_stat.test, lev_stat.test)
 
@@ -407,7 +410,7 @@ plot_d <- plot +
 plot_d
 ```
 
-```
+```R
 # bring the panels together in a single figure
 
 library(patchwork)
