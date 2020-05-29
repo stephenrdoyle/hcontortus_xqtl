@@ -69,7 +69,7 @@ plot_a <- ggplot(data)+
    theme_bw()+theme(legend.position = "none", text = element_text(size = 10))+
    facet_grid(CHR~.)
 
-plot_a
+#plot_a
 ```
 
 ## Figure 4 B <a name = "figure4b"></a>
@@ -188,7 +188,7 @@ plot_b <- ggplot()+
     axis.ticks.y = element_blank(),
     text = element_text(size = 10))
 
-plot_b
+#plot_b
 ```
 
 ## Figure 4 C <a name = "figure4c"></a>
@@ -260,14 +260,14 @@ plot_c <- ggplot(data) +
    #xlim(31526800, 31527250)+
    coord_cartesian(xlim = c(31526850, 31527250)) +
    labs(title = "C", x = "Chromosomal position (bp)") +
-   theme_bw() + theme(legend.position = "none", text = element_text(size = 10),
+   theme_bw() + theme(legend.position = "none", text = element_text(size = 10), strip.text.y = element_text(size = 6),
    axis.title.y = element_blank(),
    axis.text.y = element_blank(),
    axis.ticks.y = element_blank()) +
    facet_grid(treatment ~ .) +
    scale_fill_viridis(option = "plasma")
 
-plot_c
+#plot_c
 
 ```
 
@@ -359,7 +359,7 @@ data <- data %>%
 
 
 # make the plot
-plot <- ggplot(data) +
+plot_d <- ggplot(data) +
    geom_segment(aes(x = "1.Pre-treatment", xend = "2.Post-treatment", y = PRE_TREATMENT, yend = POST_TREATMENT, col = factor(TREATMENT), group = POS), size = 1) +
    labs(title = "D", x = "Sampling time-point", y = "Variant allele frequency", col = "Replicate") +
    ylim(0, 1) +
@@ -403,11 +403,11 @@ p.data <- dplyr::bind_rows(control_stat.test, lev_stat.test)
 
 
 # make new plot with p values annotated on it
-plot_d <- plot +
+plot_d <- plot_d +
    geom_text(data = p.data, aes(x = 1.5, y = 0.90, label = paste('P = ', p.adj[2])), size = 3, col = "red")+
    geom_text(data = p.data, aes(x = 1.5, y = 0.15, label = paste('P = ', p.adj[1])), size = 3, col = "blue")
 
-plot_d
+#plot_d
 ```
 
 ```R
@@ -416,7 +416,8 @@ plot_d
 library(patchwork)
 
 # temporary blank plot
-plot_e <- ggplot()+geom_blank()
+plot_e <- ggplot() + geom_blank()
+
 
 plot_a + plot_b + (plot_c | (plot_d / plot_e)) + plot_layout(ncol = 1, height = c(3, 1, 3))
 
