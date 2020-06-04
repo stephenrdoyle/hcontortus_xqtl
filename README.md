@@ -9,4 +9,4 @@ The code for the analysis is broken up into subsections as follows:
 [Figure 2](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.figure2.md)  
 [Figure 3](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.figure3.md)  
 [Figure 4](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.figure4.md)  
-[Supplementary Figures](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/)
+[Supplementary Figures](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.supplementary_figures.md)
