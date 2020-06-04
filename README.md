@@ -11,10 +11,9 @@ The code for the analysis is broken up into subsections as follows:
 [Figure 4](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.figure4.md)
 [Supplementary Figures](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.supplementary_figures.md)  
 
-Some data will need to be downloaded from my FTP repository
-ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/
+To recreate the figures, some data will need to be downloaded from my FTP repository, which can be accessed [here](ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/)
 
-Any reuse of data or code is encouraged with due acknowledgement.
+Any reuse of data or code is encouraged with due acknowledgement, either via citation of the published manuscript (when available) and/or GitHub repository. Comments, suggestions, and discussion are welcome. 
 
 ******
 ## License
