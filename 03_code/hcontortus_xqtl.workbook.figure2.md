@@ -10,8 +10,17 @@
 Aim is to show genetic differenation between the two parental strains,  MHco3(ISE) and MHco18(UGA)
 
 ```shell
-# working dir:
+# my working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/GENOMEWIDE
+```
+
+```
+# download data needed to make the figures
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_BZ.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_CONTROL.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_IVM.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_LEV.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_PARENTS.merged.fst
 ```
 
 ### R to plot
@@ -139,9 +148,15 @@ ggsave("genomewide_fst_plots.png")
 ```
 ![](04_analysis/genomewide_fst_plots.png)
 
+******
+## License
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+<!--
 
 ### other stuff that wasn't used but worth keeping
-<!-- ```R
+
+
+```R
 R
 library(ggplot2)
 
