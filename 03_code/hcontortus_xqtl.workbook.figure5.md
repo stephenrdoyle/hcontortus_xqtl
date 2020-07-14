@@ -89,6 +89,62 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM
 ln -fs /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20200407/UPDATED_annotation.gff3 ANNOTATION.gff
 ```
 
+grep "gene" ANNOTATION.gff | sed -e 's/owner=irisadmin@local.host;//g' -e 's/date_last_modified=[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9];//g' | awk -F '[\t=;]' '{print $12,$1,$4,$5,$7}' OFS="\t" > genes.positions
+
+
+
+
+genes <- read.table("genes.positions",header=F)
+colnames(genes) <- c("name_PUGAxPISE","chr","start","end","dir")
+
+rnaseq <- read.table("summary_DESEQ_WBPS15gff_alpha0.01_males_all3IVMcomps.tabular", header=T)
+
+rnaseq_data <- dplyr::full_join(genes,rnaseq,by="name_PUGAxPISE")
+
+rnaseq_data_chr5 <- rnaseq_data[rnaseq_data$chr == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
+rnaseq_data_chr5 <- rnaseq_data_chr5 %>%
+ mutate(chr = str_replace_all(chr, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+
+
+
+
+# parental ISE vs parent UGA
+rnaseq_plot1 <- ggplot(rnaseq_data_chr5) +
+       geom_point(aes(start,log2FoldChange),size=0.5,col="lightgrey")+
+       geom_point(aes(start,log2FoldChange, col=-log10(padj), size=-log10(padj)))+
+       geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange > 2 | log2FoldChange < -2),aes(start,log2FoldChange, label=name_PUGAxPISE)) +
+       scale_colour_viridis(direction=-1, limits = c(0, 30))+
+       scale_size_continuous(limits = c(0, 30)) +
+       theme_bw()+
+       xlim(3.65e7,3.80e7)+
+       labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+
+# parental ISE vs post treatmetn F3
+rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
+      geom_point(aes(start,log2FoldChange.2),size=0.5,col="lightgrey")+
+      geom_point(aes(start,log2FoldChange.2,col=-log10(padj.2),size=-log10(padj.2)))+
+      geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.2 > 2 | log2FoldChange.2 < -2),aes(start,log2FoldChange.2, label=name_PUGAxPISE)) +
+      scale_colour_viridis(direction=-1,limits = c(0, 30))+
+      scale_size_continuous(limits = c(0, 30)) +
+      theme_bw()+
+      xlim(3.65e7,3.80e7)+
+      labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+
+# pre vs post treatment
+rnaseq_plot3 <-      ggplot(rnaseq_data_chr5) +
+            geom_point(aes(start,log2FoldChange.1),size=0.5,col="lightgrey")+
+            geom_point(aes(start,log2FoldChange.1,col=-log10(padj.1),size=-log10(padj.1)))+
+            geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.1 > 2 | log2FoldChange.1 < -2),aes(start,log2FoldChange.1, label=name_PUGAxPISE)) +
+            scale_colour_viridis(direction=-1,limits = c(0, 30))+
+            scale_size_continuous(limits = c(0, 30)) +
+            theme_bw()+
+            xlim(3.65e7,3.80e7)+
+            labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
+
 
 ### R to plot
 ```R
@@ -97,6 +153,9 @@ library(data.table)
 # note - "data.table" has a function called "fread" which is great for quickly loading really large datasets
 library(ggplot2)
 library(dplyr)
+library(ggrepel)
+library(patchwork)
+library(viridis)
 
 # load data
 # --- genome annotation
@@ -104,9 +163,7 @@ gff <- fread(cmd = "grep ^hcontortus ANNOTATION.gff")
 colnames(gff) <- c("chr", "source", "feature", "start", "end", "point1", "strand", "frame", "info")
 
 
-library(ggplot2)
-library(patchwork)
-library(dplyr)
+
 
 us_farm1 <-read.table("sample_1.pileup.stats",header=T,sep="\t")
 us_farm1$sample <- "us_farm1"
@@ -151,27 +208,47 @@ us_farm_data_chr5 <- us_farm_data_chr5 %>%
 plot_fst <- ggplot(data)+
    geom_hline(data = data_gws, aes(yintercept = GWS), linetype = "dashed", col = "black")+
    #geom_vline(data = genes, aes(xintercept = POS), col = "darkgrey", size = 1)+
-   geom_point(aes(POS, FST, group = CHR), size = 1.5, col = "cornflowerblue",alpha=0.5)+
-   theme_bw()+xlim(3.65e7,3.80e7)+
-   labs(x="Genomic position", y="Fst")
+   geom_point(aes(POS, FST, group = CHR), size = 0.5, col = "cornflowerblue",alpha=0.5)+
+   xlim(3.65e7,3.85e7)+
+   labs(title = "B", x="Genomic position", y="Genetic differentiation between \npre- and post-treatment (Fst)")+
+   theme_bw()+theme(text = element_text(size = 10))
 
 plot_pi <- ggplot(us_farm_data_chr5)+
-     geom_point(aes((window*10000)-5000,(Pi),col=as.numeric(ivm_EC50)),size=1.5,alpha=0.5)+
-     facet_grid(chr~.)+theme_bw()+
-     xlim(3.65e7,3.8e7)+
+     geom_point(aes((window*10000)-5000,(Pi),col=as.numeric(ivm_EC50)),size=0.5,alpha=0.5)+
+     xlim(3.65e7,3.85e7)+
      scale_colour_viridis(direction=1,limits = c(0, 800))+
-     labs(x="Genomic position", y="Nucleotide diversity (Pi)", colour="Ivermectin EC50 per farm")
+     labs(title = "C", x="Genomic position", y="US Farm \nNucleotide diversity (Pi)", colour="Ivermectin EC50 per farm")+
+     theme_bw()+theme(text = element_text(size = 10))
 
-plot_tajD <- ggplot(us_farm_data_chr5)+
-         geom_point(aes((window*10000)-5000,(Tajima_D),col=as.numeric(ivm_EC50)),size=1.5,alpha=0.5)+
-         facet_grid(chr~.)+theme_bw()+
-         xlim(3.65e7,3.8e7)+
-         scale_colour_viridis(direction=1, guide = FALSE,limits = c(0, 800))+
-         labs(x="Genomic position", y="Tajima's D")+
-         theme()
+#plot_tajD <- ggplot(us_farm_data_chr5)+
+#         geom_point(aes((window*10000)-5000,(Tajima_D),col=as.numeric(ivm_EC50)),size=1.5,alpha=0.5)+
+#         theme_bw()+
+#         xlim(3.65e7,3.85e7)+
+#         scale_colour_viridis(direction=1, guide = FALSE,limits = c(0, 800))+
+#         labs(x="Genomic position", y="Tajima's D")+
+#         theme()
+
+rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
+               geom_point(aes(start,log2FoldChange.2),size=0.5,col="lightgrey")+
+               geom_point(aes(start,log2FoldChange.2,col=-log10(padj.2),size=-log10(padj.2)*0.5))+
+               #geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.2 > 2 | log2FoldChange.2 < -2),aes(start,log2FoldChange.2, label=name_PUGAxPISE),size=3) +
+               scale_colour_viridis(direction=1,limits = c(0, 30), option="magma")+
+               scale_size_continuous(limits = c(0, 30)) +
+               xlim(3.65e7,3.85e7)+ylim(-7,7)+
+               labs(title = "D", colour="-log2(adjusted p-value)", size="-log2(adjusted p-value)", x="Genomics position", y= "RNAseq log2(fold change): \nPost treatment vs ISE parent")+
+               theme_bw()+ theme(text = element_text(size = 10))
 
 
-plot_fst + plot_pi + plot_tajD + plot_layout(ncol=1)
+
+# bring it all together
+
+plot_a / ((plot_fst / plot_pi / rnaseq_plot2) |  (plot_spacer() / guide_area())) + plot_layout(ncol=1, guides='collect',heights = c(1, 3)) & theme(legend.position = 'bottom',legend.direction = "horizontal", legend.box="vertical")
+
+
+ggsave("XQTL_Figure_5.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
+ggsave("XQTL_Figure_5.png")
+
+
 ```
 
 ## Figure 5 C <a name = "figure4c"></a>
