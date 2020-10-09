@@ -76,20 +76,20 @@ library(dplyr)
 # control
 control <- read.table("XQTL_CONTROL.merged.fst", header=F)
 control <- control[control$V1!="hcontortus_chr_mtDNA_arrow_pilon", ]
-control <- dplyr::select(control,  V1,  V2,  V11)
-colnames(control) <- c("CHR",  "POS",  "FST")
+control <- dplyr::select(control,  V1,  V2,  V11 , V21, V29)
+control <- control %>% mutate(mean_FST = rowMeans(select(.,V11,V21,V29)))
 control$LABEL <- "1. Control"
 control$ROW_ID <- 1:nrow(control)
-colnames(control) <- c("CHR",  "POS",  "FST",  "LABEL",  "ROW_ID")
+colnames(control) <- c("CHR",  "POS",  "FST_R1", "FST_R1.2", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
 
 # benzimidazole
 bz <- read.table("XQTL_BZ.merged.fst", header = F)
 bz <- bz[bz$V1 != "hcontortus_chr_mtDNA_arrow_pilon", ]
-bz <- dplyr::select(bz,  V1,  V2,  V13)
-colnames(bz) <- c("CHR", "POS", "FST")
+bz <- dplyr::select(bz,  V1,  V2,  V13 , V39, V49)
+bz <- bz %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
 bz$LABEL <- "2. Benzimidazole"
 bz$ROW_ID <- 1:nrow(bz)
-colnames(bz) <- c("CHR", "POS", "FST", "LABEL", "ROW_ID")
+colnames(bz) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
 
 data <- dplyr::bind_rows(control, bz)
 
@@ -97,22 +97,24 @@ data <- dplyr::bind_rows(control, bz)
 # levamisole
 lev <- read.table("XQTL_LEV.merged.fst", header = F)
 lev <- lev[lev$V1 != "hcontortus_chr_mtDNA_arrow_pilon", ]
-lev <- dplyr::select(lev,  V1,  V2,  V13)
-colnames(lev) <- c("CHR", "POS", "FST")
+lev <- dplyr::select(lev,  V1,  V2,  V13 , V39, V49)
+lev <- lev %>% mutate(mean_FST = rowMeans(select(.,V13)))
 lev$LABEL <- "3. Levamisole"
 lev$ROW_ID <- 1:nrow(lev)
-colnames(lev) <- c("CHR", "POS", "FST", "LABEL", "ROW_ID")
+colnames(lev) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
+
 
 data <- dplyr::bind_rows(data, lev)
 
 #ivermectin
 ivm <- read.table("XQTL_IVM.merged.fst", header = F)
 ivm <- ivm[ivm$V1 != "hcontortus_chr_mtDNA_arrow_pilon", ]
-ivm <- dplyr::select(ivm,  V1,  V2,  V13)
-colnames(ivm) <- c("CHR", "POS", "FST")
+ivm <- dplyr::select(ivm,  V1,  V2,  V13 , V39, V49)
+ivm <- ivm %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
 ivm$LABEL <- "4. Ivermectin"
 ivm$ROW_ID <- 1:nrow(ivm)
-colnames(ivm) <- c("CHR", "POS", "FST", "LABEL", "ROW_ID")
+colnames(ivm) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
+
 
 data <- dplyr::bind_rows(data, ivm)
 
@@ -120,7 +122,7 @@ data <- dplyr::bind_rows(data, ivm)
 # genome wide signficance per sample
 data_gws <- data %>%
     group_by(LABEL) %>%
-    summarise(GWS = mean(FST) + 3*sd(FST))
+    summarise(GWS = mean(FST_MEAN) + 3*sd(FST_MEAN))
 
 
 
@@ -130,9 +132,9 @@ chr_colours<-c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "corn
 # make the plot
 plot_b <- ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
-     geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL), size = 0.1) +
-     ylim(0, 0.1) +
-     labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between pre- and post-treatment (Fst)") +
+     geom_point(aes(ROW_ID * 5000,  FST_R3,  colour = CHR,  group = LABEL), size = 0.1) +
+     #ylim(0, 0.12) +
+     labs(title = "B", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
      theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
@@ -147,6 +149,67 @@ ggsave("genomewide_fst_plots.pdf", useDingbats = FALSE, width = 170, height = 20
 ggsave("genomewide_fst_plots.png")
 ```
 ![](04_analysis/genomewide_fst_plots.png)
+
+
+# replicate 1
+
+data_gws <- data %>%
+    group_by(LABEL) %>%
+    summarise(GWS = mean(FST_R1) + 3*sd(FST_R1))
+
+ggplot(data) +
+     geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
+     geom_point(aes(ROW_ID * 5000,  FST_R1,  colour = CHR,  group = LABEL), size = 0.1) +
+     #ylim(0, 0.12) +
+     labs(title = "XQTL replicate set 1", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
+     facet_grid(LABEL ~ ., scales="free_y")
+
+ggsave("genomewide_fst_plots_R1_supplement.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
+ggsave("genomewide_fst_plots_R1_supplement.png")
+
+# replicate 2
+data_gws <- data %>%
+    group_by(LABEL) %>%
+    summarise(GWS = mean(FST_R2) + 3*sd(FST_R2))
+
+ggplot(data) +
+          geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
+          geom_point(aes(ROW_ID * 5000,  FST_R2,  colour = CHR,  group = LABEL), size = 0.1) +
+          #ylim(0, 0.12) +
+          labs(title = "XQTL replicate set 2", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+          scale_color_manual(values = chr_colours) +
+          scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
+          theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
+          facet_grid(LABEL ~ ., scales="free_y")
+
+ggsave("genomewide_fst_plots_R2_supplement.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
+ggsave("genomewide_fst_plots_R2_supplement.png")
+
+# replicate 3
+data_gws <- data %>%
+    group_by(LABEL) %>%
+    summarise(GWS = mean(FST_R3) + 3*sd(FST_R3))
+
+          ggplot(data) +
+               geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
+               geom_point(aes(ROW_ID * 5000,  FST_R3,  colour = CHR,  group = LABEL), size = 0.1) +
+               #ylim(0, 0.12) +
+               labs(title = "XQTL replicate set 3", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+               scale_color_manual(values = chr_colours) +
+               scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
+               theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
+               facet_grid(LABEL ~ ., scales="free_y")
+
+ggsave("genomewide_fst_plots_R3_supplement.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
+ggsave("genomewide_fst_plots_R3_supplement.png")
+
+
+
+
+
 
 ******
 ## License

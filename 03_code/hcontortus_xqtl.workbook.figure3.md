@@ -47,7 +47,7 @@ plot_a <- ggplot(xqtl_bz_fst_chr1) +
      geom_point(data = subset(xqtl_bz_fst_chr1, (xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[3]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[3]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
      ylim(0, 0.1) + xlim(0, 50e6) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-     labs(title = "A", x = "Chromosomal position (bp)", y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     labs(title = "A", x = "Chromosomal position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))
      facet_grid( V1 ~ .)
 ```
 ---
@@ -75,8 +75,8 @@ grep "post" ../XQTL_CONTROL/bam.list  > control_posttreatment_samples.list
 vcftools --vcf XQTL_BZ.raw.snpeff.vcf --keep bz_pretreatment_samples.list --positions btub.positions --extract-FORMAT-info AD --out bz_pretreatment
 vcftools --vcf XQTL_BZ.raw.snpeff.vcf --keep bz_posttreatment_samples.list --positions btub.positions --extract-FORMAT-info AD --out bz_posttreatment
 
-vcftools --gzvcf ../XQTL_CONTROL/1.hcontortus_chr1_Celeg_TT_arrow_pilon.tmp.vcf.gz --keep control_pretreatment_samples.list --positions btub.positions --extract-FORMAT-info AD --out control_pretreatment
-vcftools --gzvcf ../XQTL_CONTROL/1.hcontortus_chr1_Celeg_TT_arrow_pilon.tmp.vcf.gz --keep control_posttreatment_samples.list --positions btub.positions --extract-FORMAT-info AD --out control_posttreatment
+vcftools --gzvcf ../XQTL_CONTROL/XQTL_CONTROL.raw.vcf.gz --keep control_pretreatment_samples.list --positions btub.positions --extract-FORMAT-info AD --out control_pretreatment
+vcftools --gzvcf ../XQTL_CONTROL/XQTL_CONTROL.raw.vcf.gz --keep control_posttreatment_samples.list --positions btub.positions --extract-FORMAT-info AD --out control_posttreatment
 
 #where "btub.positions" contains:
 #P167
@@ -136,11 +136,15 @@ library(rstatix)
 
 # load and reformat the data
 bz_pre <- read.table("bz_pretreatment.ADfreq")
-colnames(bz_pre) <- c("CHR", "POS", "R1", "R1.2", "R2", "R3")
+bz_pre <- filter(bz_pre,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
+bz_pre <- dplyr::select(bz_pre,  V1,  V2,  V3 , V5, V6)
+colnames(bz_pre) <- c("CHR", "POS", "R1", "R2", "R3")
 bz_pre <- melt(bz_pre,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 bz_post <- read.table("bz_posttreatment.ADfreq")
-colnames(bz_post) <- c("CHR", "POS", "R1", "R1.2", "R2", "R3")
+bz_post <- filter(bz_post,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
+bz_post <- dplyr::select(bz_post,  V1,  V2,  V3 , V5, V6)
+colnames(bz_post) <- c("CHR", "POS", "R1", "R2", "R3")
 bz_post <- melt(bz_post,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 bz_data <- dplyr::full_join(bz_pre,  bz_post,  by = c("CHR", "POS", "SAMPLE_ID"))
@@ -149,10 +153,12 @@ colnames(bz_data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TREATME
 
 
 control_pre <- read.table("control_pretreatment.ADfreq")
+control_pre <- filter(control_pre,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
 colnames(control_pre) <- c("CHR", "POS", "R1", "R2", "R3")
 control_pre <- melt(control_pre,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 control_post <- read.table("control_posttreatment.ADfreq")
+control_post <- filter(control_post,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
 colnames(control_post) <- c("CHR", "POS", "R1", "R2", "R3")
 control_post <- melt(control_post,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
@@ -166,7 +172,7 @@ data <- dplyr::bind_rows(control_data,  bz_data)
 
 # change the labels
 data <- data %>%
-  mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
+  mutate(POS = str_replace_all(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
 
 
 

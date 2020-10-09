@@ -420,8 +420,11 @@ plot_e <- ggplot() + geom_blank()
 
 
 plot_a + plot_b + (plot_c | (plot_d / plot_e)) + plot_layout(ncol = 1, height = c(3, 1, 3))
+plot_a / ((plot_b / plot_c) | (plot_d / plot_e))  + plot_layout(ncol = 1, height = c(3, 3))
+plot_a / (plot_b | plot_d) / (plot_c | plot_e)  + plot_layout(ncol = 1, height = c(3, 1.5, 3))
 
-ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 170, height = 190, units = "mm")
+
+ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 250, height = 300, units = "mm")
 ggsave("XQTL_Figure_4.png")
 ```
 ![](04_analysis/XQTL_Figure_4.png)

@@ -10,6 +10,187 @@
 
 #-----------------------------------------------------------------------------------------
 
+#-----
+
+
+library(ggplot2)
+library(patchwork)
+
+# chromosome colours
+chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
+
+fst <-read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/US_FIELD/XQTL_US_FIELD.merged.fst",header=F)
+fst <- fst[fst$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
+
+# susceptibles
+plot_1 <- ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 9 (ivermectin susceptible)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+# UGA_S vs moderates
+plot_2 <- ggplot(fst,aes(1:nrow(fst)*10000,V7,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 2 (moderate ivermectin resistance)", y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_3 <- ggplot(fst,aes(1:nrow(fst)*10000,V9,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 3 (moderate ivermectin resistance)",   y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_4 <- ggplot(fst,aes(1:nrow(fst)*10000,V11,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 4 (moderate ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+
+# UGA_S vs high resistance
+plot_5 <- ggplot(fst,aes(1:nrow(fst)*10000,V13,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 5 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_6 <- ggplot(fst,aes(1:nrow(fst)*10000,V15,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 6 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_7 <- ggplot(fst,aes(1:nrow(fst)*10000,V17,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 7 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_8 <- ggplot(fst,aes(1:nrow(fst)*10000,V19,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 8 (high ivermectin resistance)",   y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_9 <- ggplot(fst,aes(1:nrow(fst)*10000,V23,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 10 (high ivermectin resistance)", x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8))
+
+plot_1 + plot_2 + plot_3 + plot_4 + plot_5 + plot_6 + plot_7 + plot_8 + plot_9 + plot_layout(ncol=1)
+
+ggsave("XQTL_SupplementaryFigure_USfarm1.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
+ggsave("XQTL_SupplementaryFigure_USfarm1.png")
+
+
+
+# susceptibles
+plot_1 <- ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 1 (ivermectin susceptible) vs Farm 9 (ivermectin susceptible)",  y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+# UGA_S vs moderates
+plot_2 <- ggplot(fst,aes(1:nrow(fst)*10000,V37,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 2 (moderate ivermectin resistance)", y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_3 <- ggplot(fst,aes(1:nrow(fst)*10000,V51,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 3 (moderate ivermectin resistance)",   y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_4 <- ggplot(fst,aes(1:nrow(fst)*10000,V63,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 4 (moderate ivermectin resistance)",  y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+
+# UGA_S vs high resistance
+plot_5 <- ggplot(fst,aes(1:nrow(fst)*10000,V73,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 5 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_6 <- ggplot(fst,aes(1:nrow(fst)*10000,V81,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 6 (high ivermectin resistance)",  y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_7 <- ggplot(fst,aes(1:nrow(fst)*10000,V87,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 7 (high ivermectin resistance)",  y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_8 <- ggplot(fst,aes(1:nrow(fst)*10000,V91,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 8 (high ivermectin resistance)",   y = "")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
+
+plot_9 <- ggplot(fst,aes(1:nrow(fst)*10000,V95,colour = V1))+
+     geom_point(size=0.5,alpha=0.5)+
+     ylim(0,1)+
+     labs(title = "Farm 9 (ivermectin susceptible) vs Farm 10 (high ivermectin resistance)", x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)")+
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+theme(legend.position = "none", text = element_text(size = 8))
+
+plot_1 + plot_2 + plot_3 + plot_4 + plot_5 + plot_6 + plot_7 + plot_8 + plot_9 + plot_layout(ncol=1)
+
+ggsave("XQTL_SupplementaryFigure_USfarm2.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
+ggsave("XQTL_SupplementaryFigure_USfarm2.png")
+
+
+
+
+#---------------------------------------------------------------------------------------
+
 ## Figure S1 - isotype 1 data from US farms <a name="Figure_S1"></a>
 
 Aim is to determine the frequency of Phe167Tyr & Phe200Tyr variants in the US farm dataset
@@ -363,6 +544,143 @@ ggsave("acr8_multiple_sequence_alignment.png")
 #-------------------------------------------------------------------------------
 
 
+
+5000 L3 per pool example
+#-----
+library(ggplot2)
+library(patchwork)
+
+
+
+data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
+data <- L3_5000[L3_5000$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
+
+# chromosome colours
+chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
+
+
+plot_a <- ggplot(data)+
+     geom_point(aes(1:nrow(data) * 5000, V7, alpha = V4, colour = V1),size = 0.1)+
+     ylim(0, 0.1) +
+     labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+ theme(legend.position = "none", text = element_text(size = 10))
+
+
+data_chr5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+
+plot_b <- ggplot(data_chr5)+
+     geom_point(aes(V2,V7),size = 0.5, colour = "cornflowerblue")+
+  ylim(0,0.1)+
+  labs(title = "B",  x = "Genomic position (bp)",  y = "Genetic differentiation (Fst)") +
+  scale_x_continuous() +
+  xlim(36.5e6, 38.5e6) +
+  theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
+
+plot_a + plot_b + plot_layout(ncol = 1)
+
+ggsave("XQTL_SupplementaryFigure_5000L3.pdf", useDingbats = FALSE, width = 170, height = 100, units = "mm")
+ggsave("XQTL_SupplementaryFigure_5000L3.png")
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+
+#-----
+```R
+#XQTL F2 adults
+
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+
+# chromosome colours
+chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
+
+# load data1
+male_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_ADULT/XQTL_ADULTS.merged.fst",header=F)
+male_data <- male_data[male_data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
+
+plot_a <- ggplot(male_data)+
+     geom_point(aes(1:nrow(male_data)*5000, V7, colour = V1), size=0.1)+
+     #ylim(0,0.2)+
+     labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \nsurviving adult males and untreated L3 (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
+
+
+chr5_maledata <- filter(male_data,male_data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon")
+plot_b <- ggplot(chr5_maledata)+
+     geom_point(aes(V2, V7, colour = V1), size=1)+
+     #ylim(0,0.2)+
+     xlim(36.5e6,38.5e6)+
+     labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \nsurviving adult males and untreated L3 (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
+
+# dose response curve
+dose_response_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM/DrenchRiteF5_IVM_pooled.txt", header=T)
+ivm_dose_response_data <- dplyr::filter(dose_response_data,dose_response_data$Treatment=="IVM_aglycone" & dose_response_data$Total>0)
+
+
+#probit model
+#logr_probit <- glm(IVM_logged ~ (X._developed_to_L3/100), data=ivm_dose_response_data, family=binomial(link="probit"))
+#preddat <- data.frame(IVM_logged = seq(0, 3.5, .01) )
+#preddat$pred <- predict(logr_probit, newdata = preddat, type = "response")
+
+
+
+
+
+
+
+plot_c <- ggplot(ivm_dose_response_data,aes(IVM_logged,X._developed_to_L3/100)) +
+     geom_point(aes(color=as.factor(Plate)))+
+     #geom_line(data = preddat, aes(y = pred), color = "red")+
+     geom_smooth(method="glm",method.args = list(family = quasibinomial(link = "probit")),colour="blue")+
+     labs(title = "C", y = "Proportion developing to L3", x = "Ivermectin concentration [log10(nM)]", colour = "Replicate") +
+     theme_bw()+
+     theme(text = element_text(size = 8))
+
+
+# genome wide dose response
+
+dose_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/DOSE_RESPONSE/DOSE_RESPONSE.merged.fst",header=F)
+dose_data <- dose_data[dose_data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
+
+plot_d <- ggplot(dose_data)+
+     geom_point(aes(1:nrow(dose_data)*5000, V7, colour = V1), size=0.1)+
+     #ylim(0,0.2)+
+     labs(title = "D", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \n<EC25 and >EC75 L3 pools (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
+
+
+     # chr5_dose_data <- filter(dose_data,dose_data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon")
+     # ggplot(chr5_dose_data)+
+     #      geom_point(aes(V2, V7, colour = V1), size=1)+
+     #      #ylim(0,0.2)+
+     #      xlim(36.5e6,38.5e6)+
+     #      labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     #      scale_color_manual(values = chr_colours) +
+     #      theme_bw()+
+     #      theme(legend.position = "none", text = element_text(size = 8))
+
+
+plot_a + (plot_b | plot_c) + plot_d + plot_layout(ncol=1)
+
+ggsave("XQTL_SupplementaryFigureX_male_doseresponse.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
+ggsave("XQTL_SupplementaryFigureX_male_doseresponse.png")
+```
 ******
 ## License
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.

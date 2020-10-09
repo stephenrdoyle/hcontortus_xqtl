@@ -75,12 +75,12 @@ rm *unpaired*
 mkdir ../../../03_MAPPING/PARENTS
 
 ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPING/PARENTS/sample.list
-```
+
 
 
 
 ###--- map reads
-```
+
 cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/03_MAPPING/PARENTS
 screen
 while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
@@ -107,6 +107,7 @@ rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/*.gz
 
 
 ## setup for mpileup
+
 mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/PARENTS
 
 ls $PWD/*bam > /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/PARENTS/bam.list
@@ -127,8 +128,6 @@ rm *tmp*
 
 
 # Mapping - XQTL <a name="mapping_xqtl"></a>
-
-
 ```shell  
 mkdir 02_RAW/RAW_XQTL
 cd 02_RAW/RAW_XQTL
@@ -199,9 +198,6 @@ rm *marked.bam.bai
 #--- remove the trimmed fastqs - they are only taking up disk space
 rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_XQTL/TRIM/*.gz
 
-
-
-
 # setup for mpileup
 mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/XQTL_ADULT
 mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/XQTL_BZ
@@ -240,7 +236,7 @@ cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_ADUL
 
 ## Advanced Intercross <a name="mapping_ai"></a>
 
-```
+```shell
 mkdir 02_RAW/RAW_ADVANCED_INTERCROSS
 
 cd 02_RAW/RAW_ADVANCED_INTERCROSS
@@ -344,9 +340,62 @@ rm *tmp*
 
 
 
-## Dose Response <a name="mapping_doseresponse"></a>
+
+
+
+
+
+## XQTL CMH
+
+```bash
+# originally, ran the following - this included both the technical and biological replicate, which is not quite right.
+
+perl /nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/cmh-test.pl --min-count 4 --min-coverage 30 --max-coverage 2% --population 1-5,2-6,3-7,4-8 --input XQTL_BZ.raw.sync --output XQTL_BZ.raw.sync.cmh --min-pvalue 0.01
+
+
+
+
+# rerunning without the technical replicate, ie. without 2-6 comparison
+# bz
+bsub.py 1 --queue long cmh_replicate_x3 "perl /nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/cmh-test.pl --min-count 4 --min-coverage 30 --max-coverage 2% --population 1-5,3-7,4-8 --input XQTL_BZ.raw.sync --output XQTL_BZ.rep3.cmh --min-pvalue 0.01"
+
+# lev - not only 2 replicates used
+bsub.py 1 --queue long cmh_replicate_x2 "perl /nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/cmh-test.pl --min-count 4 --min-coverage 30 --max-coverage 2% --population 1-5,4-8 --input XQTL_LEV.raw.sync --output XQTL_LEV.rep2.cmh --min-pvalue 0.01"
+
+# ivm
+bsub.py 1 --queue long cmh_replicate_x3 "perl /nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/cmh-test.pl --min-count 4 --min-coverage 30 --max-coverage 2% --population 1-5,3-7,4-8 --input XQTL_IVM.raw.sync --output XQTL_IVM.rep3.cmh --min-pvalue 0.01"
+
+
+# exploring CMH data with SNPeff results
+
+grep "HIGH\|MODE" XQTL_IVM.raw.snpeff.vcf | awk -F'[\t|]' '{print $1,$2,$14,$9,$10,$17"_"$18}' > high_moderate.pos
+
+
+R
+library(dplyr)
+
+cmh <- read.table("XQTL_IVM.raw.sync.cmh",header=F)
+pos <- read.table("high_moderate.pos",header=F)
+data <- inner_join(cmh,pos,by=c("V1","V2"))
+
+# grep in R based on gene or position
+filter(data,grepl("HCON_00162390", V3.y))
+
+
+
+
+
 
 ```
+
+
+
+
+
+
+
+## Dose Response <a name="mapping_doseresponse"></a>
+```shell
 mkdir 02_RAW/RAW_DOSE_RESPONSE
 
 cd 02_RAW/RAW_DOSE_RESPONSE
@@ -438,106 +487,101 @@ rm *tmp*
 
 
 
+# ## Canadian Field Samples from John Gilleard <a name="mapping_canada_field"></a>
+# ```
+# mkdir 02_RAW/RAW_CAN_FIELD
+#
+# cd 02_RAW/RAW_CAN_FIELD
+#
+#
+# # get crams
+# imeta qu -z seq -d id_run = 27606 and lane = 4 | grep "cram" | grep -v phix | awk '{print $2}' >> samples.list
+# imeta qu -z seq -d id_run = 27606 and lane = 5 | grep "cram" | grep -v phix | awk '{print $2}' >> samples.list
+#
+# while read name; do iget /seq/27606/$name ./ ; done < samples.list &
+#
+# rm *888.cram
+# rm *#0.cram
+#
+#
+# # cram to fastq
+# bsub.py 2 c2fq ~sd21/bash_scripts/run_cram2fastq
+#
+#
+#
+# ls -1 *gz | while read -r NAME; do rename s/#/_/ ${NAME}; done
+#
+# #--- trim reads
+# mkdir TRIM
+# cd TRIM
+#
+# rm run_trim_all
+# while read name lane; do \
+# echo "bsub.py --threads 7 20 trim_XQTL /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
+# done < ../samples_lanes.list ; \
+# chmod a+x run_trim_all; \
+# ./run_trim_all
+#
+#
+# rm *unpaired*
+#
+# # make a sample list for mapping
+# mkdir ../../../03_MAPPING/CAN_FIELD
+#
+# ls -1 *_R1.fastq.gz | sed 's/_R1.fastq.gz//g' > ../../../03_MAPPING/CAN_FIELD/sample.list
+#
+# # --- mapping
+# cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/03_MAPPING/CAN_FIELD/
+#
+#
+# screen
+#
+# while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_CAN_FIELD/TRIM/${NAME}_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_CAN_FIELD/TRIM/${NAME}_R2.fastq.gz; done < sample.list &
+#
+#
+#
+# #--- clean up
+# mv *out/*.marked.bam .
+# mv *out/*.marked.bam.bai .
+#
+# rm -r *out
+#
+# #--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
+# ls -1 *bam > bam.list
+# ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa
+#
+# ~sd21/bash_scripts/run_gatk_indel_realigner HAEM_V4_final.chr.fa bam.list
+#
+#
+# #--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
+# rm *marked.bam
+# rm *marked.bam.bai
+#
+# #--- remove the trimmed fastqs - they are only taking up disk space
+# rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_DOSE_RESPONSE/TRIM/*.gz
+#
+#
+#
+# # setup for mpileup
+# mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
+#
+# ls $PWD/*bam > /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE/bam.list
+#
+# cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
+#
+#
+# #--- run mpileup
+# ~sd21/bash_scripts/run_mpileup.sh XQTL_DOSE_RESPONSE /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list &
+#
+# cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE_RESPONSE.mpileup &
+#
+# rm *tmp*
+# ```
+# [↥ **Back to top**](#top)
 
-
-
-## Canadian Field Samples from John Gilleard <a name="mapping_canada_field"></a>
-
-
-```
-mkdir 02_RAW/RAW_CAN_FIELD
-
-cd 02_RAW/RAW_CAN_FIELD
-
-
-# get crams
-imeta qu -z seq -d id_run = 27606 and lane = 4 | grep "cram" | grep -v phix | awk '{print $2}' >> samples.list
-imeta qu -z seq -d id_run = 27606 and lane = 5 | grep "cram" | grep -v phix | awk '{print $2}' >> samples.list
-
-while read name; do iget /seq/27606/$name ./ ; done < samples.list &
-
-rm *888.cram
-rm *#0.cram
-
-
-# cram to fastq
-bsub.py 2 c2fq ~sd21/bash_scripts/run_cram2fastq
-
-
-
-ls -1 *gz | while read -r NAME; do rename s/#/_/ ${NAME}; done
-
-#--- trim reads
-mkdir TRIM
-cd TRIM
-
-rm run_trim_all
-while read name lane; do \
-echo "bsub.py --threads 7 20 trim_XQTL /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
-done < ../samples_lanes.list ; \
-chmod a+x run_trim_all; \
-./run_trim_all
-
-
-rm *unpaired*
-
-# make a sample list for mapping
-mkdir ../../../03_MAPPING/CAN_FIELD
-
-ls -1 *_R1.fastq.gz | sed 's/_R1.fastq.gz//g' > ../../../03_MAPPING/CAN_FIELD/sample.list
-
-# --- mapping
-cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/03_MAPPING/CAN_FIELD/
-
-
-screen
-
-while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_CAN_FIELD/TRIM/${NAME}_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_CAN_FIELD/TRIM/${NAME}_R2.fastq.gz; done < sample.list &
-
-
-
-#--- clean up
-mv *out/*.marked.bam .
-mv *out/*.marked.bam.bai .
-
-rm -r *out
-
-#--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
-ls -1 *bam > bam.list
-ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa
-
-~sd21/bash_scripts/run_gatk_indel_realigner HAEM_V4_final.chr.fa bam.list
-
-
-#--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
-rm *marked.bam
-rm *marked.bam.bai
-
-#--- remove the trimmed fastqs - they are only taking up disk space
-rm /lustre/scratch118/infgen/team133/sd21/hc/XQTL/02_RAW/RAW_DOSE_RESPONSE/TRIM/*.gz
-
-
-
-# setup for mpileup
-mkdir /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
-
-ls $PWD/*bam > /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE/bam.list
-
-cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
-
-
-#--- run mpileup
-~sd21/bash_scripts/run_mpileup.sh XQTL_DOSE_RESPONSE /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list &
-
-cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE_RESPONSE.mpileup &
-
-rm *tmp*
-```
-[↥ **Back to top**](#top)
 
 
 # Analysis of US farm samples from Ray Kaplan <a name="mapping_us_field"></a>
-
 ```shell
 mkdir 02_RAW/RAW_US_FIELD
 cd 02_RAW/RAW_US_FIELD
@@ -668,11 +712,7 @@ cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/04_VARIANTS/US_FIELD
 #--- run mpileup
 ~sd21/bash_scripts/run_mpileup XQTL_US_FIELD /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list
 
-
-
 rm *tmp*
-
-
 
 ~sd21/bash_scripts/run_mpileup2popoolation2 XQTL_US_FIELD ~sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa $PWD/XQTL_US_FIELD.mpileup 200 10000
 
@@ -680,395 +720,14 @@ rm *tmp*
 [↥ **Back to top**](#top)
 
 
+###---------------------------------------------------------------------------------------  
 
 
-
-
-
-
-
-
-
-
-
-# Analyses <a name="analysis"></a>
-
-```bash
-# load R - using 3.6.0
-R
-```
-
-```R
-library(ggplot2)
-library(ggrepel)
-library(RColorBrewer)
-library(scales)
-library(patchwork)
-
-pal<-palette(c("cornflowerblue","blue"))
-```
-
-###---------------------------------------------------------------------------------------        
-# Parents
-```R
-
-parents<-read.table("PARENTS/XQTL_PARENTS.merged.fst",header=F)
-
-
-
-# genome wide levels of significance
-#--- mean of replicates Fst
-gwide_sig3_fst_p0 <- mean(c(parents$V7))+(3*sd(c(parents$V7)))
-gwide_sig5_fst_p0 <- mean(c(parents$V7))+(5*sd(c(parents$V7)))
-
-
-ggplot(parents)+geom_point(aes(1:nrow(parents)*5000,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
-  theme_bw()+
-  geom_hline(yintercept = gwide_sig3_fst_p0, linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept = gwide_sig5_fst_p0, linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-ggsave("PARENTS/XQTL_parents_fst.pdf",useDingbats=FALSE)
-```
-
-
-###---------------------------------------------------------------------------------------        
-
-# XQTL
-```R
-xqtl_control <- read.table("XQTL_CONTROL/XQTL_CONTROL.merged.fst",header=F)
-
-# genome wide levels of significance
-#--- mean of replicates Fst
-gwide_sig3_fst <- mean(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29))+(3*sd(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29)))
-gwide_sig5_fst <- mean(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29))+(5*sd(c(xqtl_control$V21,xqtl_control$V13,xqtl_control$V29)))
-
-
-#Rep1	Rep2	Rep3
-#V11	V21	V29
-
-control_r1 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V11,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comm)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-control_r2 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V21,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-control_r3 <- ggplot(xqtl_control)+geom_point(aes(1:nrow(xqtl_control)*5000,V29,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-control_r1 + control_r2 + control_r3 + plot_layout(ncol=1)
-
-ggsave("XQTL_CONTROL/XQTL_control_fst.pdf",useDingbats=FALSE)
-```
-
-
-###---------------------------------------------------------------------------------------        
-#BZ
-```R
-xqtl_bz <- read.table("XQTL_BZ/XQTL_BZ.merged.fst",header=F)
-
-
+XQTL key
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-bz_r1 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-bz_r2 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-bz_r3 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-bz_r4 <- ggplot(xqtl_bz)+geom_point(aes(1:nrow(xqtl_bz)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-bz_r1 + bz_r2 + bz_r3 + bz_r4 +plot_layout(ncol=1)
-
-ggsave("XQTL_BZ/XQTL_BZ_fst.pdf",useDingbats=FALSE)
-```
-
-###---------------------------------------------------------------------------------------        
-# XQTL_LEV
-
-```R
-xqtl_lev <- read.table("XQTL_LEV/XQTL_LEV.merged.fst",header=F)
-
-
-#Rep1.1	Rep1.2	Rep2	Rep3
-#V13	V27	V39	V49
-
-lev_r1 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-lev_r2 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-lev_r3 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.3)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-lev_r4 <- ggplot(xqtl_lev)+geom_point(aes(1:nrow(xqtl_lev)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.3)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-lev_r1 + lev_r2 + lev_r3 + lev_r4 +plot_layout(ncol=1)
-
-ggsave("XQTL_LEV/XQTL_LEV_fst.pdf",useDingbats=FALSE)
-```
-###---------------------------------------------------------------------------------------        
-# XQTL_IVM
-```R
-xqtl_ivm <- read.table("XQTL_IVM/XQTL_IVM.merged.fst",header=F)
-
-
-#Rep1.1	Rep1.2	Rep2	Rep3
-#V13	V27	V39	V49
-
-ivm_r1 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V13,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.075)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-ivm_r2 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V27,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.075)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-ivm_r3 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V39,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.075)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-ivm_r4 <- ggplot(xqtl_ivm)+geom_point(aes(1:nrow(xqtl_ivm)*5000,V49,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.075)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-ivm_r1 + ivm_r2 + ivm_r3 + ivm_r4 + plot_layout(ncol=1)
-
-ggsave("XQTL_IVM/XQTL_IVM_fst.pdf",useDingbats=FALSE)
-```
-
-#--- Figure for paper
-```R
-control_r1 + bz_r1 + lev_r1 + ivm_r1 + plot_layout(ncol=1)
-ggsave("XQTL_all4plots_fst.pdf",useDingbats=FALSE)
-
-```
-
-
-
-
-###---------------------------------------------------------------------------------------        
-# ADVANCED_INTERCROSS
-
-xqtl_ai <- read.table("ADVANCED_INTERCROSS/XQTL_ADVANCED_INTERCROSS.merged.fst",header=F)
-data<-xqtl_ai
-
-# genome wide levels of significance
-#--- mean of replicates Fst
-gwide_sig3_fst_0.5X <- mean(c(xqtl_ai$V17,xqtl_ai$V51,xqtl_ai$V83))+(3*sd(c(xqtl_ai$V21,xqtl_ai$V51,xqtl_ai$V83)))
-gwide_sig5_fst_0.5X <- mean(c(xqtl_ai$V21,xqtl_ai$V51,xqtl_ai$V83))+(5*sd(c(xqtl_ai$V21,xqtl_ai$V51,xqtl_ai$V83)))
-
-gwide_sig3_fst_2X <- mean(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161))+(3*sd(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161)))
-gwide_sig5_fst_2X <- mean(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161))+(5*sd(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161)))
-
+Advanced intercross key
 #						Rep1	Rep2	Rep3
 #control - pre v 0.5X	V17		V51		V83
 #control - pre v 2X		V11		V135	V161
@@ -1077,609 +736,35 @@ gwide_sig5_fst_2X <- mean(c(xqtl_ai$V11,xqtl_ai$V135,xqtl_ai$V161))+(5*sd(c(xqtl
 #IVM pre v 2x			V287	V297	V305
 
 
-#rep1
-control_0.5x.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V17,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_0.5X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V251,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V287,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_0.5x.1 + ivm_0.5X.1 + control_2X.1 + ivm_2X.1 + plot_layout(ncol=2)
 
 
-#rep2
-control_0.5x.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V51,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V135,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_0.5X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V267,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_0.5x.2 + ivm_0.5X.2 + control_2X.2 + ivm_2X.2 + plot_layout(ncol=2)
 
 
-#rep2
-control_0.5x.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V83,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V161,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_0.5X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V281,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_0.5X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_0.5X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-ivm_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V305,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  geom_hline(yintercept=gwide_sig3_fst_2X,linetype = "dashed", colour="orange",size=0.5)+
-  geom_hline(yintercept=gwide_sig5_fst_2X,linetype = "dashed", colour="red",size=0.5)+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-control_0.5x.3 + ivm_0.5X.3 + control_2X.3 + ivm_2X.3 + plot_layout(ncol=2)
 
 
 
 
-# summary of XQTL and AI endpoints
-ivm_r1 + ivm_2X.1 + ivm_2X.2 + ivm_2X.3 + plot_layout(ncol=1)
 
-###---------------------------------------------------------------------------------------        
-#XQTL F2 adults
 
-xqtl_adultM <- read.table("XQTL_ADULT/XQTL_ADULTS.merged.fst",header=F)
-data<-xqtl_adultM
 
-adultM <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.2)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-adultM
 
 
 
 
 
 
-
-
-# XQTL_AI
-#IVM pre v 2x
-xqtl_ai <- read.table("ADVANCED_INTERCROSS/XQTL_ADVANCED_INTERCROSS.merged.fst",header=F)
-pairwise_ai_R1vR2 <-	ggplot(xqtl_ai,aes(V287,V297,col=V1,label=V2))+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_ai, V287 > quantile(xqtl_ai$V287,0.999) & V297 > quantile(xqtl_ai$V297,0.999) ))+
- 						theme_bw()+ theme(legend.position="none")
-
-pairwise_ai_R1vR3 <-	ggplot(xqtl_ai,aes(V287,V305,col=V1,label=V2))+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_ai, V287 > quantile(xqtl_ai$V287,0.999) & V305 > quantile(xqtl_ai$V297,0.999)  ))+
- 						theme_bw()+ theme(legend.position="none")
-
-pairwise_ai_R1vR2 + pairwise_ai_R1vR3 + plot_layout(ncol=2)
-
-
-
-# XQTL_BZ
-#Rep1.1	Rep1.2	Rep2	Rep3
-#V13	V27	V39	V49
-
-xqtl_bz <- read.table("XQTL_BZ/XQTL_BZ.merged.fst",header=F)
-pairwise_bz_R1vR2 <-	ggplot(xqtl_bz,aes(V13,V39,col=V1,label=V2))+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_bz, V13 > quantile(xqtl_bz$V13,0.999) & V39 > quantile(xqtl_bz$V39,0.999) ))+
- 						theme_bw()+ theme(legend.position="none")
-
-pairwise_bz_R1vR3 <-	ggplot(xqtl_bz,aes(V13,V49,col=V1,label=V2))+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_bz, V13 > quantile(xqtl_bz$V13,0.999) & V49 > quantile(xqtl_bz$V49,0.999) ))+
- 						theme_bw()+ theme(legend.position="none")
-pairwise_bz_R1vR2 + pairwise_bz_R1vR3 + plot_layout(ncol=2)
-
-
-
-
-
-
-# XQTL_LEV
-
-#Rep1.1	Rep1.2	Rep2	Rep3
-#V13	V27	V39	V49
-xqtl_lev <- read.table("XQTL_LEV/XQTL_LEV.merged.fst",header=F)
-pairwise_lev_R1vR2 <-	ggplot(xqtl_lev,aes(V13,V39,col=V1,label=V2))+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_lev, V13 > quantile(xqtl_lev$V13,0.995) & V39 > quantile(xqtl_lev$V39,0.995) ))+
- 						theme_bw()+ theme(legend.position="none")
-
-pairwise_lev_R1vR3 <-	ggplot(xqtl_lev,aes(V13,V49,col=V1,label=V2),stroke = NA)+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_lev, V13 > quantile(xqtl_lev$V13,0.995) & V49 > quantile(xqtl_lev$V49,0.995) ))+
- 						theme_bw()+ theme(legend.position="none")
-pairwise_lev_R1vR2 + pairwise_lev_R1vR3 + plot_layout(ncol=2)
-
-
-
-
-# XQTL_IVM
-
-#Rep1.1	Rep1.2	Rep2	Rep3
-#V13	V27	V39	V49
-xqtl_ivm <- read.table("XQTL_IVM/XQTL_IVM.merged.fst",header=F)
-pairwise_ivm_R1vR2 <-	ggplot(xqtl_ivm,aes(V13,V39,col=V1,label=V2))+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(
- 						 & V39 > quantile(xqtl_ivm$V39,0.995) ))+
- 						theme_bw()+ theme(legend.position="none")
-
-pairwise_ivm_R1vR3 <-	ggplot(xqtl_ivm,aes(V13,V49,col=V1,label=V2),stroke = NA)+
- 						geom_point(alpha=0.2,size=0.1)+
- 						geom_text_repel(data = subset(xqtl_ivm, V13 > quantile(xqtl_ivm$V13,0.995) & V49 > quantile(xqtl_ivm$V49,0.995) ))+
- 						theme_bw()+ theme(legend.position="none")
-pairwise_ivm_R1vR2 + pairwise_ivm_R1vR3 + plot_layout(ncol=2)
-
-
-
-
-
-
-###########################################################################################
-# allele frequencies for Jamie
-
-
-# BZ
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_BZ
-
-awk '{if($1=="hcontortus_chr1_Celeg_TT_arrow_pilon" && $2>=5000000 && $2<=10000000) print $0}' OFS="\t" XQTL_BZ_pwc > XQTL_BZ_pwc_chr1_5-10Mb
-awk '{if($1=="hcontortus_chr1_Celeg_TT_arrow_pilon" && $2>=5000000 && $2<=10000000) print $0}' OFS="\t" XQTL_BZ.merged.fst > XQTL_BZ.merged_25-35Mb.fst
-R-3.4.0
-library(ggplot2)
-library(patchwork)
-
-
-a<-read.table("XQTL_BZ_pwc_chr1_5-10Mb",header=F,na.strings="na")
-a_fst<-read.table("XQTL_BZ.merged_25-35Mb.fst",header=F,na.strings="na")
-b<-a[a$V12>0.4 & a$V19>0.4 & a$V25>0.4 & a$V30>0.4,]
-b<-na.omit(b)
-c<-a[a$V2==7029790,]
-
-ggplot()+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2,b$V12),col="red")+theme_bw()+geom_vline(xintercept=7029790,col="blue")+ylim(0,1)
-
-plot<-ggplot()+geom_vline(xintercept=7029790,col="blue")+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2,b$V12),col="red")+theme_bw()+ylim(0,1)+ylab("Allele freq diff. - pre vs post treatment")
-fst_plot<-ggplot()+geom_vline(xintercept=7029790,col="blue")+geom_point(aes(a_fst$V2,a_fst$V13),alpha=0.5)+theme_bw()+ylab("Fst - pre vs post treatment")
-
-fst_plot + plot + plot_layout(ncol=1)
-
-
-write.table(b,"chr1.allelefreqdiff.gt0.4.txt",sep="\t",quote=F,row.names=F)
-
-
-while read chr pos rest; do \
-	awk -v chr="$chr" -v pos="$pos" -F'[\t/]' '{if($1==chr && $2==pos && $4=="2") print $1,$2,$3,$5"/"$6,$9,$11/$12,$13/$14,$15/$16,$17/$18,$19/$20,$21/$22,$23/$24,$25/$26}' OFS="\t" XQTL_BZ_rc >> XQTL_BZ_peakSNPs.txt; \
-done < chr1.allelefreqdiff.gt0.4.txt &
-
-
-
-
-# LEV - chr 5
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_LEV
-
-awk '{if($1=="hcontortus_chr5_Celeg_TT_arrow_pilon" && $2>=25000000 && $2<=35000000) print $0}' OFS="\t" XQTL_LEV_pwc > XQTL_BZ_pwc_chr5_25-35Mb
-awk '{if($1=="hcontortus_chr5_Celeg_TT_arrow_pilon" && $2>=25000000 && $2<=35000000) print $0}' OFS="\t" XQTL_LEV.merged.fst > XQTL_LEV.merged_25-35Mb.fst
-
-R-3.4.0
-library(ggplot2)
-library(patchwork)
-a<-read.table("XQTL_BZ_pwc_chr5_25-35Mb",header=F,na.strings="na")
-a_fst<-read.table("XQTL_LEV.merged_25-35Mb.fst",header=F,na.strings="na")
-b<-a[a$V12>0.4 & a$V19>0.4 & a$V30>0.4,]
-b<-na.omit(b)
-
-
-
-plot<-ggplot()+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2,b$V12),col="red")+theme_bw()+ylim(0,1)+ylab("Allele freq diff. - pre vs post treatment")
-fst_plot<-ggplot()+geom_point(aes(a_fst$V2,a_fst$V13),alpha=0.5)+theme_bw()+ylab("Fst - pre vs post treatment")
-
-fst_plot + plot + plot_layout(ncol=1)
-
-
-
-# LEV - chr 4
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_LEV
-
-awk '{if($1=="hcontortus_chr4_Celeg_TT_arrow_pilon" && $2>=10000000 && $2<=20000000) print $0}' OFS="\t" XQTL_LEV_pwc > XQTL_LEV_pwc_chr4_10-20Mb
-awk '{if($1=="hcontortus_chr4_Celeg_TT_arrow_pilon" && $2>=10000000 && $2<=20000000) print $0}' OFS="\t" XQTL_LEV.merged.fst > XQTL_LEV.merged_10-20Mb.fst
-
-R-3.4.0
-library(ggplot2)
-library(patchwork)
-a<-read.table("XQTL_LEV_pwc_chr4_10-20Mb",header=F,na.strings="na")
-a_fst<-read.table("XQTL_LEV.merged_10-20Mb.fst",header=F,na.strings="na")
-b<-a[a$V12>0.4 & a$V19>0.4 & a$V30>0.4,]
-b<-na.omit(b)
-
-plot<-ggplot()+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2,b$V12),col="red")+theme_bw()+ylim(0,1)+ylab("Allele freq diff. - pre vs post treatment")
-fst_plot<-ggplot()+geom_point(aes(a_fst$V2,a_fst$V13),alpha=0.5)+theme_bw()+ylab("Fst - pre vs post treatment")
-
-fst_plot + plot + plot_layout(ncol=1)
-
-
-
-
-
-
-# IVM - chr 2
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_VM
-
-awk '{if($1=="hcontortus_chr2_Celeg_TT_arrow_pilon" && $2>=0 && $2<=10000000) print $0}' OFS="\t" XQTL_IVM_pwc > XQTL_IVM_pwc_chr1_0-10Mb
-awk '{if($1=="hcontortus_chr2_Celeg_TT_arrow_pilon" && $2>=0 && $2<=10000000) print $0}' OFS="\t" XQTL_IVM.merged.fst > XQTL_IVM.merged_0-10Mb.fst
-
-R-3.4.0
-library(ggplot2)
-library(patchwork)
-a<-read.table("XQTL_IVM_pwc_chr1_0-10Mb",header=F,na.strings="na")
-a_fst<-read.table("XQTL_IVM.merged_0-10Mb.fst",header=F,na.strings="na")
-b<-a[a$V12>0.3 & a$V19>0.3,]
-b<-na.omit(b)
-
-plot<-ggplot()+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2,b$V12),col="red")+theme_bw()+ylim(0,1)+ylab("Allele freq diff. - pre vs post treatment")
-fst_plot<-ggplot()+geom_point(aes(a_fst$V2,a_fst$V13),alpha=0.5)+theme_bw()+ylab("Fst - pre vs post treatment")
-
-fst_plot + plot + plot_layout(ncol=1)
-
-
-
-# IVM - chr 5
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_VM
-
-awk '{if($1=="hcontortus_chr5_Celeg_TT_arrow_pilon" && $2>=30000000 && $2<=50000000) print $0}' OFS="\t" XQTL_IVM_pwc > XQTL_IVM_pwc_chr5_30-50Mb
-awk '{if($1=="hcontortus_chr5_Celeg_TT_arrow_pilon" && $2>=30000000 && $2<=50000000) print $0}' OFS="\t" XQTL_IVM.merged.fst > XQTL_IVM.merged_30-50Mb.fst
-
-R-3.4.0
-library(ggplot2)
-library(patchwork)
-a<-read.table("XQTL_IVM_pwc_chr5_30-50Mb",header=F,na.strings="na")
-a_fst<-read.table("XQTL_IVM.merged_30-50Mb.fst",header=F,na.strings="na")
-b<-a[a$V12>0.4 & a$V19>0.4 & a$V25>0.4 & a$V30>0.4,]
-b<-na.omit(b)
-
-plot<-ggplot()+geom_point(aes(a$V2,a$V12),alpha=0.2,cex=0.1)+geom_point(aes(b$V2,b$V12),col="red")+theme_bw()+ylim(0,1)+ylab("Allele freq diff. - pre vs post treatment")
-fst_plot<-ggplot()+geom_point(aes(a_fst$V2,a_fst$V13),alpha=0.5)+theme_bw()+ylab("Fst - pre vs post treatment")
-
-fst_plot + plot + plot_layout(ncol=1)
-```
-
-
-
-
-
-
-
-
-
-
-
-################################################################################
-## Dose response data - quick look
-```shell
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/DOSE_RESPONSE
-
-R
-```
-
-```R
-library(ggplot2)
-library(ggrepel)
-
-
-data <- read.table("DOSE_RESPONSE.merged.fst",header=F)
-
-
-ggplot(data)+geom_point(aes(data$V2,data$V7,col=data$V1),alpha=0.5,size=0.5)+facet_grid(.~data$V1)+theme_bw()
-
-chr5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-
-ggplot(chr5,aes(V2,V7,label=V2))+geom_point()+xlim(2.5e7,4.5e7)+geom_text_repel(data = subset(chr5,V7 > 0.25))+theme_bw()
-
-```
-
-
-
-
-
-
-
-
-
-################################################################################
-
-
-chromosome.labels <- c("I","II","III","IV","V", "X" )
-names(chromosome.labels) <- c("hcontortus_chr1_Celeg_TT_arrow_pilon","hcontortus_chr2_Celeg_TT_arrow_pilon","hcontortus_chr3_Celeg_TT_arrow_pilon","hcontortus_chr4_Celeg_TT_arrow_pilon","hcontortus_chr5_Celeg_TT_arrow_pilon","hcontortus_chrX_Celeg_TT_arrow_pilon")
-
-
-
-library(ggplot2)
-library(patchwork)
-
-
-data<-read.table("XQTL_IVM.merged.fst",header=F)
-data5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-
-top1 <- data[data$V13 > quantile(data$V13,prob=1-0.5/100),]
-top1_5 <- top1[top1$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-
-ggplot(data,aes(V2,V13,group,V1))+
-	facet_grid(V1~.,labeller = labeller(V1 = chromosome.labels))+
-	geom_point(data=top1,aes(top1$V2,top1$V13,alpha=top1$V4),col="red")+
-	geom_point(aes(alpha=V4),size=0.5)+
-	theme_bw()+
-	labs(x="Genome position (bp)", y="Fst (XQTL_IVM 1:5 (V13))", alpha="window coverage")
-
-
-
-
-
-
-plot1<-ggplot(data=data5,aes(V2,V13))+
-	theme_bw()+
-	 geom_rect(aes(xmin=27640082,ymin=0,xmax=27661088,ymax=Inf),color="grey",fill="grey")+  # glc-3 HCON_00148840
-   	 geom_rect(aes(xmin=28367524,ymin=0,xmax=28394349,ymax=Inf),color="grey",fill="grey")+  # osm-6 HCON_00149350
-	geom_rect(aes(xmin=36159873,ymin=0,xmax=36160068,ymax=Inf),color="grey",fill="grey")+  # microsat 8a20 - V3, approx in V4
-   	geom_rect(aes(xmin=37487982,ymin=0,xmax=37497398,ymax=Inf),color="red",fill="red")+  # cky-1 NPAS4 HCON_00155390
-  	geom_rect(aes(xmin=37591595,ymin=0,xmax=37598257,ymax=Inf),color="grey",fill="grey")+  # HCON_00155440  GPCR serpentin "chemoreceptor"
-	geom_rect(aes(xmin=37538652,ymin=0,xmax=37556986,ymax=Inf),color="grey",fill="grey")+  # lin-12 HCON_00155420
-	geom_rect(aes(xmin=39459752,ymin=0,xmax=39485324,ymax=Inf),color="grey",fill="grey")+  # egl2
-   	geom_rect(aes(xmin=42448291,ymin=0,xmax=42464088,ymax=Inf),color="grey",fill="grey")+  # lgc-55 HCON_00158990
-   	geom_rect(aes(xmin=45761945,ymin=0,xmax=45765591,ymax=Inf),color="grey",fill="grey")+  # HCON_00161700 - neurotransmitter gated channel ligand domain containing protein
-  	geom_rect(aes(xmin=45965820,ymin=0,xmax=45985698,ymax=Inf),color="grey",fill="grey")+  # dop-5 HCON_00161830
-  	geom_rect(aes(xmin=45986412,ymin=0,xmax=46020767,ymax=Inf),color="grey",fill="grey")+  # hen-1 HCON_00161834  	
-  	geom_rect(aes(xmin=47243601,ymin=0,xmax=47259265,ymax=Inf),color="grey",fill="grey")+  # pgp-11 HCON_0016278
-  	geom_point(data=top1_5,aes(top1_5$V2,top1_5$V13,alpha=top1_5$V4),col="red")+
-  	geom_point(aes(alpha=V4),size=0.5)+
-  	labs(x="Genome position (bp)", y="Fst (XQTL_IVM 1:5 (V13))", alpha="window coverage")
-
-plot1<-plot1+xlim(3.7e7,3.8e7)
-plot1<-plot1+xlim(4.5e7,4.9e7)
-
-plot2 <- ggplot(genes)+ geom_rect(aes(xmin=genes$V2,ymin=0,xmax=genes$V3,ymax=1),color="grey",fill="grey")+geom_text_repel(aes(label=genes$V1,x=genes$V2+(genes$V3-genes$V2),y=0.5),angle = 90,size=2)
-
-plot2<-plot2+xlim(3.7e7,3.8e7)
-
-plot1+plot2+plot_layout(ncol=1)
-
-genes <-read.table("chr5_geneIDs.txt",header=F)
-
-plot + geom_rect(aes(xmin=genes$V2,ymin=0,xmax=genes$V3,ymax=1),color="grey",fill="grey")
-plot+geom_vline(aes(x=genes$V2))
-
-
-
-
-
-
-
-
-
-
-
-library(ggplot2)
-library(patchwork)
-
-
-fst <-read.table("XQTL_US_FIELD.merged.fst",header=F)
-
-# susceptibles
-plot_1 <- ggplot(fst,aes(V2,V21))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Idaho_S")+theme_bw()
-
-# UGA_S vs moderates
-plot_2 <- ggplot(fst,aes(V2,V7))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Ober_NY_Mod")+theme_bw()
-plot_3 <- ggplot(fst,aes(V2,V9))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Histon_Maryland_Mod")+theme_bw()
-plot_4 <- ggplot(fst,aes(V2,V11))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Krushing_Ohio_Mod")+theme_bw()
-
-
-# Idaho_S vs moderates
-plot_5 <- ggplot(fst,aes(V2,V37))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Ober_NY_goat_Mod")+theme_bw()
-plot_6 <- ggplot(fst,aes(V2,V51))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Histon_Maryland_Mod")+theme_bw()
-plot_7 <- ggplot(fst,aes(V2,V63))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Krushing_Ohio_Mod")+theme_bw()
-
-
-# UGA_S vs high resistance
-plot_8 <- ggplot(fst,aes(V2,V13))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Adlay_Georgia_R")+theme_bw()
-plot_9 <- ggplot(fst,aes(V2,V15))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Mulligan_Georgia_R")+theme_bw()
-plot_10 <- ggplot(fst,aes(V2,V17))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Rau-Shelby_Georgia_R")+theme_bw()
-plot_11 <- ggplot(fst,aes(V2,V19))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Pena_NY_alpaca_R")+theme_bw()
-plot_12 <- ggplot(fst,aes(V2,V23))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="UGA_S vs Strickland_Georgia_R")+theme_bw()
-
-
-# Idaho_S vs high resistance
-plot_13 <- ggplot(fst,aes(V2,V73))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Adlay_Georgia_R")+theme_bw()
-plot_14 <- ggplot(fst,aes(V2,V81))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Mulligan_Georgia_R")+theme_bw()
-plot_15 <- ggplot(fst,aes(V2,V87))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Rau-Shelby_Georgia_R")+theme_bw()
-plot_16 <- ggplot(fst,aes(V2,V91))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Pena_NY_alpaca_R")+theme_bw()
-plot_17 <- ggplot(fst,aes(V2,V95))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+ylim(0,1)+labs(title="Idaho_S vs Strickland_Georgia_R")+theme_bw()
-
-
-
-
-plot_1 + plot_2 + plot_3 + plot_4 + plot_layout(ncol=1)
-plot_1 + plot_5 + plot_6 + plot_7 + plot_layout(ncol=1)
-
-
-plot_8 + plot_9 + plot_10 + plot_11 + plot_12 + plot_layout(ncol=1)
-plot_13 + plot_14 + plot_15 + plot_16 + plot_17 + plot_layout(ncol=1)
-
-plot_1 + plot_2 + plot_3 + plot_4 + plot_8 + plot_9 + plot_10 + plot_11 + plot_12 + plot_layout(ncol=1)
 
 
 
@@ -1861,45 +946,6 @@ plot_S4_pi <- ggplot(sample1)+
 
 
 
-
-
-
-
-#------------ PLAY
-plot7.5 <-     ggplot(sample7.5,aes(window*10000,log10(Pi),label=window*10000))+
-                              geom_point(size=1,alpha=1,col="black")+theme_bw()+ylim(-5,-1)+labs(title="Rau_Shelby_R")+
-                              geom_text_repel(data=subset(sample7.5,Pi <= 0.001))
-acr8 31508821	31530834
-
-plot_10 + plot7.5 +plot_layout(ncol=1)
-
-
-
-
-plot10in <- plot_10 + xlim(3e7,3.3e7)
-
-lev_plo1v5 <- ggplot(lev,aes(V2,V13))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+labs(title="XQTL_LEV_1v5")+theme_bw()+xlim(3e7,3.3e7)
-
-lev_plot2v6 <- ggplot(lev,aes(V2,V27))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+labs(title="XQTL_LEV_1v5")+theme_bw()+xlim(3e7,3.3e7)
-
-lev_plot3v7 <- ggplot(lev,aes(V2,V39))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+labs(title="XQTL_LEV_1v5")+theme_bw()+xlim(3e7,3.3e7)
-
-lev_plot4v8 <- ggplot(lev,aes(V2,V49))+geom_point(size=0.5,alpha=0.5)+facet_grid(.~V1)+labs(title="XQTL_LEV_1v5")+theme_bw()+xlim(3e7,3.3e7)
-
-
-plot10in + lev_plo1v5 + lev_plot2v6 + lev_plot3v7 + lev_plot4v8 +  plot_layout(ncol=1)
-
-
-
-
-
-
-
-
-
-
-
-
 #----- SNPeff analysis of functional variants
 ```shell
 # setup for HCON_V4
@@ -1949,56 +995,9 @@ bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e sn
 
 
 
-## Other stuff
-
-# Genome wide signficance
-- FET from popoolation2
-```shell
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_CONTROL
-
-# merge FETs from three control sample comparions of pre and post tim matched controls, and take mean and std dev
-cat <(cut -f13 XQTL_CONTROL.merged.fet) <(cut -f23 XQTL_CONTROL.merged.fet) <(cut -f29 XQTL_CONTROL.merged.fet) | datamash mean 1 pstdev 1
-= 0.34615931956459	0.42400180743679
-= 3*SD = 1.27
-= 5*SD = 2.12
-
-= mean + 3SD = 1.616
-1556627 SNPs in at least one control above this, only 2183 SNPs above this threshold in all three comparisons
-= mean + 5SD = 2.466
-257238 SNPs in at least one control above this, only 32 SNPs above this threshold in all three comparisons
 
 
 
-
-
-# bonferroni correction
-0.05 / 29417009 = 0.000000001699697 = 1.700 x 10^9
--log10(0.000000001699697) = 8.77
-
-awk '{if($13>8.77 || $23>8.77 || $29>8.77) print }' XQTL_CONTROL.merged.fet
-- only 32 SNPs of 29417009 are above this threshold in at least one of the control populations. An additional 43 are above this in mtDNA.
-```
-
-
-
-# mapping gilleard ISE, CAVR, WRS RNAseq to compare with XQTL data
-```
-#--- map reads
-
-for i in `ls -1 | grep "_1.fastq.gz" | sed 's/_1.fastq.gz//g'  `; do \
-bsub.py 20 --threads 8 starmap_${i} /nfs/users/nfs_s/sd21/lustre118_link/software/TRANSCRIPTOME/STAR/bin/Linux_x86_64/STAR \
---runThreadN 8 \
---genomeDir /nfs/users/nfs_s/sd21/lustre118_link/REFERENCE_SEQUENCES/haemonchus_contortus/hc_v4chr_rnaseq_star_index \
---readFilesIn ${i}_1.fastq.gz ${i}_2.fastq.gz \
---readFilesCommand zcat \
---alignIntronMin 10 \
---outTmpDir starmap_${i}_tmp \
---outFileNamePrefix starmap_${i}_other_out \
---outSAMtype BAM SortedByCoordinate \
---outWigType bedGraph \
---twopassMode Basic \
-; done
-```
 
 
 #L3_5000
@@ -2011,7 +1010,7 @@ ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.num
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8),labels=comma)+
+  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
   theme_bw()+
   theme(legend.position="none",
         panel.background=element_blank(),
@@ -2027,7 +1026,7 @@ ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", 
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
-  scale_x_continuous(,labels=comma)+
+  scale_x_continuous()+
   xlim(2.4e6,3.5e6)+
   theme_bw()+
   theme(legend.position="none",
@@ -2044,8 +1043,8 @@ ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", 
   xlab("Relative window position in genome")+
   ylab("Fst")+
   scale_color_manual(values=pal)+
-  scale_x_continuous(,labels=comma)+
-  xlim(37.25e6,37.5e6)+
+  scale_x_continuous()+
+  xlim(35e6,40e6)+
   theme_bw()+
   theme(legend.position="none",
         panel.background=element_blank(),
@@ -2055,69 +1054,6 @@ ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", 
         panel.border = element_rect(colour = "black", fill=NA, size=1))
 ```
 
-
-### mapping Gilleard parental strains to compare against XQTL data
-- gillard BC was mapped against the V3 version of the genome, so needs to be done again.
-
-
-
-
-
-```
-cd ~/lustre118_link/hc/XQTL/03_MAPPING/GILLEARD_BC/DNASEQ
-
-parental_ISE_susceptible_5764_1	5764_1
-parental_ISE_susceptible_6514_1	6514_1
-parental_ISE_susceptible_7756_1	7756_1
-parental_WRS_resistant_5764_2	5764_2
-parental_WRS_resistant_6474_1	6474_1
-parental_WRS_resistant_7756_2	7756_2
-parental_CAVR_resistant_5764_3	5764_3
-parental_CAVR_resistant_6474_2	6474_2
-parental_CAVR_resistant_7756_3	7756_3
-
-
-
-while read name id; do pf data --rename --filetype fastq -l ./ --type lane --id ${id}; done < sample_lanes.list
-
-
-
-while read name lane; do ~sd21/bash_scripts/run_bwamem_splitter ${name} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa $PWD/${lane}_1.fastq.gz $PWD/${lane}_2.fastq.gz; done < sample_lanes.list
-
-
-
-#--- clean up
-mv *out/*.marked.bam .
-mv *out/*.marked.bam.bai .
-
-rm -r *out
-
-#--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
-ls -1 *bam > bam.list
-ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa
-
-~sd21/bash_scripts/run_gatk_indel_realigner HAEM_V4_final.chr.fa bam.list
-
-
-#--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
-rm *marked.bam
-rm *marked.bam.bai
-
-
-
-
-#--- run mpileup
-ls -1 *bam > bam.list
-
-~sd21/bash_scripts/run_mpileup.sh GBX_PARENTS /lustre/scratch118/infgen/team133/sd21/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa bam.list &
-
-cat $(find . -name "*tmp.mpileup" | sort -V) | sed 's/\t\t/\t!\t!/g' > XQTL_DOSE_RESPONSE.mpileup &
-
-rm *tmp*
-
-
-#mpileup to popoolation2
-~sd21/bash_scripts/run_mpileup2popoolation2 GBX /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa GBX.mpileup 50 5000 &
 
 
 
