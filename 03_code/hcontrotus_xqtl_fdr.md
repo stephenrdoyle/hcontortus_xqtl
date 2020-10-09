@@ -107,10 +107,11 @@ data2 <- bind_rows(control_bz_high, control_lev_high, control_ivm_high)
 
 
 fp_plot <- ggplot(data2,aes(V13.x,1)) +
-     geom_jitter(aes(color = V13.x > mean(control$V13)+3*sd(control$V13)), alpha=0.4)+ xlim(0,0.05) +
+     geom_jitter(aes(color = V13.x > mean(control$V13)+3*sd(control$V13), size = V13.x > mean(control$V13)+3*sd(control$V13)))+ xlim(0,0.05) +
+     scale_size_manual(values = c("TRUE" = 1, "FALSE" = 0.3), guide = "none")+
      scale_color_manual(values = c("TRUE" = "red", "FALSE" = "black"))+
      theme_bw() +
-     labs(title = "B", x="FST", colour="False positive")+
+     labs(title = "B", x="FST", colour="False positive", size="", y="")+
      facet_grid(id.y~.)
 
 fst_distribution_plot + fp_plot + plot_layout(ncol = 1)
