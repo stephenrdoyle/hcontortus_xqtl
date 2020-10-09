@@ -118,5 +118,8 @@ fst_distribution_plot + fp_plot + plot_layout(ncol = 1)
 ggsave("xqtl_fdr.png")
 ```
 ![](../04_analysis/xqtl_fdr.png)
-A. Fst distribution for each group, showing position of meanFst+3sd
-B. For positions above the meanFst+3sd threshold, the Fst for the equivalent position in the control dataset is shown. Points are coloured black, except for points that are above the control meanFst+3sd which are indicated in red. These red points represent the false positives.
+- A. Fst distribution for each group, showing position of meanFst+3sd
+- B. For positions above the meanFst+3sd threshold, the Fst for the equivalent position in the control dataset is shown. Points are coloured black, except for points that are above the control meanFst+3sd which are indicated in red. These red points represent the false positives.
+     - FDR: benzimidazole = 0.02949438
+     - FDR: benzimidazole = 0.04615385
+     - FDR: benzimidazole = 0.02949438
