@@ -18,7 +18,7 @@ bz <- read.table("XQTL_BZ/XQTL_BZ.merged.fst",header=F)
 lev <- read.table("XQTL_LEV/XQTL_LEV.merged.fst",header=F)
 ivm <- read.table("XQTL_IVM/XQTL_IVM.merged.fst",header=F)
 
-# add labels before merging
+# add labels, extract relevant data, before merging
 control$id <- "1. Control"
 bz$id <- "2. Benzimidazole treated"
 lev$id <- "3. Levamisole treated"
@@ -41,8 +41,9 @@ vline.data <- data %>%
 fst_distribution_plot <- ggplot(data,aes(V13,id)) +
      geom_density_ridges(aes(fill = id),scale = 1) + xlim(0,0.05) +
      geom_vline(aes(xintercept = mean_fst_3sd, col = id), vline.data, size = 1, linetype = "dashed") +
-     scale_y_discrete(limits = rev(data$id)) + theme_bw() +
-     labs(title="A", x="FST")
+     scale_y_discrete(limits = rev(data$id)) +
+     theme_bw() + theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
+     labs(title="A", x = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")", y="")))
 
 
 # proportion of values above the control threshold
@@ -105,21 +106,29 @@ nrow(control_ivm_high_control_high)/nrow(control_ivm_high)
 data2 <- bind_rows(control_bz_high, control_lev_high, control_ivm_high)
 
 
-
+# make false positive plot
 fp_plot <- ggplot(data2,aes(V13.x,1)) +
      geom_jitter(aes(color = V13.x > mean(control$V13)+3*sd(control$V13), size = V13.x > mean(control$V13)+3*sd(control$V13)))+ xlim(0,0.05) +
      scale_size_manual(values = c("TRUE" = 1, "FALSE" = 0.3), guide = "none")+
      scale_color_manual(values = c("TRUE" = "red", "FALSE" = "black"))+
-     theme_bw() +
-     labs(title = "B", x="FST", colour="False positive", size="", y="")+
+     theme_bw() + theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
+     labs(title = "B", x = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")), colour="False positive", size="", y="")+
      facet_grid(id.y~.)
 
+# bring the plots together
 fst_distribution_plot + fp_plot + plot_layout(ncol = 1)
+
+# save it
 ggsave("xqtl_fdr.png")
 ```
 ![](../04_analysis/xqtl_fdr.png)
 - A. Fst distribution for each group, showing position of meanFst+3sd
-- B. For positions above the meanFst+3sd threshold, the Fst for the equivalent position in the control dataset is shown. Points are coloured black, except for points that are above the control meanFst+3sd which are indicated in red. These red points represent the false positives.
+     - Proportion of treatment data above meanFst+3sd of control
+          - benzimidazole = ~4.2%
+          - levamisole = ~11.2%
+          - ivermectin = ~2.4%
+
+- B. For positions above the meanFst+3sd threshold, the Fst for the equivalent genomic position in the control dataset is shown. Points are coloured black, except for points that are above the control meanFst+3sd which are indicated in red. These red points represent the false positive fraction, ie. highly differentated in both the control and treated group 
      - FDR: high_Fst(treated & control) / high_Fst(treated)
           - benzimidazole = 0.02949438 or ~2.9%
           - levamisole = 0.04615385 or ~4.6%
