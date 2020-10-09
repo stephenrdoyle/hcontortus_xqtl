@@ -122,14 +122,16 @@ fst_distribution_plot + fp_plot + plot_layout(ncol = 1)
 ggsave("xqtl_fdr.png")
 ```
 ![](../04_analysis/xqtl_fdr.png)
-- A. Fst distribution for each group, showing position of meanFst+3sd
+- A. Fst distribution for each group, showing position of meanFst+3sd (vertical dashed line, coloured by treatment group)
      - Proportion of treatment data above meanFst+3sd of control
           - benzimidazole = ~4.2%
           - levamisole = ~11.2%
           - ivermectin = ~2.4%
+               - suggests that there shift in the distribution with treatment, with an increase in data above that of the control
 
-- B. For positions above the meanFst+3sd threshold, the Fst for the equivalent genomic position in the control dataset is shown. Points are coloured black, except for points that are above the control meanFst+3sd which are indicated in red. These red points represent the false positive fraction, ie. highly differentated in both the control and treated group 
+- B. For positions above the meanFst+3sd threshold, the Fst for the equivalent genomic position in the control dataset is shown. Points are coloured black, except for points that are above the control meanFst+3sd which are indicated in red. These red points represent the false positive fraction, ie. highly differentated in both the control and treated group
      - FDR: high_Fst(treated & control) / high_Fst(treated)
           - benzimidazole = 0.02949438 or ~2.9%
           - levamisole = 0.04615385 or ~4.6%
           - ivermectin = 0.05587393 or ~5.6%
+               - suggests that of the data above the threshold in each group, between 2.9 and 5.6 % represent false positives
