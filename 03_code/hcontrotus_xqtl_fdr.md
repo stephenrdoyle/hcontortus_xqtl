@@ -227,7 +227,7 @@ ggsave("xqtl_lev_Fst_adjustedP.png")
 ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Ivermectin", y="-log10(adjustedP[z score])", x= "genomic position")
 ggsave("xqtl_ivm_Fst_adjustedP.png")
 ```
-
+![](../04_analysis/xqtl_control_Fst_adjustedP.png)
 ![](../04_analysis/xqtl_bz_Fst_adjustedP.png)
 ![](../04_analysis/xqtl_lev_Fst_adjustedP.png)
 ![](../04_analysis/xqtl_ivm_Fst_adjustedP.png)
