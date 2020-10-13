@@ -395,3 +395,37 @@ fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
 #> 0.02692197
 ```
 - this is too stringent. None of the Fst data would pass.
+
+
+
+
+#
+```R
+sample <- bz
+sig_values <- filter(sample, V13 > (mean(V13) + 3*sd(V13)))
+sig_values <- sig_values %>% mutate(V2 = as.numeric(V2))
+sig_values <- select(sig_values,"V2")
+
+#https://stackoverflow.com/questions/16118050/how-to-check-if-a-vector-contains-n-consecutive-numbers
+seqle <- function(x,incr=5000) {
+  if(!is.numeric(x)) x <- as.numeric(x)
+  n <- length(x)  
+  y <- x[-1L] != x[-n] + incr
+  i <- c(which(y|is.na(y)),n)
+  list(lengths = diff(c(0L,i)),
+       values = x[head(c(0L,i)+1L,-1L)])
+}
+
+
+seqle <- function(x,incr=5000) {
+  if(!is.numeric(x[2])) x[2] <- as.numeric(x[2])
+  n <- length(x[2])  
+  y <- x[-1L] != x[-n] + incr
+  i <- c(which(y|is.na(y)),n)
+  list(lengths = diff(c(0L,i)),
+       values = x[2][head(c(0L,i)+1L,-1L)])
+}
+
+test <- seqle((unlist(sig_values$V2)))
+ggplot(test, aes(values, lengths)) + geom_point() + facet_grid()
+```
