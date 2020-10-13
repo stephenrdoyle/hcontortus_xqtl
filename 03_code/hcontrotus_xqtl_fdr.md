@@ -375,6 +375,7 @@ ggplot(myDF,aes(count,-log10(p_value),col=test)) +
 ggsave("xqtl_poisson_windows_sig.png")
 ```
 ![](../04_analysis/xqtl_poisson_windows_sig.png)
+
 - suggests three windows above threshold sufficiently significant
 - also suggests could colour runs of windows by significance value.
 
