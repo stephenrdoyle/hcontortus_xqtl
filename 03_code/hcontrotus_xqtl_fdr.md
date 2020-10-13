@@ -165,9 +165,8 @@ ggplot(qq.out, aes( x= x, y = y)) +
       geom_point() +
       geom_abline( intercept=0, slope=1) +
       coord_fixed(ratio = 1, xlim=xylim, ylim = xylim)
-
-
-
+```
+```R
 # comparison of sample vs theoretical distribution in qqplot
 require(qqplotr)
 # https://cran.r-project.org/web/packages/qqplotr/vignettes/introduction.html
@@ -214,13 +213,20 @@ ivm2$padjust <- p.adjust(ivm2$pnorm,method="fdr")
 
 # plot it
 
-ggplot(bz2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)
-
-ggplot(lev2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)
-
-ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)
-
+ggplot(bz2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+labs(title="Benzimidazole", y="-log10(adjustedP[z score])", x= "genomic position")
+ggsave("xqtl_bz_Fst_adjustedP.png")
+ggplot(lev2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Levamisole", y="-log10(adjustedP[z score])", x= "genomic position")
+ggsave("xqtl_lev_Fst_adjustedP.png")
+ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+labs(title="Ivermectin", y="-log10(adjustedP[z score])", x= "genomic position")
+ggsave("xqtl_ivm_Fst_adjustedP.png")
 ```
+
+![](../04_analysis/xqtl_bz_Fst_adjustedP.png)
+![](../04_analysis/xqtl_lev_Fst_adjustedP.png)
+![](../04_analysis/xqtl_ivm_Fst_adjustedP.png)
+
+
+
 
 
 apply(bz,1, function(x) { sum(control$V13 >= x['V13']) / length(control$V13) } )
