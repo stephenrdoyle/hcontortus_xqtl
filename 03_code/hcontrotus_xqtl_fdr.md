@@ -382,7 +382,7 @@ ggsave("xqtl_poisson_windows_sig.png")
 # reverse calculation of a Fst cutoff based on a bonferroni correction
 ```R
 # calculate zscore from a pvalue. In this case, a bonferroni-like value using number of haplotype blocks
-zscore <- qnorm(0.05/pop_haplotype_block)
+zscore <- qnorm(0.05/pop_haplotype_block)/2
 
 # rearrange zscore equation to find V13, which will be Fst in this case
 #zscore = (V13 - mean(V13))/sd(V13)
@@ -390,5 +390,6 @@ zscore <- qnorm(0.05/pop_haplotype_block)
 
 # calculate the Fst cutoff
 fst_cutoff <- abs(zscore) * sd(ivm$V13) + mean(ivm$V13)
+#> 0.02345413
 ```
-- this is too stringent. Non of the Fst data would pass.
+- this is too stringent. None of the Fst data would pass.
