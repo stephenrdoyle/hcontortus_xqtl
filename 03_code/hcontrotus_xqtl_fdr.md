@@ -124,6 +124,8 @@ ggsave("xqtl_fdr.png")
 ![](../04_analysis/xqtl_fdr.png)
 - A. Fst distribution for each group, showing position of meanFst+3sd (vertical dashed line, coloured by treatment group)
      - Proportion of treatment data above meanFst+3sd of control
+          - control = ~ 1.03%
+               - close to 1% as expected but perhaps increased slightly due to skew
           - benzimidazole = ~4.2%
           - levamisole = ~11.2%
           - ivermectin = ~2.4%
@@ -135,3 +137,166 @@ ggsave("xqtl_fdr.png")
           - levamisole = 0.04615385 or ~4.6%
           - ivermectin = 0.05587393 or ~5.6%
                - suggests that of the data above the threshold in each group, between 2.9 and 5.6 % represent false positives
+
+
+
+
+```R
+# pairwise KS test to compare distributions
+
+library(dgof)
+
+ks.test(control$V13, bz$V13, alternative = "two.sided")
+#> data:  control$V13 and bz$V13
+#> D^- = 0.0076465, p-value = 0.03707
+
+ks.test(control$V13, lev$V13, alternative = "l")
+
+
+# pariwise comparison using qqplot
+library(ggplot2)
+
+qq.out <- qqplot(control$V13, bz$V13, plot.it=FALSE)
+qq.out <- as.data.frame(qq.out)
+
+xylim <- range( c(qq.out$x, qq.out$y) )
+
+ggplot(qq.out, aes( x= x, y = y)) +
+      geom_point() +
+      geom_abline( intercept=0, slope=1) +
+      coord_fixed(ratio = 1, xlim=xylim, ylim = xylim)
+
+
+
+# comparison of sample vs theoretical distribution in qqplot
+require(qqplotr)
+# https://cran.r-project.org/web/packages/qqplotr/vignettes/introduction.html
+
+plot_multi_qq <- ggplot(data = data, mapping = aes(sample = V13, color = id, fill = id)) +
+    stat_qq_band(alpha=0.5) +
+    stat_qq_line() +
+    stat_qq_point() +
+    facet_wrap(~ id) +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles")
+plot_multi_qq
+
+# save it
+ggsave("xqtl_multi_qq.png")
+```
+![](../04_analysis/xqtl_multi_qq.png)
+
+
+```R
+# calculate zscores
+bz2 <- bz %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
+
+lev2 <- lev %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
+
+ivm2 <- ivm %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
+
+
+# zscore to pvalue
+bz2$pnorm <- 2*pnorm(-abs(bz2$zscore))
+
+lev2$pnorm <- 2*pnorm(-abs(lev2$zscore))
+
+ivm2$pnorm <- 2*pnorm(-abs(ivm2$zscore))
+
+
+
+# adjusted pvalue - FDR
+bz2$padjust <- p.adjust(bz2$pnorm,method="fdr")
+
+lev2$padjust <- p.adjust(lev2$pnorm,method="fdr")
+
+ivm2$padjust <- p.adjust(ivm2$pnorm,method="fdr")
+
+
+# plot it
+
+ggplot(bz2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)
+
+ggplot(lev2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)
+
+ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)
+
+```
+
+
+apply(bz,1, function(x) { sum(control$V13 >= x['V13']) / length(control$V13) } )
+with(bz, sum(control$V13 >= bz$V13)/length(control$V13))
+
+
+
+
+
+sample1 <- rnorm(10000, 10, 5)
+sample2 <- rnorm(10000, 1, 5)
+group <- c(rep("sample1", length(sample1)), rep("sample2", length(sample2)))
+dat <- data.frame(KSD = c(sample1,sample2), group = group)
+# create ECDF of data
+cdf1 <- ecdf(sample1)
+cdf2 <- ecdf(sample2)
+
+sample1 <- control$V13
+sample2 <- bz$V13
+sample3 <- lev$V13
+sample4 <- ivm$V13
+group <- c(rep("sample1", length(sample1)), rep("sample2", length(sample2)), rep("sample3", length(sample3)), rep("sample4", length(sample4)))
+dat <- data.frame(KSD = c(sample1,sample2, sample3,sample4), group = group)
+
+minMax <- seq(min(sample1, sample2, sample3, sample4), max(sample1, sample2, sample3, sample4), length.out=length(sample1))
+
+
+ggplot(dat, aes(x = KSD, group = group, color = group))+
+  stat_ecdf(size=1) +
+    theme_bw(base_size = 28) +
+    theme(legend.position ="top") +
+    xlab("Sample") +
+    ylab("ECDF") +
+    theme(legend.title=element_blank())
+
+
+
+
+
+
+
+
+
+
+
+# poisson distribution calculation
+
+
+
+vline.data <- data %>%
+              group_by(id) %>%
+              summarize(mean_fst_3sd = mean(V13)+3*sd(V13))
+
+
+#
+# frequency of a point about the threshold if randomly distributed in genome, based on number of total Fst windows
+f_windows <- nrow(filter(bz,V13 > vline.data$mean_fst_3sd[2])) / nrow(bz)
+
+# frequency of a point about the threshold if randomly distributed in genome, based on expected haplotype block size
+f_haplotypes <- nrow(filter(bz,V13 > vline.data$mean_fst_3sd[2])) / ((237e6*2)/37260)
+
+# calculate pvalue from poisson
+# ppois(1, lambda=bz_freq, lower=F)
+
+# loop over values from 1 to 10
+data  <- NULL;
+for (i in 1:10)
+ {
+  p1 <- ppois(i, lambda=f_windows, lower=F)
+  p1$count <- i
+  p2 <- ppois(i, lambda=f_haplotypes, lower=F)
+  p2$count <- i
+  data <- rbind(data, p1, p2 )
+ }
+
+myDF <- data.frame(pvalue = row.names(data), data)
+
+
+ggplot(myDF,aes(count,-log10(as.numeric(V1)),col=pvalue,group=pvalue))+geom_point()+facet_grid(pvalue~.)
