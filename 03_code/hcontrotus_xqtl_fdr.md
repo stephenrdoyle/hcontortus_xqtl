@@ -328,7 +328,7 @@ indv_haplotype_block <- (autosome_size * 2) / co_per_indiv
 
 
 
-# poisson distribution calculation
+# poisson distribution calculation of groups of windows above threshold
 ```R
 
 
@@ -341,10 +341,10 @@ sample <- bz
 
 #
 # frequency of a point about the threshold if randomly distributed in genome, based on number of total Fst windows
-f_windows <- nrow(filter(sample,V13 > (mean(V13)+3*sd(V13)))) / nrow(sample)
+f_windows <- nrow(filter(sample, V13 > (mean(V13) + 3*sd(V13)))) / nrow(sample)
 
 # frequency of a point about the threshold if randomly distributed in genome, based on expected haplotype block size
-f_haplotypes <- nrow(filter(sample,V13 > (mean(V13)+3*sd(V13)))) / pop_haplotype_block
+f_haplotypes <- nrow(filter(sample, V13 > (mean(V13) + 3*sd(V13)))) / pop_haplotype_block
 
 # calculate pvalue from poisson
 # ppois(1, lambda=bz_freq, lower=F)
@@ -369,13 +369,14 @@ ggplot(myDF,aes(count,-log10(p_value),col=test)) +
      #facet_grid(test~.) +
      theme_bw() +
      geom_hline(yintercept=-log10((0.01/nrow(sample))),col="red") +
-     geom_hline(yintercept=-log10((0.01/pop_haplotype_block)),col="blue")
+     geom_hline(yintercept=-log10((0.01/pop_haplotype_block)),col="blue")+
+     labs(title="Possion calculation of significance based on number of windows found in a group above a threshold", x="Number of windows in a group", col="Windows (red) \nv Haploblocks (blue)")
 
 # save it
 ggsave("xqtl_poisson_windows_sig.png")
 ```
 ![](../04_analysis/xqtl_poisson_windows_sig.png)
-
+- note: threshold is bonferroni threshold at 0.01 basde on number of windows (red) or haploblocks (blue)
 - suggests three windows above threshold sufficiently significant
 - also suggests could colour runs of windows by significance value.
 
@@ -390,7 +391,7 @@ zscore <- qnorm(0.05/pop_haplotype_block)/2
 #> zscore * sd(V13) + mean(V13) = V13
 
 # calculate the Fst cutoff
-fst_cutoff <- abs(zscore) * sd(ivm$V13) + mean(ivm$V13)
-#> 0.02345413
+fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
+#> 0.02692197
 ```
 - this is too stringent. None of the Fst data would pass.
