@@ -234,12 +234,12 @@ ggsave("xqtl_ivm_Fst_adjustedP.png")
 
 
 
-```
 
+
+
+```R
 apply(bz,1, function(x) { sum(control$V13 >= x['V13']) / length(control$V13) } )
 with(bz, sum(control$V13 >= bz$V13)/length(control$V13))
-
-
 
 
 
@@ -268,19 +268,68 @@ ggplot(dat, aes(x = KSD, group = group, color = group))+
     xlab("Sample") +
     ylab("ECDF") +
     theme(legend.title=element_blank())
+```
 
 
 
 
 
 
+
+
+
+
+
+
+# Estimation of haplotype blocks in the XQTL experiment
+- Aim: estimate average haplotype block length that would be maintained from the parental population to the sampled F3
+- Rationale: want to know what the minimum QTL size in genome, below which is likely to be noise, above which provides greater confidence of a selective sweep  
+
+Overview (see cross design schematic of XQTL paper)
+- 100 P0 susceptible females X 100 P0 resistant males
+- 5000 F1 progeny used for passage (F2 progeny will be 1st generation of recombinants)
+- X F2 adults producing 2x200 F3 L3 samples which were sequenced (F3 progeny will be 2nd generation of recombinants)
+
+```R
+# 5000 F1 parasites were using in the passage
+f1_autosomes <- 2 * 5000 * 5
+
+# from genetic map, expect 0.69 crossovers per chromosome on average
+crossovers <- 0.69
+f2_recombinants <- crossovers * f1_autosomes
+
+#> 34,500 F2 recombination events
+
+# 5000 F3 parasites sampled from treated F2 adults
+f2_autosomes <- 2 * 400 * 5
+f3_recombinants <- crossovers * f2_autosomes
+#> 2760 F3 recombination events
+
+# total recombination events
+
+total_recombinants <- f2_recombinants + f3_recombinants
+
+
+# PER POPULATION of 400 sampled
+autosome_size <- 237412613
+
+pop_haplotype_block <- (autosome_size * 2)/total_recombinants
+#> 12743.56 bp
+
+# PER INDIVIDUAL of the 400 sampled
+co_per_indiv <- total_recombinants / 400
+#> 93.15 recombination events per individual
+
+indv_haplotype_block <- (autosome_size * 2) / co_per_indiv
+#> 5.097 Mb haplotype blocks from parent in each individual
+```
 
 
 
 
 
 # poisson distribution calculation
-
+```R
 
 
 vline.data <- data %>%
@@ -288,12 +337,14 @@ vline.data <- data %>%
               summarize(mean_fst_3sd = mean(V13)+3*sd(V13))
 
 
+sample <- bz
+
 #
 # frequency of a point about the threshold if randomly distributed in genome, based on number of total Fst windows
-f_windows <- nrow(filter(bz,V13 > vline.data$mean_fst_3sd[2])) / nrow(bz)
+f_windows <- nrow(filter(sample,V13 > (mean(V13)+3*sd(V13)))) / nrow(sample)
 
 # frequency of a point about the threshold if randomly distributed in genome, based on expected haplotype block size
-f_haplotypes <- nrow(filter(bz,V13 > vline.data$mean_fst_3sd[2])) / ((237e6*2)/37260)
+f_haplotypes <- nrow(filter(sample,V13 > (mean(V13)+3*sd(V13)))) / pop_haplotype_block
 
 # calculate pvalue from poisson
 # ppois(1, lambda=bz_freq, lower=F)
@@ -302,15 +353,42 @@ f_haplotypes <- nrow(filter(bz,V13 > vline.data$mean_fst_3sd[2])) / ((237e6*2)/3
 data  <- NULL;
 for (i in 1:10)
  {
-  p1 <- ppois(i, lambda=f_windows, lower=F)
-  p1$count <- i
-  p2 <- ppois(i, lambda=f_haplotypes, lower=F)
-  p2$count <- i
-  data <- rbind(data, p1, p2 )
+  p1[1] <- ppois(i, lambda=f_windows, lower=F)
+  p1[2] <- i
+  p2[1] <- ppois(i, lambda=f_haplotypes, lower=F)
+  p2[2] <- i
+  data <- rbind(data, p1, p2)
  }
 
-myDF <- data.frame(pvalue = row.names(data), data)
+myDF <- data.frame(name = row.names(data), data)
+colnames(myDF) <- c("test","p_value","count")
 
 
-ggplot(myDF,aes(count,-log10(as.numeric(V1)),col=pvalue,group=pvalue))+geom_point()+facet_grid(pvalue~.)
+ggplot(myDF,aes(count,-log10(p_value),col=test)) +
+     geom_point() +
+     #facet_grid(test~.) +
+     theme_bw() +
+     geom_hline(yintercept=-log10((0.01/nrow(sample))),col="red") +
+     geom_hline(yintercept=-log10((0.01/pop_haplotype_block)),col="blue")
+
+# save it
+ggsave("xqtl_poisson_windows_sig.png")
 ```
+![](../04_analysis/xqtl_poisson_windows_sig.png)
+- suggests three windows above threshold sufficiently significant
+- also suggests could colour runs of windows by significance value.
+
+
+# reverse calculation of a Fst cutoff based on a bonferroni correction
+```R
+# calculate zscore from a pvalue. In this case, a bonferroni-like value using number of haplotype blocks
+zscore <- qnorm(0.05/pop_haplotype_block)
+
+# rearrange zscore equation to find V13, which will be Fst in this case
+#zscore = (V13 - mean(V13))/sd(V13)
+#> zscore * sd(V13) + mean(V13) = V13
+
+# calculate the Fst cutoff
+fst_cutoff <- abs(zscore) * sd(ivm$V13) + mean(ivm$V13)
+```
+- this is too stringent. Non of the Fst data would pass.
