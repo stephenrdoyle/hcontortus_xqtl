@@ -187,6 +187,8 @@ ggsave("xqtl_multi_qq.png")
 
 ```R
 # calculate zscores
+control2 <- control %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
+
 bz2 <- bz %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
 
 lev2 <- lev %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
@@ -195,6 +197,8 @@ ivm2 <- ivm %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
 
 
 # zscore to pvalue
+control2$pnorm <- 2*pnorm(-abs(control2$zscore))
+
 bz2$pnorm <- 2*pnorm(-abs(bz2$zscore))
 
 lev2$pnorm <- 2*pnorm(-abs(lev2$zscore))
@@ -204,6 +208,8 @@ ivm2$pnorm <- 2*pnorm(-abs(ivm2$zscore))
 
 
 # adjusted pvalue - FDR
+control2$padjust <- p.adjust(control2$pnorm,method="fdr")
+
 bz2$padjust <- p.adjust(bz2$pnorm,method="fdr")
 
 lev2$padjust <- p.adjust(lev2$pnorm,method="fdr")
@@ -212,12 +218,13 @@ ivm2$padjust <- p.adjust(ivm2$pnorm,method="fdr")
 
 
 # plot it
-
-ggplot(bz2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+labs(title="Benzimidazole", y="-log10(adjustedP[z score])", x= "genomic position")
+ggplot(control2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Control", y="-log10(adjustedP[z score])", x= "genomic position")
+ggsave("xqtl_control_Fst_adjustedP.png")
+ggplot(bz2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Benzimidazole", y="-log10(adjustedP[z score])", x= "genomic position")
 ggsave("xqtl_bz_Fst_adjustedP.png")
 ggplot(lev2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Levamisole", y="-log10(adjustedP[z score])", x= "genomic position")
 ggsave("xqtl_lev_Fst_adjustedP.png")
-ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+labs(title="Ivermectin", y="-log10(adjustedP[z score])", x= "genomic position")
+ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Ivermectin", y="-log10(adjustedP[z score])", x= "genomic position")
 ggsave("xqtl_ivm_Fst_adjustedP.png")
 ```
 
@@ -227,7 +234,7 @@ ggsave("xqtl_ivm_Fst_adjustedP.png")
 
 
 
-
+```
 
 apply(bz,1, function(x) { sum(control$V13 >= x['V13']) / length(control$V13) } )
 with(bz, sum(control$V13 >= bz$V13)/length(control$V13))
@@ -306,3 +313,4 @@ myDF <- data.frame(pvalue = row.names(data), data)
 
 
 ggplot(myDF,aes(count,-log10(as.numeric(V1)),col=pvalue,group=pvalue))+geom_point()+facet_grid(pvalue~.)
+```
