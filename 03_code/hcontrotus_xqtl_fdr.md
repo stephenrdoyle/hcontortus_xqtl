@@ -221,9 +221,9 @@ f_plot_zscore(ivm, "ivermectin")
 
 ```
 ![](../04_analysis/xqtl_control_Fst_adjustedP.png)
-![](../04_analysis/xqtl_bz_Fst_adjustedP.png)
-![](../04_analysis/xqtl_lev_Fst_adjustedP.png)
-![](../04_analysis/xqtl_ivm_Fst_adjustedP.png)
+![](../04_analysis/xqtl_benzimidazole_Fst_adjustedP.png)
+![](../04_analysis/xqtl_levamisole_Fst_adjustedP.png)
+![](../04_analysis/xqtl_ivermectin_Fst_adjustedP.png)
 
 
 
