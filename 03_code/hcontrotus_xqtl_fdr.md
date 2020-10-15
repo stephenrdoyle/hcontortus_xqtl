@@ -320,7 +320,7 @@ indv_haplotype_block <- (autosome_size * 2) / co_per_indiv
 
 
 
-
+***
 # poisson distribution calculation of groups of windows above threshold
 ```R
 
@@ -371,11 +371,14 @@ ggplot(myDF,aes(count,-log10(p_value),col=test)) +
 ggsave("xqtl_poisson_windows_sig.png")
 ```
 ![](../04_analysis/xqtl_poisson_windows_sig.png)
-- note: threshold is bonferroni threshold at 0.01 basde on number of windows (red) or haploblocks (blue)
+- note: threshold is bonferroni threshold at 0.01 based on number of windows (red) or haploblocks (blue)
 - suggests three windows above threshold sufficiently significant
 - also suggests could colour runs of windows by significance value.
 
 
+
+
+***
 # reverse calculation of a Fst cutoff based on a bonferroni correction
 ```R
 # calculate zscore from a pvalue. In this case, a bonferroni-like value using number of haplotype blocks
@@ -393,7 +396,7 @@ fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
 
 
 
-
+***
 # plotting genome wide length of clusters of windows above threshold, and significance of those clusters
 ```R
 # define function
@@ -454,4 +457,73 @@ f_plot_gw_clusters(ivm, "ivermectin")
 - these plots are somewhat "interesting" but I am not really sure how useful.
 - the "peaks" are a little misleading. Peak heigh it correlated with window cluster length, so technically could have a long but low level cluster showing a high peak. This is not the case here, as the peaks here match the peaks in the original plot.
 - what IS nice is that it shows outside of the main peaks, there is nothing new going on.
-- will be interesting to see what this looks like on a noisier dataset, for example, the advanced intercross data 
+- will be interesting to see what this looks like on a noisier dataset, for example, the advanced intercross data
+
+
+
+
+
+***
+```R
+ai <- read.table("ADVANCED_INTERCROSS/XQTL_ADVANCED_INTERCROSS.merged.fst",header=F)
+ai$id <- "ai"
+
+ai_V287 <- select(ai,c(V1,V2,V287,id))
+colnames(ai_V287) <- c("chr","pos","fst","id")
+ai_V297 <- select(ai,c(V1,V2,V297,id))
+colnames(ai_V297) <- c("chr","pos","fst","id")
+ai_V305 <- select(ai,c(V1,V2,V305,id))
+colnames(ai_V305) <- c("chr","pos","fst","id")
+
+# define function
+f_plot_gw_clusters <- function(x, title){
+
+require(ggplot2)
+
+# collect data above threshold. In this case, above mean + 3*sd
+sig_values <- filter(x, fst> (mean(fst) + 3*sd(fst)))
+sig_values <- sig_values %>% mutate(pos = as.numeric(pos))
+
+# frequency of a point about the threshold if randomly distributed in genome, based on number of total Fst windows
+f_windows <- nrow(filter(x, fst> (mean(fst) + 3*sd(fst)))) / nrow(x)
+
+
+# define function to calculate runs of consecutive window positions
+# maodified from: https://stackoverflow.com/questions/16118050/how-to-check-if-a-vector-contains-n-consecutive-numbers
+seqle <- function(chr,x,incr) {
+  if(!is.numeric(x)) x <- as.numeric(x)
+  n <- length(x)  
+  y <- x[-1L] != x[-n] + incr
+  i <- c(which(y|is.na(y)),n)
+  list(lengths = diff(c(0L,i)),
+       values = x[head(c(0L,i)+1L,-1L)],
+       chromosome = chr[c(0L,i)])
+}
+
+# run seqle and reformat
+sig_values_clusters <- seqle(sig_values$chr,sig_values$pos,5000)
+sig_values_clusters <-as.data.frame(cbind(sig_values_clusters$chromosome,sig_values_clusters$lengths,sig_values_clusters$values))
+colnames(sig_values_clusters) <- c("chromosome", "count", "position")
+
+
+# make a plot
+plot <- ggplot(sig_values_clusters, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_windows, lower=F)), col=as.factor(chromosome), size=count)) +
+     geom_point() +
+     facet_grid(chromosome~.)+
+     scale_size_area(breaks=c(1,10,20))+
+     theme_bw()+
+     labs(title=paste0("Length and probability of clusters of windows above threshold: ", title), y="-log10(P value [poisson dist])", x="Genomic position", col="Chromsome", size="Window size")
+
+print(plot)
+
+# save it
+ggsave(paste0("xqtl_",title,"_gw_possion_windows.png"))
+}
+
+f_plot_gw_clusters(ai_V287, "ai_V287")
+f_plot_gw_clusters(ai_V297, "ai_V297")
+f_plot_gw_clusters(ai_V305, "ai_V305")
+```
+![](../04_analysis/xqtl_ai_V287_gw_possion_windows.png)
+![](../04_analysis/xqtl_ai_V297_gw_possion_windows.png)
+![](../04_analysis/xqtl_ai_V305_gw_possion_windows.png)
