@@ -185,47 +185,40 @@ ggsave("xqtl_multi_qq.png")
 ![](../04_analysis/xqtl_multi_qq.png)
 
 
+
+# Plot pvalues of zscores calculated from Fst
 ```R
+
+f_plot_zscore <- function(x, title) {
+
 # calculate zscores
-control2 <- control %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
-
-bz2 <- bz %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
-
-lev2 <- lev %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
-
-ivm2 <- ivm %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
-
+data <- x %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
 
 # zscore to pvalue
-control2$pnorm <- 2*pnorm(-abs(control2$zscore))
-
-bz2$pnorm <- 2*pnorm(-abs(bz2$zscore))
-
-lev2$pnorm <- 2*pnorm(-abs(lev2$zscore))
-
-ivm2$pnorm <- 2*pnorm(-abs(ivm2$zscore))
-
-
+data$pnorm <- 2*pnorm(-abs(data$zscore))
 
 # adjusted pvalue - FDR
-control2$padjust <- p.adjust(control2$pnorm,method="fdr")
-
-bz2$padjust <- p.adjust(bz2$pnorm,method="fdr")
-
-lev2$padjust <- p.adjust(lev2$pnorm,method="fdr")
-
-ivm2$padjust <- p.adjust(ivm2$pnorm,method="fdr")
-
+data$padjust <- p.adjust(data$pnorm, method="fdr")
 
 # plot it
-ggplot(control2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Control", y="-log10(adjustedP[z score])", x= "genomic position")
-ggsave("xqtl_control_Fst_adjustedP.png")
-ggplot(bz2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Benzimidazole", y="-log10(adjustedP[z score])", x= "genomic position")
-ggsave("xqtl_bz_Fst_adjustedP.png")
-ggplot(lev2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Levamisole", y="-log10(adjustedP[z score])", x= "genomic position")
-ggsave("xqtl_lev_Fst_adjustedP.png")
-ggplot(ivm2,aes(V2,-log10(pnorm)))+geom_point()+facet_grid(V1~.)+ylim(0,60)+labs(title="Ivermectin", y="-log10(adjustedP[z score])", x= "genomic position")
-ggsave("xqtl_ivm_Fst_adjustedP.png")
+plot <- ggplot(data, aes(V2 , -log10(pnorm))) +
+     geom_point() +
+     facet_grid(V1 ~ .) +
+     ylim(0,60) +
+     labs(title=paste0("Genome wide adjusted pvalue based on zscore of Fst: ", title), y="-log10(adjustedP[z score])", x= "genomic position")
+
+print(plot)
+
+# save it
+ggsave(paste0("xqtl_",title,"_Fst_adjustedP.png"))
+}
+
+f_plot_zscore(control, "control")
+f_plot_zscore(bz, "benzimidazole")
+f_plot_zscore(lev, "levamisole")
+f_plot_zscore(ivm, "ivermectin")
+
+
 ```
 ![](../04_analysis/xqtl_control_Fst_adjustedP.png)
 ![](../04_analysis/xqtl_bz_Fst_adjustedP.png)
@@ -401,7 +394,7 @@ fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
 
 
 
-#
+# plotting genome wide length of clusters of windows above threshold, and significance of those clusters
 ```R
 
 plot <- function(x, title){
