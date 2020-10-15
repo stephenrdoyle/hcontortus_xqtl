@@ -450,3 +450,8 @@ f_plot_gw_clusters(ivm, "ivermectin")
 ![](../04_analysis/xqtl_benzimidazole_gw_possion_windows.png)
 ![](../04_analysis/xqtl_levamisole_gw_possion_windows.png)
 ![](../04_analysis/xqtl_ivermectin_gw_possion_windows.png)
+
+- these plots are somewhat "interesting" but I am not really sure how useful.
+- the "peaks" are a little misleading. Peak heigh it correlated with window cluster length, so technically could have a long but low level cluster showing a high peak. This is not the case here, as the peaks here match the peaks in the original plot.
+- what IS nice is that it shows outside of the main peaks, there is nothing new going on.
+- will be interesting to see what this looks like on a noisier dataset, for example, the advanced intercross data 
