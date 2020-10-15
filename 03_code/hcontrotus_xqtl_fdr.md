@@ -404,7 +404,7 @@ fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
 #
 ```R
 
-plot <- function(x){
+plot <- function(x, title){
 
 sig_values <- filter(x, V13 > (mean(V13) + 3*sd(V13)))
 sig_values <- sig_values %>% mutate(V2 = as.numeric(V2))
@@ -447,16 +447,16 @@ ggplot(test2, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_wind
      facet_grid(chromosome~.)+
      scale_size_area(breaks=c(1,10,20))+
      theme_bw()+
-     labs(title="Length and probability of clusters of windows above threshold", y="-log10(P value [poisson dist])", x="Genomic position", col="Chromsome", size="Window size")
+     labs(title=paste0("Length and probability of clusters of windows above threshold: ", title), y="-log10(P value [poisson dist])", x="Genomic position", col="Chromsome", size="Window size")
 }
 
 
 
-plot(bz)
+plot(bz, "benzimidazole")
 ggsave("xqtl_bz_gw_possion_windows.png")
-plot(lev)
+plot(lev, "levamisole")
 ggsave("xqtl_lev_gw_possion_windows.png")
-plot(ivm)
+plot(ivm, "ivermectin")
 ggsave("xqtl_ivm_gw_possion_windows.png")
 #size=count/max(count)
 
