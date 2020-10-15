@@ -353,11 +353,13 @@ f_haplotypes <- nrow(filter(sample, V13 > (mean(V13) + 3*sd(V13)))) / pop_haplot
 data  <- NULL;
 for (i in 1:10)
  {
-  p1[1] <- ppois(i, lambda=f_windows, lower=F)
-  p1[2] <- i
-  p2[1] <- ppois(i, lambda=f_haplotypes, lower=F)
-  p2[2] <- i
-  data <- rbind(data, p1, p2)
+      p_window <- NULL
+      p_haploblock <- NULL
+  p_window[1] <- ppois(i, lambda=f_windows, lower=F)
+  p_window[2] <- i
+  p_haploblock[1] <- ppois(i, lambda=f_haplotypes, lower=F)
+  p_haploblock[2] <- i
+  data <- rbind(data, p_window, p_haploblock)
  }
 
 myDF <- data.frame(name = row.names(data), data)
@@ -370,7 +372,7 @@ ggplot(myDF,aes(count,-log10(p_value),col=test)) +
      theme_bw() +
      geom_hline(yintercept=-log10((0.01/nrow(sample))),col="red") +
      geom_hline(yintercept=-log10((0.01/pop_haplotype_block)),col="blue")+
-     labs(title="Possion calculation of significance based on number of windows found in a group above a threshold", x="Number of windows in a group", col="Windows (red) \nv Haploblocks (blue)")
+     labs(title="Possion calculation of significance based on number of windows found in a group above a threshold", x="Number of windows in a group", col="Region tested")
 
 # save it
 ggsave("xqtl_poisson_windows_sig.png")
@@ -401,31 +403,66 @@ fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
 
 #
 ```R
-sample <- bz
-sig_values <- filter(sample, V13 > (mean(V13) + 3*sd(V13)))
-sig_values <- sig_values %>% mutate(V2 = as.numeric(V2))
-sig_values <- select(sig_values,"V2")
 
-#https://stackoverflow.com/questions/16118050/how-to-check-if-a-vector-contains-n-consecutive-numbers
-seqle <- function(x,incr=5000) {
+plot <- function(x){
+
+sig_values <- filter(x, V13 > (mean(V13) + 3*sd(V13)))
+sig_values <- sig_values %>% mutate(V2 = as.numeric(V2))
+
+# frequency of a point about the threshold if randomly distributed in genome, based on number of total Fst windows
+f_windows <- nrow(filter(x, V13 > (mean(V13) + 3*sd(V13)))) / nrow(x)
+
+
+
+# #https://stackoverflow.com/questions/16118050/how-to-check-if-a-vector-contains-n-consecutive-numbers
+# seqle <- function(x,incr=5000) {
+#   if(!is.numeric(x)) x <- as.numeric(x)
+#   n <- length(x)  
+#   y <- x[-1L] != x[-n] + incr
+#   i <- c(which(y|is.na(y)),n)
+#   list(lengths = diff(c(0L,i)),
+#        values = x[head(c(0L,i)+1L,-1L)])
+# }
+
+seqle <- function(chr,x,incr) {
   if(!is.numeric(x)) x <- as.numeric(x)
   n <- length(x)  
   y <- x[-1L] != x[-n] + incr
   i <- c(which(y|is.na(y)),n)
   list(lengths = diff(c(0L,i)),
-       values = x[head(c(0L,i)+1L,-1L)])
+       values = x[head(c(0L,i)+1L,-1L)],
+       chromosome = chr[c(0L,i)])
 }
 
 
-seqle <- function(x,incr=5000) {
-  if(!is.numeric(x[2])) x[2] <- as.numeric(x[2])
-  n <- length(x[2])  
-  y <- x[-1L] != x[-n] + incr
-  i <- c(which(y|is.na(y)),n)
-  list(lengths = diff(c(0L,i)),
-       values = x[2][head(c(0L,i)+1L,-1L)])
+test <- seqle(sig_values$V1,sig_values$V2,5000)
+
+test2 <-as.data.frame(cbind(test$chromosome,test$lengths,test$values))
+
+colnames(test2) <- c("chromosome", "count", "position")
+
+
+ggplot(test2, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_windows, lower=F)), col=as.factor(chromosome), size=count)) +
+     geom_point() +
+     facet_grid(chromosome~.)+
+     scale_size_area(breaks=c(1,10,20))+
+     theme_bw()+
+     labs(title="Length and probability of clusters of windows above threshold", y="-log10(P value [poisson dist])", x="Genomic position", col="Chromsome", size="Window size")
 }
 
-test <- seqle((unlist(sig_values$V2)))
-ggplot(test, aes(values, lengths)) + geom_point() + facet_grid()
+
+
+plot(bz)
+ggsave("xqtl_bz_gw_possion_windows.png")
+plot(lev)
+ggsave("xqtl_lev_gw_possion_windows.png")
+plot(ivm)
+ggsave("xqtl_ivm_gw_possion_windows.png")
+#size=count/max(count)
+
+#ggplot(test2) + geom_segment(aes(x=position,xend=(position+(count*5000)),y=-log10(ppois(count, lambda=f_windows, lower=F)), yend=-log10(ppois(count, lambda=f_windows, lower=F)))) + facet_grid(chromosome~.)
 ```
+
+![](../04_analysis/xqtl_bz_gw_possion_windows.png)
+![](../04_analysis/xqtl_lev_gw_possion_windows.png)
+![](../04_analysis/xqtl_ivm_gw_possion_windows.png)
