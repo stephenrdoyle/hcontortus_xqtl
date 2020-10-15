@@ -188,7 +188,7 @@ ggsave("xqtl_multi_qq.png")
 
 # Plot pvalues of zscores calculated from Fst
 ```R
-
+# define function
 f_plot_zscore <- function(x, title) {
 
 # calculate zscores
