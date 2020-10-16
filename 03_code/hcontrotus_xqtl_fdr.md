@@ -202,10 +202,11 @@ data$padjust <- p.adjust(data$pnorm, method="fdr")
 
 # plot it
 plot <- ggplot(data, aes(V2 , -log10(pnorm))) +
-     geom_point() +
+     geom_point(size=0.5) +
      facet_grid(V1 ~ .) +
      ylim(0,60) +
-     labs(title=paste0("Genome wide adjusted pvalue based on zscore of Fst: ", title), y="-log10(adjustedP[z score])", x= "genomic position")
+     labs(title=paste0("Genome wide adjusted pvalue based on zscore of Fst: ", title), y="-log10(adjustedP[z score])", x= "genomic position")+
+     theme_bw()
 
 print(plot)
 
