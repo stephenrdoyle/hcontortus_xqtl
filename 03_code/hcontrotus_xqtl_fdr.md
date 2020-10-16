@@ -400,7 +400,7 @@ fst_cutoff <- abs(zscore) * sd(sample$V13) + mean(sample$V13)
 # plotting genome wide length of clusters of windows above threshold, and significance of those clusters
 ```R
 # define function
-f_plot_gw_clusters <- function(x, title){
+fun_plot_gw_clusters <- function(x, title){
 
 # collect data above threshold. In this case, above mean + 3*sd
 sig_values <- filter(x, V13 > (mean(V13) + 3*sd(V13)))
@@ -412,7 +412,7 @@ f_windows <- nrow(filter(x, V13 > (mean(V13) + 3*sd(V13)))) / nrow(x)
 
 # define function to calculate runs of consecutive window positions
 # maodified from: https://stackoverflow.com/questions/16118050/how-to-check-if-a-vector-contains-n-consecutive-numbers
-seqle <- function(chr,x,incr) {
+fun_seqle <- function(chr,x,incr) {
   if(!is.numeric(x)) x <- as.numeric(x)
   n <- length(x)  
   y <- x[-1L] != x[-n] + incr
@@ -423,18 +423,17 @@ seqle <- function(chr,x,incr) {
 }
 
 # run seqle and reformat
-sig_values_clusters <- seqle(sig_values$V1,sig_values$V2,5000)
+sig_values_clusters <- fun_seqle(sig_values$V1,sig_values$V2,5000)
 sig_values_clusters <-as.data.frame(cbind(sig_values_clusters$chromosome,sig_values_clusters$lengths,sig_values_clusters$values))
 colnames(sig_values_clusters) <- c("chromosome", "count", "position")
 
 
 # make a plot
-plot <- ggplot(sig_values_clusters, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_windows, lower=F)), col=as.factor(chromosome), size=count)) +
-     geom_point() +
+plot <- ggplot(sig_values_clusters, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_windows, lower=F)), col=count>=3)) +
+     geom_point(aes(size=count)) +
      facet_grid(chromosome~.)+
-     scale_size_area(breaks=c(1,10,20))+
      theme_bw()+
-     labs(title=paste0("Length and probability of clusters of windows above threshold: ", title), y="-log10(P value [poisson dist])", x="Genomic position", col="Chromsome", size="Window size")
+     labs(title=paste0("Length and probability of clusters of windows above threshold: ", title), y="-log10(P value [poisson dist])", x="Genomic position", col="Window >= 3", size="Window size")
 
 print(plot)
 
@@ -442,9 +441,9 @@ print(plot)
 ggsave(paste0("xqtl_",title,"_gw_possion_windows.png"))
 }
 
-f_plot_gw_clusters(bz, "benzimidazole")
-f_plot_gw_clusters(lev, "levamisole")
-f_plot_gw_clusters(ivm, "ivermectin")
+fun_plot_gw_clusters(bz, "benzimidazole")
+fun_plot_gw_clusters(lev, "levamisole")
+fun_plot_gw_clusters(ivm, "ivermectin")
 #size=count/max(count)
 
 #ggplot(test2) + geom_segment(aes(x=position,xend=(position+(count*5000)),y=-log10(ppois(count, lambda=f_windows, lower=F)), yend=-log10(ppois(count, lambda=f_windows, lower=F)))) + facet_grid(chromosome~.)
@@ -476,7 +475,7 @@ ai_V305 <- select(ai,c(V1,V2,V305,id))
 colnames(ai_V305) <- c("chr","pos","fst","id")
 
 # define function
-f_plot_gw_clusters <- function(x, title){
+fun_plot_gw_clusters <- function(x, title){
 
 require(ggplot2)
 
@@ -490,7 +489,7 @@ f_windows <- nrow(filter(x, fst> (mean(fst) + 3*sd(fst)))) / nrow(x)
 
 # define function to calculate runs of consecutive window positions
 # maodified from: https://stackoverflow.com/questions/16118050/how-to-check-if-a-vector-contains-n-consecutive-numbers
-seqle <- function(chr,x,incr) {
+fun_seqle <- function(chr,x,incr) {
   if(!is.numeric(x)) x <- as.numeric(x)
   n <- length(x)  
   y <- x[-1L] != x[-n] + incr
@@ -501,18 +500,19 @@ seqle <- function(chr,x,incr) {
 }
 
 # run seqle and reformat
-sig_values_clusters <- seqle(sig_values$chr,sig_values$pos,5000)
+sig_values_clusters <- fun_seqle(sig_values$chr,sig_values$pos,5000)
 sig_values_clusters <-as.data.frame(cbind(sig_values_clusters$chromosome,sig_values_clusters$lengths,sig_values_clusters$values))
 colnames(sig_values_clusters) <- c("chromosome", "count", "position")
 
 
 # make a plot
-plot <- ggplot(sig_values_clusters, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_windows, lower=F)), col=as.factor(chromosome), size=count)) +
-     geom_point() +
+plot <- ggplot(sig_values_clusters, aes(x=(position+(count*5000)/2), -log10(ppois(count, lambda=f_windows, lower=F)), col=count>=3)) +
+     geom_point(aes(size=count)) +
      facet_grid(chromosome~.)+
-     scale_size_area(breaks=c(1,10,20))+
      theme_bw()+
-     labs(title=paste0("Length and probability of clusters of windows above threshold: ", title), y="-log10(P value [poisson dist])", x="Genomic position", col="Chromsome", size="Window size")
+     labs(title=paste0("Length and probability of clusters of windows above threshold: ", title), y="-log10(P value [poisson dist])", x="Genomic position", col="Window >= 3", size="Window size")
+
+# geom_jitter(aes(color = V13.x > mean(control$V13)+3*sd(control$V13), size = V13.x > mean(control$V13)+3*sd(control$V13)))+
 
 print(plot)
 
@@ -520,9 +520,9 @@ print(plot)
 ggsave(paste0("xqtl_",title,"_gw_possion_windows.png"))
 }
 
-f_plot_gw_clusters(ai_V287, "ai_V287")
-f_plot_gw_clusters(ai_V297, "ai_V297")
-f_plot_gw_clusters(ai_V305, "ai_V305")
+fun_plot_gw_clusters(ai_V287, "ai_V287")
+fun_plot_gw_clusters(ai_V297, "ai_V297")
+fun_plot_gw_clusters(ai_V305, "ai_V305")
 ```
 ![](../04_analysis/xqtl_ai_V287_gw_possion_windows.png)
 ![](../04_analysis/xqtl_ai_V297_gw_possion_windows.png)
