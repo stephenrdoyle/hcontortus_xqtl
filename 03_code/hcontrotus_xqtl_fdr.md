@@ -189,7 +189,7 @@ ggsave("xqtl_multi_qq.png")
 # Plot pvalues of zscores calculated from Fst
 ```R
 # define function
-f_plot_zscore <- function(x, title) {
+fun_plot_zscore <- function(x, title) {
 
 # calculate zscores
 data <- x %>% mutate(zscore = (V13 - mean(V13))/sd(V13))
@@ -214,10 +214,10 @@ print(plot)
 ggsave(paste0("xqtl_",title,"_Fst_adjustedP.png"))
 }
 
-f_plot_zscore(control, "control")
-f_plot_zscore(bz, "benzimidazole")
-f_plot_zscore(lev, "levamisole")
-f_plot_zscore(ivm, "ivermectin")
+fun_plot_zscore(control, "control")
+fun_plot_zscore(bz, "benzimidazole")
+fun_plot_zscore(lev, "levamisole")
+fun_plot_zscore(ivm, "ivermectin")
 
 
 ```
