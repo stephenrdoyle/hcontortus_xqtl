@@ -54,7 +54,7 @@ plot_a <- ggplot(data)+
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed",  col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL),  size = 0.1) +
      ylim(0, 1) +
-     labs(title = "A",  x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation"," (",~italic(F)[ST],")"))) +
+     labs(title = "A",  x = "Genomic position (bp)",  y = expression(paste("Genetic differentiation"," (",~italic(F)[ST],")"))) +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw() + theme(legend.position = "none",  text = element_text(size = 10), strip.text.y = element_text(size = 6)) +
@@ -134,7 +134,7 @@ plot_b <- ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST_MEAN,  colour = CHR,  group = LABEL), size = 0.1) +
      #ylim(0, 0.12) +
-     labs(title = "B", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+     labs(title = "B", x = "Genomic position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) + ylim(0,0.15) +
      theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
@@ -161,7 +161,7 @@ ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST_R1,  colour = CHR,  group = LABEL), size = 0.1) +
      #ylim(0, 0.12) +
-     labs(title = "XQTL replicate set 1", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+     labs(title = "XQTL replicate set 1", x = "Genomic position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
      theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
@@ -179,7 +179,7 @@ ggplot(data) +
           geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
           geom_point(aes(ROW_ID * 5000,  FST_R2,  colour = CHR,  group = LABEL), size = 0.1) +
           #ylim(0, 0.12) +
-          labs(title = "XQTL replicate set 2", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+          labs(title = "XQTL replicate set 2", x = "Genomic position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
           scale_color_manual(values = chr_colours) +
           scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
           theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
@@ -197,7 +197,7 @@ data_gws <- data %>%
                geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
                geom_point(aes(ROW_ID * 5000,  FST_R3,  colour = CHR,  group = LABEL), size = 0.1) +
                #ylim(0, 0.12) +
-               labs(title = "XQTL replicate set 3", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
+               labs(title = "XQTL replicate set 3", x = "Genomic position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
                scale_color_manual(values = chr_colours) +
                scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
                theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
