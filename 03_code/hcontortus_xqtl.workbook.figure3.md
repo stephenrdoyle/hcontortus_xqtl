@@ -18,8 +18,7 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/BZ
 ### R to plot
 ```R
 # load required libraries
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 library(patchwork)
 
 # import fst data
@@ -164,12 +163,9 @@ done
 ### R to plot
 ```R
 # load required libraries
-library(reshape2)
-library(ggplot2)
-library(dplyr)
-library(stringr)
-library(tidyr)
+library(tidyverse)
 library(rstatix)
+library(reshape2)
 
 # load and reformat the data
 bz_pre <- read.table("bz_pretreatment.ADfreq")
