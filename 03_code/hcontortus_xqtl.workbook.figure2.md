@@ -26,9 +26,9 @@ wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/X
 ### R to plot
 ```R
 # load required libraries
-library(ggplot2)
+library(tidyverse)
 library(patchwork)
-library(dplyr)
+
 
 # reformat the data
 parents <- read.table("XQTL_PARENTS.merged.fst",  header = F)
@@ -68,9 +68,9 @@ Aim is to show genetic differentiation between pre and post treatment F3 generat
 
 ```R
 # load required libraries
-library(ggplot2)
+library(tidyverse)
 library(patchwork)
-library(dplyr)
+
 
 
 # control

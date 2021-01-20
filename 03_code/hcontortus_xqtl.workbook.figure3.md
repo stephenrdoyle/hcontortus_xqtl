@@ -19,35 +19,72 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/BZ
 ```R
 # load required libraries
 library(ggplot2)
+library(dplyr)
+library(patchwork)
 
 # import fst data
 xqtl_bz_fst <- read.table("XQTL_BZ.merged.fst", header = F)
 
-xqtl_bz_fst_chr1 <- xqtl_bz_fst[xqtl_bz_fst$V1 == "hcontortus_chr1_Celeg_TT_arrow_pilon", ]
+# reformat
+xqtl_bz_fst <- dplyr::select(xqtl_bz_fst,  V1,  V2, V13, V39, V49)
+xqtl_bz_fst <- xqtl_bz_fst %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
+colnames(xqtl_bz_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
+
+
 
 # calculate a genome wide significance cutoff
-genomewide_sig <- mean(xqtl_bz_fst_chr1$V13) + (3*sd(xqtl_bz_fst_chr1$V13))
+gw_r1 <- mean(xqtl_bz_fst$FST_R1)+3*sd(xqtl_bz_fst$FST_R1)
+gw_r2 <- mean(xqtl_bz_fst$FST_R2)+3*sd(xqtl_bz_fst$FST_R2)
+gw_r3 <- mean(xqtl_bz_fst$FST_R3)+3*sd(xqtl_bz_fst$FST_R3)
+gw_mean <- mean(xqtl_bz_fst$FST_MEAN)+3*sd(xqtl_bz_fst$FST_MEAN)
 
-xqtl_bz_fst_chr1_peaks <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD),]
+
+# extract chromosome 1 data
+xqtl_bz_fst_chr1 <- xqtl_bz_fst[xqtl_bz_fst$CHR == "hcontortus_chr1_Celeg_TT_arrow_pilon", ]
+
+#xqtl_bz_fst_chr1_peaks <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD),]
 
 
-# get predicted peak windows
+# # get predicted peak windows
+#
+# peaks <- read.table("peak.windows.bed", header = T)
+#
+# peak_subset <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD), ]
 
-peaks <- read.table("peak.windows.bed", header = T)
+# set colours for data, based on thresholds and replicates
+xqtl_bz_fst_chr1 <- mutate(xqtl_bz_fst_chr1,
+       point_colour = case_when(
+       (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
+       (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+       (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+       (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
+       (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
+       (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
+       (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
-peak_subset <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD), ]
+plot_a <- ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,1,0.3))) +
+               geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
+               geom_vline(xintercept = 7029790, linetype = "dashed", col = "darkgrey", size=1) +                  
+               geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
+               ylim(0, 0.1) + xlim(0, 50e6) +
+               theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+               labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+               facet_grid(CHR ~ .)
+
+
+
 
 # make the plot
 plot_a <- ggplot(xqtl_bz_fst_chr1) +
-     geom_hline(yintercept = genomewide_sig, linetype = "dashed", col = "black") +
+     geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
      geom_vline(xintercept = 7029790, linetype = "dashed", col = "grey")+
-     geom_point(aes(V2, V13, group = V1), col = "cornflowerblue", size = 0.5) +
+     geom_point(aes(POS, FST_MEAN, group = CHR), col = "cornflowerblue", size = 0.5) +
      geom_point(data = subset(xqtl_bz_fst_chr1,(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[1]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[1]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
      geom_point(data = subset(xqtl_bz_fst_chr1,(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[2]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[2]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
      geom_point(data = subset(xqtl_bz_fst_chr1, (xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[3]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[3]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
      ylim(0, 0.1) + xlim(0, 50e6) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-     labs(title = "A", x = "Chromosomal position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))
+     labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))
      facet_grid( V1 ~ .)
 ```
 ---
