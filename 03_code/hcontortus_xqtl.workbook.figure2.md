@@ -54,7 +54,7 @@ plot_a <- ggplot(data)+
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed",  col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL),  size = 0.1) +
      ylim(0, 1) +
-     labs(title = "A",  x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)") +
+     labs(title = "A",  x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation", " (",~italic(F)[ST],")"))) +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw() + theme(legend.position = "none",  text = element_text(size = 10), strip.text.y = element_text(size = 6)) +
