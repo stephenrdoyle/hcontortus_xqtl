@@ -7,7 +7,7 @@
 ---
 ## Figure 2 A <a name="figure2a"></a>
 
-Aim is to show genetic differenation between the two parental strains,  MHco3(ISE) and MHco18(UGA)
+Aim is to show genetic differentiation between the two parental strains,  MHco3(ISE) and MHco18(UGA)
 
 ```shell
 # my working dir:
@@ -80,7 +80,7 @@ control <- dplyr::select(control,  V1,  V2,  V11 , V21, V29)
 control <- control %>% mutate(mean_FST = rowMeans(select(.,V11,V21,V29)))
 control$LABEL <- "1. Control"
 control$ROW_ID <- 1:nrow(control)
-colnames(control) <- c("CHR",  "POS",  "FST_R1", "FST_R1.2", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
+colnames(control) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
 
 # benzimidazole
 bz <- read.table("XQTL_BZ.merged.fst", header = F)
@@ -132,11 +132,11 @@ chr_colours<-c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "corn
 # make the plot
 plot_b <- ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
-     geom_point(aes(ROW_ID * 5000,  FST_R3,  colour = CHR,  group = LABEL), size = 0.1) +
+     geom_point(aes(ROW_ID * 5000,  FST_MEAN,  colour = CHR,  group = LABEL), size = 0.1) +
      #ylim(0, 0.12) +
      labs(title = "B", x = "Chromosomal position (bp)",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))+
      scale_color_manual(values = chr_colours) +
-     scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) +
+     scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) + ylim(0,0.15) +
      theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
      facet_grid(LABEL ~ .)
 

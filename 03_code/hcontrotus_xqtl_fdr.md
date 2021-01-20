@@ -65,10 +65,12 @@ nrow(ivm[ivm$V13>0.0235,])/nrow(ivm)*100
 # positions of variants gt fst+3sd
 bz_high <- bz %>% filter(V13 > mean(V13)+3*sd(V13))
 control_bz_high <- dplyr::inner_join(control, bz_high, by = c("V1","V2"))
+nrow(control_bz_high)
 #> control_bz_high = 712
 
 # false positives
 control_bz_high_control_high <- control_bz_high %>% filter(V13.x > mean(control$V13)+3*sd(control$V13))
+nrow(control_bz_high_control_high)
 #> 21 gt control
 
 nrow(control_bz_high_control_high)/nrow(control_bz_high)
@@ -200,8 +202,11 @@ data$pnorm <- 2*pnorm(-abs(data$zscore))
 # adjusted pvalue - FDR
 data$padjust <- p.adjust(data$pnorm, method="fdr")
 
+q_data <- qvalue(data$pnorm, fdr.level=0.05, pi0.method="bootstrap")
+data$qvalue <- q_data$qvalues
+
 # plot it
-plot <- ggplot(data, aes(V2 , -log10(pnorm))) +
+plot <- ggplot(data, aes(V2 , -log10(qvalue))) +
      geom_point(size=0.5) +
      facet_grid(V1 ~ .) +
      ylim(0,60) +
@@ -231,7 +236,7 @@ fun_plot_zscore(ivm, "ivermectin")
 
 
 
-```R
+<!-- ```R
 apply(bz,1, function(x) { sum(control$V13 >= x['V13']) / length(control$V13) } )
 with(bz, sum(control$V13 >= bz$V13)/length(control$V13))
 
@@ -262,7 +267,7 @@ ggplot(dat, aes(x = KSD, group = group, color = group))+
     xlab("Sample") +
     ylab("ECDF") +
     theme(legend.title=element_blank())
-```
+``` -->
 
 
 
@@ -291,30 +296,35 @@ f1_autosomes <- 2 * 5000 * 5
 # from genetic map, expect 0.69 crossovers per chromosome on average
 crossovers <- 0.69
 f2_recombinants <- crossovers * f1_autosomes
-
+f2_recombinants
 #> 34,500 F2 recombination events
 
 # 5000 F3 parasites sampled from treated F2 adults
 f2_autosomes <- 2 * 400 * 5
 f3_recombinants <- crossovers * f2_autosomes
+f3_recombinants
 #> 2760 F3 recombination events
 
 # total recombination events
 
 total_recombinants <- f2_recombinants + f3_recombinants
+total_recombinants
 
 
 # PER POPULATION of 400 sampled
 autosome_size <- 237412613
 
 pop_haplotype_block <- (autosome_size * 2)/total_recombinants
+pop_haplotype_block
 #> 12743.56 bp
 
 # PER INDIVIDUAL of the 400 sampled
 co_per_indiv <- total_recombinants / 400
+co_per_indiv
 #> 93.15 recombination events per individual
 
 indv_haplotype_block <- (autosome_size * 2) / co_per_indiv
+indv_haplotype_block
 #> 5.097 Mb haplotype blocks from parent in each individual
 ```
 
@@ -364,8 +374,8 @@ ggplot(myDF,aes(count,-log10(p_value),col=test)) +
      geom_point() +
      #facet_grid(test~.) +
      theme_bw() +
-     geom_hline(yintercept=-log10((0.01/nrow(sample))),col="red") +
-     geom_hline(yintercept=-log10((0.01/pop_haplotype_block)),col="blue")+
+     geom_hline(yintercept=-log10((0.01/nrow(sample))),col="blue") +
+     geom_hline(yintercept=-log10((0.01/pop_haplotype_block)),col="red")+
      labs(title="Possion calculation of significance based on number of windows found in a group above a threshold", x="Number of windows in a group", col="Region tested")
 
 # save it
@@ -528,3 +538,23 @@ fun_plot_gw_clusters(ai_V305, "ai_V305")
 ![](../04_analysis/xqtl_ai_V287_gw_possion_windows.png)
 ![](../04_analysis/xqtl_ai_V297_gw_possion_windows.png)
 ![](../04_analysis/xqtl_ai_V305_gw_possion_windows.png)
+
+
+
+
+
+install.package("fitdistrplus")
+library(fitdistrplus)
+
+
+ fw <- fitdist(control$V13, "weibull")
+
+fg <- fitdist(control$V13, "gamma")
+fln <- fitdist(control$V13, "lnorm")
+par(mfrow = c(2, 2))
+plot.legend <- c("Weibull", "lognormal", "gamma")
+
+denscomp(list(fw, fln, fg), legendtext = plot.legend)
+qqcomp(list(fw, fln, fg), legendtext = plot.legend)
+cdfcomp(list(fw, fln, fg), legendtext = plot.legend)
+ppcomp(list(fw, fln, fg), legendtext = plot.legend)
