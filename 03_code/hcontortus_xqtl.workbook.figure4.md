@@ -24,50 +24,49 @@ library(dplyr)
 library(stringr)
 
 # load and reformat the data
-lev <- read.table("XQTL_LEV.merged.fst", header = F)
-lev <- lev[lev$V1! = "hcontortus_chr_mtDNA_arrow_pilon", ]
-lev <- dplyr::select(lev, V1, V2, V13)
-colnames(lev) <- c("CHR", "POS", "FST")
-lev$LABEL <- "Levamisole"
-lev$ROW_ID <- 1:nrow(lev)
+xqtl_lev_fst <- read.table("XQTL_LEV.merged.fst", header = F)
+xqtl_lev_fst <- xqtl_lev_fst[xqtl_lev_fst$V1! = "hcontortus_chr_mtDNA_arrow_pilon", ]
+xqtl_lev_fst <- dplyr::select(xqtl_lev_fst,  V1,  V2,  V13 , V39, V49)
+xqtl_lev_fst <- xqtl_lev_fst %>% mutate(mean_FST = rowMeans(select(.,V13)))
+colnames(xqtl_lev_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
 
-lev_chr4 <- lev[lev$CHR == "hcontortus_chr4_Celeg_TT_arrow_pilon", ]
-lev_chr5 <- lev[lev$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
+# calculate a genome wide significance cutoff
+gw_r1 <- mean(xqtl_lev_fst$FST_R1) + 3*sd(xqtl_lev_fst$FST_R1)
+gw_r2 <- mean(xqtl_lev_fst$FST_R2) + 3*sd(xqtl_lev_fst$FST_R2)
+gw_r3 <- mean(xqtl_lev_fst$FST_R3) + 3*sd(xqtl_lev_fst$FST_R3)
+gw_mean <- mean(xqtl_lev_fst$FST_MEAN) + 3*sd(xqtl_lev_fst$FST_MEAN)
 
-data <- dplyr::bind_rows(lev_chr4, lev_chr5)
-data <- data %>%
+
+# extract chromosome 4 and 5 data
+lev_chr4 <- xqtl_lev_fst[xqtl_lev_fst$CHR == "hcontortus_chr4_Celeg_TT_arrow_pilon", ]
+lev_chr5 <- xqtl_lev_fst[xqtl_lev_fst$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
+
+# fix names
+lev_chr45_data <- dplyr::bind_rows(lev_chr4, lev_chr5)
+lev_chr45_data <- lev_chr45_data %>%
  mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
-peaks <- read.table("XQTL_LEV.peak_windows", header = T)
-peaks <- peaks %>%
- mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
-genes <- read.table("candidategenes.data", header = T)
-genes <- genes %>%
- mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+lev_chr45_data <- mutate(lev_chr45_data,
+        point_colour = case_when(
+        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
+        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+        (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
+        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
+        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
+        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
-
-# set colour for chromosomes
-chr_colours<-c("cornflowerblue")
-
-# genome wide signficance per sample
-data_gws <- data %>%
-  group_by(CHR) %>%
-  summarise(GWS = mean(FST) + 3*sd(FST))
 
 # make the plot
-plot_a <- ggplot(data)+
-   geom_hline(data = data_gws, aes(yintercept = GWS), linetype = "dashed", col = "black")+
-   geom_vline(data = genes, aes(xintercept = POS), col = "darkgrey", size = 1)+
-   geom_point(aes(POS, FST, group = CHR), size = 0.5, col = "cornflowerblue")+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[1]) & (data$POS <= peaks$PEAK_END_COORD[1]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[2]) & (data$POS <= peaks$PEAK_END_COORD[2]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[3]) & (data$POS <= peaks$PEAK_END_COORD[3]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[4]) & (data$POS <= peaks$PEAK_END_COORD[4]) & (FST > data_gws$GWS[2])), aes(POS, FST), col = "red", size = 1)+
-   ylim(0, 0.1)+xlim(0, 50e6)+
-   labs(title = "A", x = "Chromosomal position (bp)", y = "Genetic differentiation between \npre- and post-treatment (Fst)")+
-   theme_bw()+theme(legend.position = "none", text = element_text(size = 10))+
-   facet_grid(CHR~.)
+plot_a <- ggplot(lev_chr45_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+               geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
+               geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
+               xlim(0, 50e6) +
+               theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+               labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+               facet_grid(CHR ~ .)
+
 
 #plot_a
 ```
@@ -416,12 +415,10 @@ library(patchwork)
 plot_e <- ggplot() + geom_blank()
 
 
-plot_a + plot_b + (plot_c | (plot_d / plot_e)) + plot_layout(ncol = 1, height = c(3, 1, 3))
-plot_a / ((plot_b / plot_c) | (plot_d / plot_e))  + plot_layout(ncol = 1, height = c(3, 3))
-plot_a / (plot_b | plot_d) / (plot_c | plot_e)  + plot_layout(ncol = 1, height = c(3, 1.5, 3))
+plot_a / (plot_b | plot_d) / (plot_c | plot_e)  + plot_layout(ncol = 1, height = c(4, 1.5, 3))
 
 
-ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 250, height = 300, units = "mm")
+ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("XQTL_Figure_4.png")
 ```
 ![](04_analysis/XQTL_Figure_4.png)

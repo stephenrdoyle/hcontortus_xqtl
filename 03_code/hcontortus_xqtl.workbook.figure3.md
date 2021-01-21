@@ -41,6 +41,12 @@ gw_mean <- mean(xqtl_bz_fst$FST_MEAN)+3*sd(xqtl_bz_fst$FST_MEAN)
 # extract chromosome 1 data
 xqtl_bz_fst_chr1 <- xqtl_bz_fst[xqtl_bz_fst$CHR == "hcontortus_chr1_Celeg_TT_arrow_pilon", ]
 
+# fix names
+xqtl_bz_fst_chr1 <- xqtl_bz_fst_chr1 %>%
+ mutate(CHR = str_replace_all(CHR, c("hcontortus_chr1_Celeg_TT_arrow_pilon" = "Chromosome 1")))
+
+
+
 #xqtl_bz_fst_chr1_peaks <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD),]
 
 
@@ -68,12 +74,12 @@ xqtl_bz_fst_chr1 <- mutate(xqtl_bz_fst_chr1,
        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
 
-# make the plot 
-plot_a <- ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,1,0.3))) +
+# make the plot
+plot_a <- ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
                geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-               geom_vline(xintercept = 7029790, linetype = "dashed", col = "darkgrey", size=1) +                  
+               geom_vline(xintercept = 7029790, linetype = "dashed", col = "black") +                  
                geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
-               ylim(0, 0.1) + xlim(0, 50e6) +
+               ylim(0, 0.15) + xlim(0, 50e6) +
                theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
                labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
                facet_grid(CHR ~ .)
