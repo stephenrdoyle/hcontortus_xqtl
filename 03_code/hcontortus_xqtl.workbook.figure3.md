@@ -51,6 +51,12 @@ xqtl_bz_fst_chr1 <- xqtl_bz_fst[xqtl_bz_fst$CHR == "hcontortus_chr1_Celeg_TT_arr
 # peak_subset <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD), ]
 
 # set colours for data, based on thresholds and replicates
+
+# blue - #6699FFFF" - under threshold for all replicates
+# yellow - #FFCC00FF - one replicate above the threshold
+# orange - #FF9900FF - two replicates above threshold
+# red - #FF0000FF - three replicates above threshold
+
 xqtl_bz_fst_chr1 <- mutate(xqtl_bz_fst_chr1,
        point_colour = case_when(
        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
@@ -61,6 +67,8 @@ xqtl_bz_fst_chr1 <- mutate(xqtl_bz_fst_chr1,
        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
+
+# make the plot 
 plot_a <- ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,1,0.3))) +
                geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
                geom_vline(xintercept = 7029790, linetype = "dashed", col = "darkgrey", size=1) +                  
@@ -73,18 +81,7 @@ plot_a <- ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=
 
 
 
-# make the plot
-plot_a <- ggplot(xqtl_bz_fst_chr1) +
-     geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-     geom_vline(xintercept = 7029790, linetype = "dashed", col = "grey")+
-     geom_point(aes(POS, FST_MEAN, group = CHR), col = "cornflowerblue", size = 0.5) +
-     geom_point(data = subset(xqtl_bz_fst_chr1,(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[1]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[1]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
-     geom_point(data = subset(xqtl_bz_fst_chr1,(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[2]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[2]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
-     geom_point(data = subset(xqtl_bz_fst_chr1, (xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD[3]) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD[3]) & (V13 > genomewide_sig)), aes(V2, V13), col = "red", size = 1) +
-     ylim(0, 0.1) + xlim(0, 50e6) +
-     theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-     labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")")))
-     facet_grid( V1 ~ .)
+
 ```
 ---
 
@@ -170,13 +167,13 @@ library(reshape2)
 # load and reformat the data
 bz_pre <- read.table("bz_pretreatment.ADfreq")
 bz_pre <- filter(bz_pre,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
-bz_pre <- dplyr::select(bz_pre,  V1,  V2,  V3 , V5, V6)
+bz_pre <- dplyr::select(bz_pre,  V1,  V2,  V4 , V5, V6)
 colnames(bz_pre) <- c("CHR", "POS", "R1", "R2", "R3")
 bz_pre <- melt(bz_pre,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 bz_post <- read.table("bz_posttreatment.ADfreq")
 bz_post <- filter(bz_post,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
-bz_post <- dplyr::select(bz_post,  V1,  V2,  V3 , V5, V6)
+bz_post <- dplyr::select(bz_post,  V1,  V2,  V4 , V5, V6)
 colnames(bz_post) <- c("CHR", "POS", "R1", "R2", "R3")
 bz_post <- melt(bz_post,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
@@ -283,13 +280,11 @@ done
 ### R to plot
 ```R
 # load required libraries
-library(reshape2)
-library(ggplot2)
-library(dplyr)
-library(stringr)
-library(tidyr)
+library(tidyverse)
 library(rstatix)
 library(ggrepel)
+library(reshape2)
+library(patchwork)
 
 us_btub2 <- read.table("us_farms_btub2.ADfreq")
 colnames(us_btub2) <- c("CHR", "POS", "Farm 1", "Farm 2", "Farm 3", "Farm 4", "Farm 5", "Farm 6", "Farm 7", "Farm 8", "Farm 9", "Farm 10")
@@ -322,9 +317,6 @@ plot_c <- ggplot(us_btub2)+
 
 ```R
 # bring the panels together
-
-library(patchwork)
-
 # plot it
 plot_a / (plot_b | plot_c)
 

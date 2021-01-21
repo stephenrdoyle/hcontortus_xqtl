@@ -23,9 +23,7 @@ ln -s ../../04_VARIANTS/XQTL_IVM/XQTL_IVM.merged.fst
 ### R to plot
 ```R
 # load required libraries
-library(ggplot2)
-library(dplyr)
-library(stringr)
+library(tidyverse)
 library(ggrepel)
 
 # load and reformat the data
@@ -152,8 +150,7 @@ rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
 # load required R libraries
 library(data.table)
 # note - "data.table" has a function called "fread" which is great for quickly loading really large datasets
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 library(ggrepel)
 library(patchwork)
 library(viridis)

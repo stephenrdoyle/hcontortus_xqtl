@@ -317,12 +317,9 @@ ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_LEV/control_
 
 ```R
 # load the required R libraries
-library(reshape2)
-library(ggplot2)
-library(dplyr)
-library(stringr)
-library(tidyr)
+library(tidyverse)
 library(rstatix)
+library(reshape2)
 
 # read data and reformat
 lev_pre <- read.table("lev_pretreatment.ADfreq")
