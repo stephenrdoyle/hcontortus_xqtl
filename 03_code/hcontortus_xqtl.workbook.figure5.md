@@ -25,53 +25,55 @@ ln -s ../../04_VARIANTS/XQTL_IVM/XQTL_IVM.merged.fst
 # load required libraries
 library(tidyverse)
 library(ggrepel)
+library(data.table)
+# note - "data.table" has a function called "fread" which is great for quickly loading really large datasets
+library(patchwork)
+library(viridis)
+library(zoo)
+
 
 # load and reformat the data
-ivm <- read.table("XQTL_IVM.merged.fst", header = F)
-ivm <- ivm[ivm$V1! = "hcontortus_chr_mtDNA_arrow_pilon", ]
-ivm <- dplyr::select(ivm, V1, V2, V13)
-colnames(ivm) <- c("CHR", "POS", "FST")
-ivm$LABEL <- "Ivermectin"
-ivm$ROW_ID <- 1:nrow(ivm)
+xqtl_ivm_fst <- read.table("XQTL_IVM.merged.fst", header = F)
+xqtl_ivm_fst <- dplyr::select(xqtl_ivm_fst, V1, V2, V13, V39, V49)
+xqtl_ivm_fst <- xqtl_ivm_fst %>% mutate(mean_FST = rowMeans(select(.,V13)))
+colnames(xqtl_ivm_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
 
-ivm_chr5 <- ivm[ivm$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
 
-data <- ivm_chr5
-data <- data %>%
- mutate(CHR = str_replace_all(CHR, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+# calculate a genome wide significance cutoff
+gw_r1 <- mean(xqtl_ivm_fst$FST_R1) + 3*sd(xqtl_ivm_fst$FST_R1)
+gw_r2 <- mean(xqtl_ivm_fst$FST_R2) + 3*sd(xqtl_ivm_fst$FST_R2)
+gw_r3 <- mean(xqtl_ivm_fst$FST_R3) + 3*sd(xqtl_ivm_fst$FST_R3)
+gw_mean <- mean(xqtl_ivm_fst$FST_MEAN) + 3*sd(xqtl_ivm_fst$FST_MEAN)
 
-peaks <- read.table("XQTL_IVM.peak_windows", header = T)
-peaks <- peaks %>%
- mutate(CHR = str_replace_all(CHR, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
-#genes <- read.table("candidategenes.data", header = T)
-#genes <- genes %>%
-# mutate(CHR = str_replace_all(CHR, c("hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4", "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+# extract chromosome 5 data
+ivm_chr5_data <- xqtl_ivm_fst[xqtl_ivm_fst$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
+
+# fix names
+ivm_chr5_data <- ivm_chr5_data %>%
+  mutate(CHR = str_replace_all(CHR, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+
 
 
 # set colour for chromosomes
-chr_colours<-c("cornflowerblue")
-
-# genome wide signficance per sample
-data_gws <- data %>%
-  group_by(CHR) %>%
-  summarise(GWS = mean(FST) + 3*sd(FST))
+ivm_chr5_data <- mutate(ivm_chr5_data,
+        point_colour = case_when(
+        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
+        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+        (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
+        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
+        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
+        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
 # make the plot
-plot_a <- ggplot(data)+
-   geom_hline(data = data_gws, aes(yintercept = GWS), linetype = "dashed", col = "black")+
-   #geom_vline(data = genes, aes(xintercept = POS), col = "darkgrey", size = 1)+
-   geom_point(aes(POS, FST, group = CHR), size = 0.5, col = "cornflowerblue")+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[1]) & (data$POS <= peaks$PEAK_END_COORD[1]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[3]) & (data$POS <= peaks$PEAK_END_COORD[3]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[4]) & (data$POS <= peaks$PEAK_END_COORD[4]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[5]) & (data$POS <= peaks$PEAK_END_COORD[5]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[6]) & (data$POS <= peaks$PEAK_END_COORD[6]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   geom_point(data = subset(data, (data$POS >= peaks$PEAK_START_COORD[7]) & (data$POS <= peaks$PEAK_END_COORD[7]) & (FST > data_gws$GWS[1])), aes(POS, FST), col = "red", size = 1)+
-   ylim(0, 0.1)+xlim(0, 50e6)+
-   labs(title = "A", x = "Chromosomal position (bp)", y = "Genetic differentiation between \npre- and post-treatment (Fst)")+
-   theme_bw()+theme(legend.position = "none", text = element_text(size = 10))+
-   facet_grid(CHR~.)
+plot_a <- ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+               geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
+               geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
+               xlim(0, 50e6) +
+               theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+               labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+               facet_grid(CHR ~ .)
 
 #plot_a
 ```
@@ -80,19 +82,19 @@ plot_a <- ggplot(data)+
 
 Aim is to show zoomed in region around chromosome 5 main peak, highlighting farm data, genes present, whether genes are differentially expressed
 
-```shell
+```bash
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM
 
 #gff
 ln -fs /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20200407/UPDATED_annotation.gff3 ANNOTATION.gff
 ```
-
+```
 grep "gene" ANNOTATION.gff | sed -e 's/owner=irisadmin@local.host;//g' -e 's/date_last_modified=[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9];//g' | awk -F '[\t=;]' '{print $12,$1,$4,$5,$7}' OFS="\t" > genes.positions
 ```
 
 
-```
+```R
 genes <- read.table("genes.positions",header=F)
 colnames(genes) <- c("name_PUGAxPISE","chr","start","end","dir")
 
@@ -106,7 +108,7 @@ rnaseq_data_chr5 <- rnaseq_data_chr5 %>%
 ```
 
 
-```
+```R
 # parental ISE vs parent UGA
 rnaseq_plot1 <- ggplot(rnaseq_data_chr5) +
        geom_point(aes(start,log2FoldChange),size=0.5,col="lightgrey")+
@@ -115,7 +117,7 @@ rnaseq_plot1 <- ggplot(rnaseq_data_chr5) +
        scale_colour_viridis(direction=-1, limits = c(0, 30))+
        scale_size_continuous(limits = c(0, 30)) +
        theme_bw()+
-       xlim(3.65e7,3.80e7)+
+       xlim(36e6,39e6)+
        labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
 
 
@@ -127,7 +129,7 @@ rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
       scale_colour_viridis(direction=-1,limits = c(0, 30))+
       scale_size_continuous(limits = c(0, 30)) +
       theme_bw()+
-      xlim(3.65e7,3.80e7)+
+      xlim(36e6,39e6)+
       labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
 
 
@@ -139,7 +141,7 @@ rnaseq_plot3 <-      ggplot(rnaseq_data_chr5) +
             scale_colour_viridis(direction=-1,limits = c(0, 30))+
             scale_size_continuous(limits = c(0, 30)) +
             theme_bw()+
-            xlim(3.65e7,3.80e7)+
+            xlim(36e6,39e6)+
             labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
 
 rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
@@ -147,13 +149,6 @@ rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
 
 ### R to plot
 ```R
-# load required R libraries
-library(data.table)
-# note - "data.table" has a function called "fread" which is great for quickly loading really large datasets
-library(tidyverse)
-library(ggrepel)
-library(patchwork)
-library(viridis)
 
 # load data
 # --- genome annotation
@@ -203,19 +198,19 @@ us_farm_data_chr5 <- us_farm_data_chr5 %>%
 
 
 
-plot_fst <- ggplot(data)+
-   geom_hline(data = data_gws, aes(yintercept = GWS), linetype = "dashed", col = "black")+
-   #geom_vline(data = genes, aes(xintercept = POS), col = "darkgrey", size = 1)+
-   geom_point(aes(POS, FST, group = CHR), size = 1, col = "cornflowerblue", alpha=0.5)+
-   xlim(3.65e7,3.85e7)+
-   labs(title = "B", x="Genomic position", y="Genetic differentiation between \npre- and post-treatment (Fst)")+
+
+plot_fst <- ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_point() + scale_color_identity() + scale_size_identity() +
+   geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black")+
+   xlim(36e6,39e6)+
+   labs(title = "B", x="Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
    theme_bw()+theme(text = element_text(size = 10))
 
-plot_pi <- ggplot(us_farm_data_chr5)+
-     geom_point(aes((window*10000)-5000,(Pi),col=as.numeric(ivm_EC50)), size=1, alpha=0.5)+
-     xlim(3.65e7,3.85e7)+
+plot_pi <- ggplot(us_farm_data_chr5, aes((window*10000)-5000,log10(Pi), colour=as.numeric(ivm_EC50)))+
+     geom_point(size=0.5)+
+     xlim(36e6,39e6)+
      scale_colour_viridis(direction=1,limits = c(0, 800))+
-     labs(title = "C", x="Genomic position", y="US Farm \nNucleotide diversity (Pi)", colour="Ivermectin EC50 per farm")+
+     labs(title = "C", x="Genomic position (bp)", y="Nucleotide diversity on\nUS Farms (log10[Pi])", colour="Ivermectin EC50 per farm")+
      theme_bw()+theme(text = element_text(size = 10))
 
 #plot_tajD <- ggplot(us_farm_data_chr5)+
@@ -232,18 +227,18 @@ rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
                #geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.2 > 2 | log2FoldChange.2 < -2),aes(start,log2FoldChange.2, label=name_PUGAxPISE),size=3) +
                scale_colour_viridis(direction=1,limits = c(0, 30), option="magma")+
                scale_size_continuous(limits = c(0, 30)) +
-               xlim(3.65e7,3.85e7)+ylim(-7,7)+
-               labs(title = "D", colour="-log2(adjusted p-value)", size="-log2(adjusted p-value)", x="Genomic position", y= "RNAseq log2(fold change): \nPost treatment vs ISE parent")+
+               xlim(36e6,39e6)+ylim(-7,7)+
+               labs(title = "D", colour="-log2(adjusted p-value)", size="-log2(adjusted p-value)", x="Genomic position (bp)", y= "RNA-seq: Post-treatment\n vs MHco3(ISE) (log2[FC])")+
                theme_bw()+ theme(text = element_text(size = 10))
 
 
 
 # bring it all together
 
-plot_a / ((plot_fst / plot_pi / rnaseq_plot2) |  (plot_spacer() / guide_area())) + plot_layout(ncol=1, guides='collect',heights = c(1, 3)) & theme(legend.position = 'bottom',legend.direction = "horizontal", legend.box="vertical")
+plot_a / ((plot_fst / plot_pi / rnaseq_plot2) |  (plot_spacer() / guide_area())) + plot_layout(ncol=1, guides='collect',heights = c(2, 5)) & theme(legend.position = 'bottom',legend.direction = "horizontal", legend.box="vertical")
 
 
-ggsave("XQTL_Figure_5.pdf", useDingbats = FALSE, width = 250, height = 300, units = "mm")
+ggsave("XQTL_Figure_5.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
 ggsave("XQTL_Figure_5.png")
 
 
