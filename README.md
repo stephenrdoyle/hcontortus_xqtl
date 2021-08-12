@@ -1,15 +1,18 @@
 # hcontortus_xqtl
 
-This repository contains the analysis workflow for the manuscript under preparation
-tentatively titled "Genomic landscape of drug response reveals novel mediators of anthelmintic resistance".
+This repository contains the analysis workflow for the manuscript in preparation
+tentatively titled "**Genomic landscape of drug response reveals novel mediators of anthelmintic resistance**".
 
 Abstract:
-"Like other pathogens, parasitic helminths can rapidly evolve resistance to drug treatment. The genetic basis of anthelmintic resistance is poorly understood but is key to developing methods to track and combat the spread of resistance and design new compounds that can break resistance. Using a genetic cross between drug-sensitive and drug-resistant strains of the globally important parasitic nematode Haemonchus contortus, we map resistance loci for three commonly used broad-spectrum anthelmintic classes. We identify known and reveal novel alleles for both benzimidazole and levamisole. For ivermectin, a widely used anthelmintic in animals and humans, we refine a major QTL found in resistant populations worldwide to uncover cky-1 overexpression as a potential mode of resistance. Our data define the genomic landscape of anthelmintic selection and prioritise genes and variants for the development of molecular diagnostics to combat resistance in the field.""
+"Like other pathogens, parasitic helminths can rapidly evolve resistance to drug treatment. The genetic basis of anthelmintic resistance is poorly understood but is key to developing methods to track and combat the spread of resistance and design new compounds that can break resistance. Using a genetic cross between drug-sensitive and drug-resistant strains of the globally important parasitic nematode *Haemonchus contortus*, we map resistance loci for three commonly used broad-spectrum anthelmintic classes. We identify known and reveal novel alleles for both benzimidazole and levamisole. For ivermectin, a widely used anthelmintic in animals and humans, we refine a major QTL found in resistant populations worldwide to uncover *cky-1* overexpression as a potential mode of resistance. Our data define the genomic landscape of anthelmintic selection and prioritise genes and variants for the development of molecular diagnostics to combat resistance in the field."
 
 Authors:
 **Stephen R. Doyle, Roz Laing**, David Bartley, Alison Morrison, Nancy Holroyd, Kirsty Maitland, Alistair Antonopoulos, Collette Britton, Umer Chaudhry, Ilona Flis, Sue Howell, Jennifer McIntyre, Andy Tait, Barbara Mable, Ray Kaplan, Neil Sargison, Matthew Berriman, Eileen Devaney, James A. Cotton
 - Stephen and Roz are co-first authors
 - Eileen and James are co-last authors
+
+Manuscript: in preparation.
+
 
 
 The code for the analysis is broken up into subsections as follows:  
