@@ -23,6 +23,7 @@ mkdir 01_REFERENCE
 mkdir 02_RAW
 mkdir 03_MAPPING
 mkdir 04_VARIANTS
+mkdir 05_ANALYSIS
 ```
 
 
@@ -31,7 +32,9 @@ mkdir 04_VARIANTS
 ```shell
 cd 01_REFERENCE
 
-# get reference - note it is the same reference as in WBP13
+# get reference - note it is the same reference as in WormBase Parasite
+# wget ftp://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS15/species/haemonchus_contortus/PRJEB506/haemonchus_contortus.PRJEB506.WBPS15.genomic.fa.gz
+
 cp /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa .
 
 # make a index and a dict file
@@ -45,6 +48,7 @@ samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 
 
 ## Mapping - Parental strains <a name="mapping_parents"></a>
+- reads are first trimmed using trimmomatic, followed by mapping with bwa mem
 
 ```shell
 mkdir 02_RAW/RAW_PARENTS
@@ -65,6 +69,7 @@ echo "bsub.py --queue yesterday --threads 7 20 trim_P /nfs/users/nfs_s/sd21/lust
 done < ../samples_lanes.list ; \
 chmod a+x run_trim_all; \
 ./run_trim_all
+
 
 
 
