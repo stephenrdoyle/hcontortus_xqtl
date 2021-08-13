@@ -31,8 +31,8 @@ mkdir 05_ANALYSIS
 ```
 
 
-## Step 1 - get and format reference <a name="reference"></a>
-
+## Preparing the reference <a name="reference"></a>
+- reference genome is the latest chromosome-scale assembly for *H. contortus*, available at [WormBse Parasite](https://parasite.wormbase.org/Haemonchus_contortus_prjeb506/Info/Index/) and is described in [Doyle et al 2020 Communications Biology](https://doi.org/10.1038/s42003-020-01377-3).
 ```shell
 cd ${WORKING}/01_REFERENCE
 
@@ -41,7 +41,7 @@ cd ${WORKING}/01_REFERENCE
 
 cp /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa .
 
-# make a index and a dict file
+# make a index and a dict file - these are used in various steps later on
 samtools faidx HAEM_V4_final.chr.fa
 samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 ```
@@ -270,6 +270,7 @@ bsub -q normal -w "done(step2.2_bwasplitter_${ID}_[1-$jobs])"  -R'span[hosts=1] 
 
 ### Use GATK to realign mapped sequencing reads around indels
 - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
+- in this project, both popoolation2 and GATK UG will be used, so worth doing
 ```
 # make a bam list of samples
 ls -1 *bam > bam.list
