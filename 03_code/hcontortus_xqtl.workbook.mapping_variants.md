@@ -51,16 +51,19 @@ samtools dict HAEM_V4_final.chr.fa > HAEM_V4_final.chr.dict
 
 
 
-## Mapping - Parental strains <a name="mapping_parents"></a>
-- reads are first trimmed using trimmomatic, followed by mapping with bwa mem
+## Get and trim the raw reads before mapping
+- reads are first trimmed using trimmomatic
+- given there is a lot of data, and that pooled sequencing has been performed and therefore downstream analyses perhaps more likely to be affected by poorer quality reads/mapping, trimming is worth doing.
 
 ```shell
+# make some working spaces
 mkdir ${WORKING}/02_RAW/RAW_PARENTS
 cd ${WORKING}/02_RAW/RAW_PARENTS
 
+# get the raw reads - note "pathfind" is a Sanger command to retrive raw sequencign data from Sanger archives. The "26582_8" is the lane ID for the sequencing run
 pathfind -t lane -i  26582_8 --filetype fastq -l ./ --rename
 
-head samples_lanes.list
+# make a "samples_lanes.list" tab-delimited file containing the name that will be used for the sample throguhout, and the lane ID. This gets used in the trimming and mapping steps. The file will look like the following, without the hash: 
 # MHCO3_P0_L3_n200_01	26582_8_1
 # MHCO18_P0_L3_n200_IVM_01	26582_8_2
 
