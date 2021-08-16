@@ -2,15 +2,16 @@
 - this workbook contains the workflow to map raw sequencing reads and perform variant calling
 
 1. [Preparing the reference](#reference)
-2. Get and trim the raw reads before mapping (parent samples)
-3. map reads to the reference genome (parent samples)
-4. Use GATK to realign mapped sequencing reads around indels (parent samples)
-5. Run mpileup in preparation for variant calling (parent samples)
-6. XQTL workflow
-7. Advanced Intercross workflow
-8. Dose response workflow
-9. US farm workflow
-10. Other
+2. Parents workflow
+     - Get and trim the raw reads before mapping (parent samples)
+     - map reads to the reference genome (parent samples)
+     - Use GATK to realign mapped sequencing reads around indels (parent samples)
+     - Run mpileup in preparation for variant calling (parent samples)
+3. XQTL workflow
+4. Advanced Intercross workflow
+5. Dose response workflow
+6. US farm workflow
+7. Other
 - Canadian Field Samples from John Gilleard
 
 3. [Analysis](#analysis)
@@ -410,7 +411,147 @@ bsub -q normal -w "done(mpileup_array)"  -R'span[hosts=1] select[mem>1000] rusag
 ```
 
 
+
+## Perform SNP calling to generate a VCF file
+- in addition to running poolseq based analyses with popoolation2 and NPSTATS, I want to generate a standard VCF file that can be used with VCFTOOLS and snpEff.
+
+```bash
+~sd21/bash_scripts/run_mpileup2vcf.sh XQTL_PARENTS HAEM_V4_final.chr.fa bam.list
+```
+- where "run_mpileup2vcf.sh" is:
+
+```bash
+#!/bin/bash
+# run_mpileup2vcf
+#
+# Tool will run an mpileup on all bams in a specified directory, and split the job up by sequence in the reference to parallelise the job. Finally, it shoudl merge all the split jobs into a single file.
+# mpileup command based on https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-1024-y
+
+# load modules
+module load \
+samtools/1.6--h244ad75_4 \
+fastaq/3.17.0-docker3 \
+bcftools/1.9--h68d8f2e_9
+
+
+
+(($# == 3)) || { echo -e "\nUsage: $0 <prefix> <reference sequence> <bamlist_file>\n\n"; exit; }
+
+prefix=$1
+ref=$2
+bamlist=$3
+
+#--- Step 1: prepare input files
+cp $ref ref.tmp
+samtools faidx ref.tmp
+fastaq to_fasta -l 0 ref.tmp ref.tmp2
+samtools faidx ref.tmp2
+grep ">" ref.tmp | cut -f1  -d" " | sed -e 's/>//g' | cat -n > ref_seq.tmp.list
+
+while read number sequences; do grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.fasta; done < ref_seq.tmp.list
+
+
+#while read name; do
+#	if [ ! -f ${name}.bai ]; then
+#	 samtools index -b ${name}
+#	fi; done < ${bamlist}
+
+while read number sequences; do
+echo -e "samtools mpileup --ignore-RG -Ou -t DP,SP,AD,ADF,INFO/AD -b $bamlist -r $sequences -f ref.tmp -F0.25 -d500 -E | bcftools call -vm -Oz -o $number.$sequences.tmp.vcf.gz" > run_mpileup2vcf.tmp.$number;
+done < ref_seq.tmp.list
+chmod a+x run_mpileup2vcf.tmp*
+
+
+jobs=$( wc -l ref_seq.tmp.list | cut -f1 -d" " )
+bsub -q long -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J mpileup2vcf_array[1-$jobs] -e mpileup2vcf_array[1-$jobs].e -o mpileup2vcf_array[1-$jobs].o ./run_mpileup2vcf.tmp.\$LSB_JOBINDEX
+
+
+
+#--- Step 2: bring it together
+
+
+echo -e "ls -1v *.tmp.vcf.gz > vcffiles.fofn && vcf-concat -f vcffiles.fofn | gzip -c >  ${prefix}.raw.vcf.gz" > run_mp2vcf_combine
+chmod a+x run_mp2vcf_combine
+
+bsub -q normal -w "done(mpileup2vcf_array)"  -R'span[hosts=1] select[mem>1000] rusage[mem=1000]' -n1 -M1000 -J mp2vcf_combine -e mp2vcf_combine.e -o mp2vcf_combine.o ./run_mp2vcf_combine ${prefix}
+
+```
+
+
+
+
+
+
+## Running NPSTATS
+- NPSTATS is a handy tool to generate population genetic metrics from pooled sequnecing data
+- Github: https://github.com/lucaferretti/npstat
+- Ref: https://doi.org/10.1111/mec.12522
+
+- to use, first need to convert the mpileup into individual pileup files, both by sample and then by chromomsome
+
+```bash
+# convert the multisample mpileup into individual pileup files per sample
+run_mpileup2pileup XQTL_*.mpileup 3
+
+# once completed, split pileup by sample,  by chromosome
+for i in `(grep ">" HAEM_V4_final.chr.fa | sed -e 's/>//g')`; do
+     for j in *.final.pileup; do
+          grep $i $j > sample_${j%.final.pileup}_chr_${i}.splitpileup;
+     done ;
+done
+```
+
+where "run_mpileup2pileup.sh" is:
+```bash
+#!/bin/bash
+
+#(($# != 2)) || { echo -e "\nUsage: $0 <file to split> <# columns in each split>\n\n"; exit; }
+
+infile="$1"
+columns_per_sample="$2"
+
+cut -f 1-3 $infile > mpileup_positions.tmp
+cut -f 4- $infile > mpileup_data.tmp
+
+
+inc=${columns_per_sample}
+ncol=$(awk 'NR==1{print NF}' mpileup_data.tmp)
+
+((inc < ncol)) || { echo -e "\nSplit size >= number of columns\n\n"; exit; }
+
+
+for((i=1, start=1, end=$inc; i < ncol/inc + 1; i++, start+=inc, end+=inc)); do
+  cut -f$start-$end mpileup_data.tmp > "pileup.tmp.$i"
+done
+
+for i in pileup.tmp.*; do paste mpileup_positions.tmp $i > ${i#pileup.tmp.}.final.pileup; done
+
+#rm *tmp*
+
+```
+- once the data is prepared, run NPSTATS
+```bash
+for i in *splitpileup; do
+     bsub.py --queue long 10 npstats "/nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/npstat/npstat -n 400 -l 10000 -mincov 20 -maxcov 200 -minqual 20 -nolowfreq 2 ${i}" ;
+done
+```
+
+
+
+
 [↥ **Back to top**](#top)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -925,12 +1066,13 @@ Rep1	Rep2	Rep3
 
 # run npstats
 for i in *splitpileup; do
-     bsub.py --queue long 1 npstats "/nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/npstat/npstat -n 400 -l 5000 -mincov 20 -maxcov 200 -minqual 20 -nolowfreq 2 ${i}" ; done
+     bsub.py --queue long 1 npstats "/nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/npstat/npstat -n 400 -l 5000 -mincov 20 -maxcov 200 -minqual 20 -nolowfreq 2 ${i}" ;
+done
 
 #--- low coverage
 #for i in *splitpileup; do bsub.py --queue long 1 npstats "/nfs/users/nfs_s/sd21/lustre118_link/software/POOLSEQ/npstat/npstat -n 400 -l 5000 -mincov 5 -maxcov 200 -minqual 20 -nolowfreq 2 -annot ../../../GENOME/TRANSCRIPTOME/haemonchus_contortus.PRJEB506.WBPS11.annotations.gff3 ${i}" ; done
 
-for i in $(ls -1 sample_<em>splitpileup.stats | sed 's/<em>chr</em>.</em>$//g' | sort -V | uniq); do
+for i in $(ls -1 sample_*splitpileup.stats | sed 's/*chr*.*$//g' | sort -V | uniq); do
      echo -e "chr\twindow\tlength\tlength_outgroup\tread_depth\tS\tWatterson\tPi\tTajima_D\tvar_S\tvar_Watterson\tunnorm_FayWu_H\tFayWu_H\tdiv\tnonsyn_pol\tsyn_pol\tnonsyn_div\tsyn_div\talpha" > ${i}.pileup.stats
      for j in $(ls -1 ${i}_*splitpileup.stats | grep -v "mtDNA"); do
           CHR=$( echo ${j} | sed -e 's/sample_[123456789X].*chr_//g' -e 's/.splitpileup.stats//g')
@@ -939,7 +1081,7 @@ for i in $(ls -1 sample_<em>splitpileup.stats | sed 's/<em>chr</em>.</em>$//g' |
 done
 
 
-R-3.5.0
+```R
 library(ggplot2)
 library(patchwork)
 sample1 <-read.table("sample_1.pileup.stats",header=T,sep="\t")
@@ -954,40 +1096,40 @@ sample9 <-read.table("sample_9.pileup.stats",header=T,sep="\t")
 sample10 <-read.table("sample_10.pileup.stats",header=T,sep="\t")
 
 plot_S1_pi <- ggplot(sample1)+
-geom_point(aes(window<em>10000,log10(sample1$Pi/sample10$Pi)),size=.1,alpha=0.5,col="blue")+
-geom_point(aes(window</em>10000,log10(sample1$Pi/sample8$Pi)),size=.1,alpha=0.5,col="red")+
-geom_point(aes(window<em>10000,log10(sample1$Pi/sample7$Pi)),size=.1,alpha=0.5,col="green")+
-geom_point(aes(window</em>10000,log10(sample1$Pi/sample6$Pi)),size=.1,alpha=0.5,col="orange")+
-geom_point(aes(window*10000,log10(sample1$Pi/sample5$Pi)),size=.1,alpha=0.5,col="yellow")+
-facet_grid(.~sample1$chr)+theme_bw()+
-labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample10$Pi)),size=.1,alpha=0.5,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample8$Pi)),size=.1,alpha=0.5,col="red")+
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample7$Pi)),size=.1,alpha=0.5,col="green")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample6$Pi)),size=.1,alpha=0.5,col="orange")+
+     geom_point(aes(window*10000,log10(sample1$Pi/sample5$Pi)),size=.1,alpha=0.5,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+
+     labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
 
 plot_S2_pi <- ggplot(sample1)+
-geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=.1,alpha=0.5,col="blue")+
-geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=.1,alpha=0.5,col="red")+
-geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=.1,alpha=0.5,col="green")+
-geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=.1,alpha=0.5,col="orange")+
-geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=.1,alpha=0.5,col="yellow")+
-facet_grid(.~sample1$chr)+theme_bw()+
-labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=.1,alpha=0.5,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=.1,alpha=0.5,col="red")+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=.1,alpha=0.5,col="green")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=.1,alpha=0.5,col="orange")+
+     geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=.1,alpha=0.5,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+
+     labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
 
 plot_S3_pi <- ggplot(sample1)+
-geom_point(aes(window<em>10000,log10(sample1$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
-geom_point(aes(window</em>10000,log10(sample1$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
-geom_point(aes(window<em>10000,log10(sample1$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
-geom_point(aes(window</em>10000,log10(sample1$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
-geom_point(aes(window*10000,log10(sample1$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
-facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
-labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample1$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
 
 plot_S4_pi <- ggplot(sample1)+
-geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
-geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
-geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
-geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
-geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
-facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
-labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
 
 plot_S1_pi + plot_S2_pi + plot_S3_pi + plot_S4_pi + plot_layout(ncol=1)
 
@@ -1004,42 +1146,54 @@ sample9.5 <- sample9[sample9$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
 sample10.5  <- sample10[sample10$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
 
 plot_S3_pi <- ggplot(sample1.5)+
-geom_point(aes(window<em>10000,log10(sample1.5$Pi/sample10.5$Pi)),size=1,alpha=1,col="blue")+
-geom_point(aes(window</em>10000,log10(sample1.5$Pi/sample8.5$Pi)),size=1,alpha=1,col="red")+
-geom_point(aes(window<em>10000,log10(sample1.5$Pi/sample7.5$Pi)),size=1,alpha=1,col="green")+
-geom_point(aes(window</em>10000,log10(sample1.5$Pi/sample6.5$Pi)),size=1,alpha=1,col="orange")+
-geom_point(aes(window*10000,log10(sample1.5$Pi/sample5.5$Pi)),size=1,alpha=1,col="yellow")+
-theme_bw()+xlim(3.65e7,3.8e7)+
-labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+     geom_point(aes(window<em>10000,log10(sample1.5$Pi/sample10.5$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample1.5$Pi/sample8.5$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample1.5$Pi/sample7.5$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample1.5$Pi/sample6.5$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample1.5$Pi/sample5.5$Pi)),size=1,alpha=1,col="yellow")+
+     theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
 
 #plot labeled windows in chromosome V region
-plot1.5 <-     ggplot(sample1.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
-geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="UGA_S")+
-geom_text_repel(data=subset(sample1.5,Pi <= 0.001))
-plot5.5 <-     ggplot(sample5.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
-geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Alday_R")+
-geom_text_repel(data=subset(sample5.5,Pi <= 0.001))
-plot6.5 <-     ggplot(sample6.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
-geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Mulligan_R")+
-geom_text_repel(data=subset(sample6.5,Pi <= 0.001))
-plot7.5 <-     ggplot(sample7.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
-geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Rau_Shelby_R")+
-geom_text_repel(data=subset(sample7.5,Pi <= 0.001))
-plot8.5 <-     ggplot(sample8.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
-geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Pena_R")+
-geom_text_repel(data=subset(sample8.5,Pi <= 0.001))
-plot10.5 <-     ggplot(sample10.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
-geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Strickland_R")+
-geom_text_repel(data=subset(sample10.5,Pi <= 0.001))
+plot1.5 <- ggplot(sample1.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="UGA_S")+
+     geom_text_repel(data=subset(sample1.5,Pi <= 0.001))
+
+plot5.5 <- ggplot(sample5.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Alday_R")+
+     geom_text_repel(data=subset(sample5.5,Pi <= 0.001))
+
+plot6.5 <- ggplot(sample6.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Mulligan_R")+
+     geom_text_repel(data=subset(sample6.5,Pi <= 0.001))
+
+plot7.5 <- ggplot(sample7.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Rau_Shelby_R")+
+     geom_text_repel(data=subset(sample7.5,Pi <= 0.001))
+
+plot8.5 <- ggplot(sample8.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Pena_R")+
+     geom_text_repel(data=subset(sample8.5,Pi <= 0.001))
+
+plot10.5 <- ggplot(sample10.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Strickland_R")+
+     geom_text_repel(data=subset(sample10.5,Pi <= 0.001))
+
 plot1.5 + plot5.5 + plot6.5 + plot7.5 + plot8.5 + plot10.5  + plot_layout(ncol=1)
+
+
 plot_S4_pi <- ggplot(sample1)+
-geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
-geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
-geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
-geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
-geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
-facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
-labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+```
+
+
+
 
 
 
@@ -1244,210 +1398,6 @@ p1 + p2 + plot_layout(ncol=1)
 
 
 
-
-
-working dir: /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_BZ
-
-# get some testdata
-
- cut -f1,2,13 XQTL_BZ.merged.fst > peakfinding.testdata
-
- cut -f1,2,13 ../XQTL_CONTROL/XQTL_CONTROL.merged.fst > peakfinding.control.testdata
-
-1. all data - genome wide average
-     - pre-treatment vs post =
-          cat peakfinding.testdata | datamash mean 3
-          0.015070584074789
-
-     - time matched control pre/post =
-          cat peakfinding.control.testdata | datamash mean 3
-          0.011916732789999
-
-
-2. list of manually curated "peaks"
-
-
-
-hcontortus_chr1_Celeg_TT_arrow_pilon	6992500	0.09456757
-
-
-3. extract peak coordinates
-
-#!/bin/bash
-
-PREFIX=$1
-PEAKFILE=$2
-FST_DATA=$3
-WINDOW=$4
-
-#eg.
-#PREFIX=TEST
-#PEAKFILE=peak.data
-#FST_DATA=peakfinding.testdata
-#WINDOW=500000
-
-
-printf CHR"\t"PEAK_COORD"\t"PEAK_FST"\t"PEAK_START_COORD"\t"PEAK_END_COORD"\t"PEAK_WINDOW_SIZE"\t"PEAK_START_FST"\t"PEAK_END_FST"\n" > ${PREFIX}.peak_windows
-
-while read COL CHR PEAK FST; do
-     # ignore comment lines
-     [[ "$COL" =~ ^# ]] && continue
-
-     # extract data from master file
-     cut -f1,2,${COL} ${FST_DATA} > data.tmp
-
-     # extract a window of data around the peak
-     grep "${CHR}" data.tmp | awk -v PEAK=$PEAK -v WINDOW=$WINDOW '{if($2>(PEAK-WINDOW) && $2< (PEAK+WINDOW)) print}' > data.tmp2;
-
-     # extract from the windowed data Fst values that are half the peak height, taking into account the genome wide average
-     GENOME_AVERAGE=$(cat data.tmp | datamash mean 3 sstdev 3 | awk '{print $1+(3*$2)}')
-
-     awk -v GENOME_AVERAGE=$GENOME_AVERAGE -v FST=$FST '{if($3>((FST+GENOME_AVERAGE)/2)) print}' data.tmp2 > data.tmp3;
-
-     # print the boundaries of the peak
-     PEAK_START=$(head -n 1 data.tmp3 | cut -f2);
-     PEAK_START_FST=$(head -n 1 data.tmp3 | cut -f3);
-     PEAK_END=$(tail -n 1 data.tmp3 | cut -f2);
-     PEAK_END_FST=$(tail -n 1 data.tmp3 | cut -f3);
-     PEAK_WINDOW_SIZE=$(($PEAK_END-PEAK_START));
-     printf ${CHR}"\t"${PEAK}"\t"${FST}"\t"$PEAK_START"\t"$PEAK_END"\t"${PEAK_WINDOW_SIZE}"\t"${PEAK_START_FST}"\t"${PEAK_END_FST}"\n" >> ${PREFIX}.peak_windows;
-     rm *tmp*
-     done < ${PEAKFILE}
-
-
-XQTL
-V13 1:5
-V27 2:6
-V39 3:7
-V49 4:8
-
-AI
-#						Rep1	Rep2	Rep3
-#control - pre v 0.5X	V17		V51		V83
-#control - pre v 2X		V11		V135	V161
-
-#IVM pre v 0.5x			V251	V267	V281
-#IVM pre v 2x			V287	V297	V305
-
-
-Dose response
-V7 1:2
-
-cut -f1,2,13 XQTL_*.merged.fst | sort -k3 | tail -n 100
-
-#bz
-hcontortus_chr1_Celeg_TT_arrow_pilon	6992500	0.09456757
-hcontortus_chr1_Celeg_TT_arrow_pilon	8807500	0.08951118
-hcontortus_chr1_Celeg_TT_arrow_pilon	12722500	0.07817395
-#ivm-XQTL
-hcontortus_chr5_Celeg_TT_arrow_pilon	34007500	0.04864623
-hcontortus_chr5_Celeg_TT_arrow_pilon	36252500	0.08151205
-hcontortus_chr5_Celeg_TT_arrow_pilon	37467500	0.07105946
-hcontortus_chr5_Celeg_TT_arrow_pilon	45397500	0.04814783
-hcontortus_chr2_Celeg_TT_arrow_pilon	2947500	0.05130916
-#ivm-ai
-hcontortus_chr1_Celeg_TT_arrow_pilon	11047500	0.07026732
-hcontortus_chr3_Celeg_TT_arrow_pilon	38012500	0.10238732
-#doseresponse
-hcontortus_chr5_Celeg_TT_arrow_pilon	34397500	0.50000000
-
-
-
-
-# XQTL_IVM
-# Rep1.1 - V13
-13   hcontortus_chr5_Celeg_TT_arrow_pilon	37467500	0.07105946
-13   hcontortus_chr2_Celeg_TT_arrow_pilon	2947500	0.05130916
-#Rep1.2 - V27
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	33842500	0.06678443
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	46717500	0.04836741
-#Rep2 - V39
-#Rep3 - V49
-49   hcontortus_chr5_Celeg_TT_arrow_pilon	36317500	0.10849596
-49   hcontortus_chr5_Celeg_TT_arrow_pilon	35822500	0.10612988
-
-./run_find_peak_windows.sh XQTL_IVM peak.data XQTL_IVM.merged.fst 500000
-
-
-# XQTL_LEV  
-# Rep1.1 - V13
-13   hcontortus_chr4_Celeg_TT_arrow_pilon	14817500	0.07934698
-13   hcontortus_chr5_Celeg_TT_arrow_pilon	31467500	0.10024437
-#Rep1.2 - V27
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	22157500	0.06093688
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	28482500	0.08273666
-#Rep2 - V39
-#Rep3 - V49
-
-
-
-# XQTL_BZ
-# Rep1.1 - V13
-13   hcontortus_chr1_Celeg_TT_arrow_pilon	6992500	0.09456757
-13   hcontortus_chr1_Celeg_TT_arrow_pilon	8807500	0.08951118
-13   hcontortus_chr1_Celeg_TT_arrow_pilon	12722500	0.07817395
-# Rep1.2 - V27
-# Rep2 - V39
-# Rep3 - V49
-49	hcontortus_chr1_Celeg_TT_arrow_pilon	8337500	0.23776054
-
-
-
-
-# AI
-# Rep1 - V287	 
-287  hcontortus_chr1_Celeg_TT_arrow_pilon	11047500	0.07026732
-# Rep 2 - V297
-297  hcontortus_chr2_Celeg_TT_arrow_pilon	7147500	0.21312042
-297  hcontortus_chr4_Celeg_TT_arrow_pilon	29077500	0.06586891
-# Rep 3 - V305
-305  hcontortus_chr3_Celeg_TT_arrow_pilon	38012500	0.10238732
-
-
-# DOSE_RESPONSE
-# rep 1 - V7
-7    hcontortus_chr5_Celeg_TT_arrow_pilon	34052500	0.35451348
-
-
-# XQTL_ADULTS
-# rep 1 - V7
-7    hcontortus_chr5_Celeg_TT_arrow_pilon	37377500	0.19438392
-7    hcontortus_chr2_Celeg_TT_arrow_pilon	27157500	0.12806700
-
-
-
-
-COL=7
-DATA=XQTL_PARENTS.merged.fst
-
-CUTOFF=$(cut -f1,2,${COL} *.merged.fst | sort -k3 | datamash mean 3 sstdev 3 | awk '{print $1+(3*$2)}')
-
-cut -f1,2,${COL} *.merged.fst | sort -k3 | awk -v CUTOFF=$CUTOFF -v COL=$COL '{if($3>CUTOFF) print COL,$0}' OFS="\t"  > all.high.peaks
-
-./run_find_peak_windows.sh XQTL_allhightest all.high.peaks ${DATA} 500000
-
-sort -k1,1 -k2,2n  XQTL_allhightest.peak_windows | awk '{if($6!=0 && NF==8) print}' > sorted
-
-
-R ${DATA} ${COL}
-args <- commandArgs()
-
-library(ggplot2)
-library(viridis)
-
-name=args[2]
-columns=args[3]
-
-a<-read.table("sorted",header=T)
-ggplot(a)+
-     geom_rect(aes(xmin=a$PEAK_START_COORD,ymin=1:nrow(a)-0.5,xmax=a$PEAK_END_COORD,ymax=1:nrow(a)+0.5,fill=PEAK_FST))+
-     facet_grid(a$CHR~.)+
-     xlim(0,50e6)+
-     labs(title=paste0("file=",name,", ","column=",columns))+
-     scale_fill_viridis(direction=-1,limits=c(0,0.5))+
-     theme_bw()
-
-ggsave(paste0("predictedpeaks_",name,"_","column_",columns,".pdf"))
 
 
 
