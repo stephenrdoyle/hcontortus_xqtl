@@ -210,10 +210,6 @@ ggsave("genomewide_fst_plots_R3_supplement.png")
 
 # US field genome-wide plots
 
-
-
-
-
 library(ggplot2)
 library(patchwork)
 
