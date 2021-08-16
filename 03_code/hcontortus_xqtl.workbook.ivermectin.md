@@ -1,25 +1,16 @@
 # XQTL: ivermectin analyses
 
 
-# Figure 5 - ivermectin analyses
 
-1. [Figure 5 A](#figure5a)
-2. [Figure 5 B](#figure5b)
-3. [Figure 5 C](#figure5c)
-4. [Figure 5 D](#figure5d)
-5. [Figure 5 E](#figure5e)
-
-
-## Figure 5 A <a name="figure5a"></a>
-
-Aim is show genetic differentiation between pre and post treatment ivermectin samples on chromosome 5
+## Genetic differentiation between pre and post treatment on chromosome 5
+- focused view of chromosome 5 to show main QTL in XQTL replicates
 
 ```shell
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM
-```
 
 ln -s ../../04_VARIANTS/XQTL_IVM/XQTL_IVM.merged.fst
+```
 
 
 
@@ -247,15 +238,15 @@ plot_pi <- ggplot(us_farm_data_chr5, aes((window*10000)-5000,log10(Pi), colour=a
 
 ```
 
-## Figure 5 C <a name = "figure4c"></a>
+## Figure 4 C <a name = "figure4c"></a>
 
 
 
-******
-## License
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
+## C elegans validation of cky-1
 
+```R
+library(tidyverse)
 library(ggpubr)
 
 cky_ko <- read.table("VC2274_Development_R.txt", header=T)
@@ -265,7 +256,7 @@ cky_ko_merge <- cky_ko_merge %>% mutate_if(is.character, str_replace_all, patter
 
 
 
- plot_ko <- ggplot(cky_ko_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
+plot_ko <- ggplot(cky_ko_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
     geom_boxplot(outlier.size=0.5, outlier.color="black") +
     ylim(0,140) +
     geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5)+
@@ -273,7 +264,7 @@ cky_ko_merge <- cky_ko_merge %>% mutate_if(is.character, str_replace_all, patter
     labs(title= "E", x="Ivermectin (ng)", y="Progeny (%)", col="Strain") +
     stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
 
- cky_rnai <- read.table("RNAi_Development_R.txt", header=T)
+cky_rnai <- read.table("RNAi_Development_R.txt", header=T)
 
 cky_rnai_merge <- cky_rnai %>% mutate_if(is.character, str_replace_all, pattern = '_[123]', replacement = '')
 cky_rnai_merge <- cky_rnai_merge %>% mutate_if(is.character, str_replace_all, pattern = 'Control', replacement = 'N2')
@@ -329,10 +320,11 @@ plot_RTqpcr <- ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)',
 
 ggsave("XQTL_Figure_5.pdf", useDingbats = FALSE, width = 250, height = 260, units = "mm")
 ggsave("XQTL_Figure_5.png")
+```
 
 
 
-
+```
 # testing our some different plot designs for the RT-qPCR data
 plot_1 <- ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MHco18(UGA)', 'MHco4(WRS)', 'MHco10(CAVR)', 'MTci2', 'MTci5')), y = LogFoldChange, col=Response)) +
           geom_point(position=position_jitterdodge(jitter.width=0.1),size=1) +
@@ -357,7 +349,7 @@ plot_3 <-  ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MH
           theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust=1))
 
 plot_a + plot_b + plot_c
-
+```
 
 
 
@@ -836,3 +828,11 @@ plot_a + (plot_b | plot_c) + plot_d + plot_layout(ncol=1)
 
 ggsave("XQTL_SupplementaryFigureX_male_doseresponse.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("XQTL_SupplementaryFigureX_male_doseresponse.png")
+
+
+
+
+
+******
+## License
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.

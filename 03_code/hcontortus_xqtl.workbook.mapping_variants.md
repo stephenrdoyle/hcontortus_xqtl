@@ -7,6 +7,9 @@
      - map reads to the reference genome (parent samples)
      - Use GATK to realign mapped sequencing reads around indels (parent samples)
      - Run mpileup in preparation for variant calling (parent samples)
+     - Perform SNP calling to generate a VCF file
+     - Running NPSTATS
+     - Running snpEff
 3. XQTL workflow
 4. Advanced Intercross workflow
 5. Dose response workflow
@@ -536,6 +539,116 @@ for i in *splitpileup; do
 done
 ```
 
+## Running popoolation2
+- popoolation2 is the main tools used for the pariwise analysis of pooled sequencign data
+- Code: https://sourceforge.net/p/popoolation2/wiki/Main/
+- Paper: https://doi.org/10.1093/bioinformatics/btr589
+
+
+- to run popoolation2, the following was performed.
+```bash
+~sd21/bash_scripts/run_mpileup2popoolation2 XQTL_PARENTS ~sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa XQTL_PARENTS.mpileup 200 5000
+```
+- where :
+```bash
+PREFIX=$1
+FASTA=$2
+MPILEUP=$3
+POOL_SIZE=$4
+WINDOW=$5
+
+ID="U$(date +%s)"
+
+grep ">" ${FASTA} | sed -e 's/>//g' | cat -n > ref.fa.sequence-names.tmp
+
+
+#--- make sync
+echo -e "\
+java -jar ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/mpileup2sync.jar \
+--input ${MPILEUP} \
+--output ${PREFIX}.raw.sync \
+--min-qual 20 \
+--threads 7 \
+--fastq-type sanger
+
+while read NUMBER NAME; do
+grep "\${NAME}" ${PREFIX}.raw.sync > \${NUMBER}.\${NAME}.raw.sync.tmp
+done < ref.fa.sequence-names.tmp" > run_make_syncronised_file.tmp.${ID}
+
+chmod a+x run_make_syncronised_file.tmp.${ID}
+
+
+#---- make fst and fet arrays
+while read NUMBER NAME; do
+echo -e "\
+perl ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/fisher-test.pl --input ${NUMBER}.${NAME}.raw.sync.tmp --output ${NUMBER}.${NAME}.fet.tmp --min-count 4 --min-coverage 30 --max-coverage 2% --suppress-noninformative
+
+perl ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/fst-sliding.pl --pool-size ${POOL_SIZE} --window-size ${WINDOW} --step-size ${WINDOW} --min-count 4 --min-coverage 30 --max-coverage 2% --input ${NUMBER}.${NAME}.raw.sync.tmp --output ${NUMBER}.${NAME}.raw.fst.tmp" > run_pp2_split.tmp.${ID}.${NUMBER};
+done < ref.fa.sequence-names.tmp
+chmod a+x *run_pp2_split*
+
+echo -e "\
+PREFIX=\$1
+cat \$(find ./ -name \"*.fet.tmp\" | sort -V) | sed -e \"s/=/\\\t/g\" > \${PREFIX}.merged.fet
+cat \$(find ./ -name \"*.fst.tmp\" | sort -V) | sed -e \"s/=/\\\t/g\" > \${PREFIX}.merged.fst
+#rm *.tmp*" > run_pp2_combine.tmp.${ID}
+chmod a+x run_pp2_combine.tmp.${ID}
+
+
+
+
+jobs=$( wc -l ref.fa.sequence-names.tmp | cut -f1 -d" " )
+
+bsub -q yesterday -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -n 7 -e 01_mp2pp2_makesync.e -o 01_mp2pp2_makesync.o -J 01_mp2pp2_makesync ./run_make_syncronised_file.tmp.${ID}
+
+bsub -q long -w "done(01_mp2pp2_makesync)" -R'span[hosts=1] select[mem>1000] rusage[mem=1000]' -M1000 -J 02_mp2pp2_array[1-$jobs] -e 02_pp2_array[1-$jobs].e -o 02_pp2_array[1-$jobs].o ./run_pp2_split.tmp.${ID}.\$LSB_JOBINDEX
+
+bsub -q normal -w "done(02_mp2pp2_array[1-$jobs])" -R'span[hosts=1] select[mem>1000] rusage[mem=1000]' -n1 -M1000 -J 03_mp2pp2_combine -e 03_pp2_combine.e -o 03_pp2_combine.o ./run_pp2_combine.tmp.${ID} ${PREFIX}
+
+```
+
+## Running snpEff
+- snpEff allows functional annotation of a VCF, to enable interpretation fo the effect of a variant on protein coding sequences.
+-
+
+
+- to use snpEff, a database needs to be first made. Note that this only needs to be done once.
+
+```bash
+#----- SNPeff analysis of functional variants
+# setup for HCON_V4
+
+cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
+
+mkdir data/HCON_V4_20200130
+
+cd  data/HCON_V4_20200130
+ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa HCON_V4_Dec2019.fa
+ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20191212/UPDATED_annotation.gff3 genes.gff
+gffread genes.gff -g HCON_V4_20200130.fa -y protein.fa
+cp HCON_V4_20200130.fa ../genomes/
+
+# modify config file
+cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
+
+echo "
+
+# Haemonchus contortus chromosomes V4
+HCON_V4_20200130.genome : HCON_V4_20200130
+
+" > new.genome
+
+cat snpEff.config new.genome > tmp; mv tmp snpEff.config
+
+
+# build database
+bsub.py 10 build  "java -jar snpEff.jar build -v HCON_V4_20200130"
+
+```
+- to run snpEff, the following was used. Note that "-no-intergenic -no-downstream -no-upstream" flags are used
+```bash
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_PARENTS.raw.vcf > XQTL_PARENTS.raw.snpeff.vcf"
+```
 
 
 
@@ -1198,41 +1311,12 @@ plot_S4_pi <- ggplot(sample1)+
 
 
 
-#----- SNPeff analysis of functional variants
-# setup for HCON_V4
-
-cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
-
-mkdir data/HCON_V4_20200130
-
-cd  data/HCON_V4_20200130
-ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa HCON_V4_Dec2019.fa
-ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20191212/UPDATED_annotation.gff3 genes.gff
-gffread genes.gff -g HCON_V4_20200130.fa -y protein.fa
-cp HCON_V4_20200130.fa ../genomes/
-
-# modify config file
-cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
-
-echo "
-
-# Haemonchus contortus chromosomes V4
-HCON_V4_20200130.genome : HCON_V4_20200130
-
-" > new.genome
-
-cat snpEff.config new.genome > tmp; mv tmp snpEff.config
-
-
-# build database
-bsub.py 10 build  "java -jar snpEff.jar build -v HCON_V4_20200130"
-
 
 
 
 # run SNPeff
 
-bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_AI.raw.vcf >  XQTL_AI.raw.snpeff.vcf"
+bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/ls -lev_pretreatment -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_AI.raw.vcf >  XQTL_AI.raw.snpeff.vcf"
 
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_BZ.raw.vcf >  XQTL_BZ.raw.snpeff.vcf"
 
@@ -1440,220 +1524,3 @@ p1 <- ggplot(data_chr5,aes(V2,V7.x*V13,label=V2))+geom_point(size=0.1)+geom_text
 
 p2 <- ggplot(data_fet2,aes(V2,V7*V4.y,label=V2))+geom_point(size=0.1)+geom_text_repel(data = subset(data_fet, V7*V4.y>150  ))+xlim(30e6,45e6)
 p1 + p2 + plot_layout(ncol=1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-working dir: /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_BZ
-
-# get some testdata
-
- cut -f1,2,13 XQTL_BZ.merged.fst > peakfinding.testdata
-
- cut -f1,2,13 ../XQTL_CONTROL/XQTL_CONTROL.merged.fst > peakfinding.control.testdata
-
-1. all data - genome wide average
-     - pre-treatment vs post =
-          cat peakfinding.testdata | datamash mean 3
-          0.015070584074789
-
-     - time matched control pre/post =
-          cat peakfinding.control.testdata | datamash mean 3
-          0.011916732789999
-
-
-2. list of manually curated "peaks"
-
-
-
-hcontortus_chr1_Celeg_TT_arrow_pilon	6992500	0.09456757
-
-
-3. extract peak coordinates
-
-#!/bin/bash
-
-PREFIX=$1
-PEAKFILE=$2
-FST_DATA=$3
-WINDOW=$4
-
-#eg.
-#PREFIX=TEST
-#PEAKFILE=peak.data
-#FST_DATA=peakfinding.testdata
-#WINDOW=500000
-
-
-printf CHR"\t"PEAK_COORD"\t"PEAK_FST"\t"PEAK_START_COORD"\t"PEAK_END_COORD"\t"PEAK_WINDOW_SIZE"\t"PEAK_START_FST"\t"PEAK_END_FST"\n" > ${PREFIX}.peak_windows
-
-while read COL CHR PEAK FST; do
-     # ignore comment lines
-     [[ "$COL" =~ ^# ]] && continue
-
-     # extract data from master file
-     cut -f1,2,${COL} ${FST_DATA} > data.tmp
-
-     # extract a window of data around the peak
-     grep "${CHR}" data.tmp | awk -v PEAK=$PEAK -v WINDOW=$WINDOW '{if($2>(PEAK-WINDOW) && $2< (PEAK+WINDOW)) print}' > data.tmp2;
-
-     # extract from the windowed data Fst values that are half the peak height, taking into account the genome wide average
-     GENOME_AVERAGE=$(cat data.tmp | datamash mean 3 sstdev 3 | awk '{print $1+(3*$2)}')
-
-     awk -v GENOME_AVERAGE=$GENOME_AVERAGE -v FST=$FST '{if($3>((FST+GENOME_AVERAGE)/2)) print}' data.tmp2 > data.tmp3;
-
-     # print the boundaries of the peak
-     PEAK_START=$(head -n 1 data.tmp3 | cut -f2);
-     PEAK_START_FST=$(head -n 1 data.tmp3 | cut -f3);
-     PEAK_END=$(tail -n 1 data.tmp3 | cut -f2);
-     PEAK_END_FST=$(tail -n 1 data.tmp3 | cut -f3);
-     PEAK_WINDOW_SIZE=$(($PEAK_END-PEAK_START));
-     printf ${CHR}"\t"${PEAK}"\t"${FST}"\t"$PEAK_START"\t"$PEAK_END"\t"${PEAK_WINDOW_SIZE}"\t"${PEAK_START_FST}"\t"${PEAK_END_FST}"\n" >> ${PREFIX}.peak_windows;
-     rm *tmp*
-     done < ${PEAKFILE}
-
-
-XQTL
-V13 1:5
-V27 2:6
-V39 3:7
-V49 4:8
-
-AI
-#						Rep1	Rep2	Rep3
-#control - pre v 0.5X	V17		V51		V83
-#control - pre v 2X		V11		V135	V161
-
-#IVM pre v 0.5x			V251	V267	V281
-#IVM pre v 2x			V287	V297	V305
-
-
-Dose response
-V7 1:2
-
-cut -f1,2,13 XQTL_*.merged.fst | sort -k3 | tail -n 100
-
-#bz
-hcontortus_chr1_Celeg_TT_arrow_pilon	6992500	0.09456757
-hcontortus_chr1_Celeg_TT_arrow_pilon	8807500	0.08951118
-hcontortus_chr1_Celeg_TT_arrow_pilon	12722500	0.07817395
-#ivm-XQTL
-hcontortus_chr5_Celeg_TT_arrow_pilon	34007500	0.04864623
-hcontortus_chr5_Celeg_TT_arrow_pilon	36252500	0.08151205
-hcontortus_chr5_Celeg_TT_arrow_pilon	37467500	0.07105946
-hcontortus_chr5_Celeg_TT_arrow_pilon	45397500	0.04814783
-hcontortus_chr2_Celeg_TT_arrow_pilon	2947500	0.05130916
-#ivm-ai
-hcontortus_chr1_Celeg_TT_arrow_pilon	11047500	0.07026732
-hcontortus_chr3_Celeg_TT_arrow_pilon	38012500	0.10238732
-#doseresponse
-hcontortus_chr5_Celeg_TT_arrow_pilon	34397500	0.50000000
-
-
-
-
-# XQTL_IVM
-# Rep1.1 - V13
-13   hcontortus_chr5_Celeg_TT_arrow_pilon	37467500	0.07105946
-13   hcontortus_chr2_Celeg_TT_arrow_pilon	2947500	0.05130916
-#Rep1.2 - V27
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	33842500	0.06678443
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	46717500	0.04836741
-#Rep2 - V39
-#Rep3 - V49
-49   hcontortus_chr5_Celeg_TT_arrow_pilon	36317500	0.10849596
-49   hcontortus_chr5_Celeg_TT_arrow_pilon	35822500	0.10612988
-
-./run_find_peak_windows.sh XQTL_IVM peak.data XQTL_IVM.merged.fst 500000
-
-
-# XQTL_LEV  
-# Rep1.1 - V13
-13   hcontortus_chr4_Celeg_TT_arrow_pilon	14817500	0.07934698
-13   hcontortus_chr5_Celeg_TT_arrow_pilon	31467500	0.10024437
-#Rep1.2 - V27
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	22157500	0.06093688
-27   hcontortus_chr5_Celeg_TT_arrow_pilon	28482500	0.08273666
-#Rep2 - V39
-#Rep3 - V49
-
-
-
-# XQTL_BZ
-# Rep1.1 - V13
-13   hcontortus_chr1_Celeg_TT_arrow_pilon	6992500	0.09456757
-13   hcontortus_chr1_Celeg_TT_arrow_pilon	8807500	0.08951118
-13   hcontortus_chr1_Celeg_TT_arrow_pilon	12722500	0.07817395
-# Rep1.2 - V27
-# Rep2 - V39
-# Rep3 - V49
-49	hcontortus_chr1_Celeg_TT_arrow_pilon	8337500	0.23776054
-
-
-
-
-# AI
-# Rep1 - V287	 
-287  hcontortus_chr1_Celeg_TT_arrow_pilon	11047500	0.07026732
-# Rep 2 - V297
-297  hcontortus_chr2_Celeg_TT_arrow_pilon	7147500	0.21312042
-297  hcontortus_chr4_Celeg_TT_arrow_pilon	29077500	0.06586891
-# Rep 3 - V305
-305  hcontortus_chr3_Celeg_TT_arrow_pilon	38012500	0.10238732
-
-
-# DOSE_RESPONSE
-# rep 1 - V7
-7    hcontortus_chr5_Celeg_TT_arrow_pilon	34052500	0.35451348
-
-
-# XQTL_ADULTS
-# rep 1 - V7
-7    hcontortus_chr5_Celeg_TT_arrow_pilon	37377500	0.19438392
-7    hcontortus_chr2_Celeg_TT_arrow_pilon	27157500	0.12806700
-
-
-
-
-COL=7
-DATA=XQTL_PARENTS.merged.fst
-
-CUTOFF=$(cut -f1,2,${COL} *.merged.fst | sort -k3 | datamash mean 3 sstdev 3 | awk '{print $1+(3*$2)}')
-
-cut -f1,2,${COL} *.merged.fst | sort -k3 | awk -v CUTOFF=$CUTOFF -v COL=$COL '{if($3>CUTOFF) print COL,$0}' OFS="\t"  > all.high.peaks
-
-./run_find_peak_windows.sh XQTL_allhightest all.high.peaks ${DATA} 500000
-
-sort -k1,1 -k2,2n  XQTL_allhightest.peak_windows | awk '{if($6!=0 && NF==8) print}' > sorted
-
-
-R ${DATA} ${COL}
-args <- commandArgs()
-
-library(ggplot2)
-library(viridis)
-
-name=args[2]
-columns=args[3]
-
-a<-read.table("sorted",header=T)
-ggplot(a)+
-     geom_rect(aes(xmin=a$PEAK_START_COORD,ymin=1:nrow(a)-0.5,xmax=a$PEAK_END_COORD,ymax=1:nrow(a)+0.5,fill=PEAK_FST))+
-     facet_grid(a$CHR~.)+
-     xlim(0,50e6)+
-     labs(title=paste0("file=",name,", ","column=",columns))+
-     scale_fill_viridis(direction=-1,limits=c(0,0.5))+
-     theme_bw()
-
-ggsave(paste0("predictedpeaks_",name,"_","column_",columns,".pdf"))
