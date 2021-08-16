@@ -15,7 +15,7 @@ ln -s ../../04_VARIANTS/US_FIELD/XQTL_US_FIELD.merged.fst
 library(tidyverse)
 
 # farm order = F9,F2,F3,F4,F5,F6,F7,F8,F10
-ivm_conc <- c(1.51,11.27,9.15,11.27,297.9,619,312.1,300,259.4)
+ivm_conc <- c(0.977,12.04,9.15,11.27,297.9,619,312.1,NA,259.4)
 bz_conc <- c(9.67,19.93,15,7.71,15,61.57,29.6,NA,29.6)
 lev_conc <- c(1.5,1.5,0.58,0.57,0.91,0.96,9.36,NA,0.88)
 mox_conc <- c(26.6,221.4,166.1,205.3,6038,10000,3987,NA,5263)
@@ -57,5 +57,5 @@ mox_slopes <-
 data_out <- data.frame(fst_data,ivm_slopes,bz_slopes,lev_slopes,mox_slopes,check.names=FALSE)
 
 
-ggplot(data_out,aes(V2,mox_slopes)) + geom_point() + facet_grid(V1~.)
+ggplot(data_out,aes(V2,ivm_slopes)) + geom_point() + facet_grid(V1~.)
 ```
