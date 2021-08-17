@@ -1,10 +1,4 @@
-# Figure 4 - levamisole analyses
-
-1. [Figure 4 A](#figure4a)
-2. [Figure 4 B](#figure4b)
-3. [Figure 4 C](#figure4c)
-4. [Figure 4 D](#figure4d)
-5. [Figure 4 E](#figure4e)
+# Levamisole analyses
 
 
 ## Figure 4 A <a name="figure4a"></a>
