@@ -1,7 +1,7 @@
-# Levamisole analyses 
+# Levamisole analyses
 
 
-## Figure 4 A <a name="figure4a"></a>
+
 
 Aim is show genetic differentiation between rpe and post treatment levamisole samples on chromosomes 4 and 5
 
