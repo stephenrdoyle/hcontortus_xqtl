@@ -319,6 +319,19 @@ plot_c <- ggplot(us_btub2)+
      facet_grid(POS ~ "US farm") +
      theme_bw()+
      theme(legend.position = "none", text = element_text(size = 10))
+
+
+     plot_d <- ggplot(us_btub2)+
+          geom_smooth(aes(BZ_CONCENTRATION, ALLELE_FREQ), method = 'glm', col = 'grey')+
+          geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2)+
+          geom_text(aes(15, 0.95, label = paste('r = ', signif(af_bz_cor$estimate, 3), '\n', 'P = ', signif(af_bz_cor$p.value, 3))), size = 2.5)+
+          geom_text_repel(aes(BZ_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 3.5)+
+          labs(title = "C", y = "Variant Allele Frequency", x = "Benzimidazole EC50 (uM)", col = "US farm ID") +
+          ylim(-0.05, 1) +
+          #facet_grid(. ~ POS) +
+          facet_grid(POS ~ "US farm") +
+          theme_bw()+
+          theme(legend.position = "none", text = element_text(size = 10))
 ```
 
 ```R
