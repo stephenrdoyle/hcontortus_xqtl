@@ -3,6 +3,7 @@
 
 
 ## Download raw data
+- to recreate the analyses described below, data can be obtained from my FTP using wget or similar
 ```
 # XQTL ivermectin Fst data
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
@@ -12,6 +13,17 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/sample
 
 # RT-qPCR data of cky-1 from H. contortus and T. circumcincta
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/RTQs_cky1_v2.txt
+
+# C. elegans development data - balanced deletion
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/VC2274_Development_R.txt
+
+# C. elegans development data - RNAi
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/RNAi_Development_R.txt
+
+# C. elegans cky-1 transgenic pharyngeal pumping
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/Transgenics_Pumping_R.txt
+
+
 
 # Advanced intercross Fst data
 ```
@@ -201,8 +213,12 @@ ggsave("XQTL_IVM_cky-1_RTqPCR.png")
 ```
 ![](../04_analysis/XQTL_IVM_cky-1_RTqPCR.png)
 
-## C elegans validation of cky-1
 
+
+
+
+## C elegans validation of cky-1
+### Development assay - Balanced knockout of cky-1
 ```R
 library(tidyverse)
 library(ggpubr)
@@ -211,7 +227,6 @@ cky_ko <- read.table("VC2274_Development_R.txt", header=T)
 
 cky_ko_merge <- cky_ko %>% mutate_if(is.character, str_replace_all, pattern = '.R[123]', replacement = '')
 cky_ko_merge <- cky_ko_merge %>% mutate_if(is.character, str_replace_all, pattern = 'VC2274', replacement = 'VC2274:cky-1(gk1011)')
-
 
 
 plot_ko <-
@@ -223,6 +238,13 @@ plot_ko <-
      labs(title= "E", x="Ivermectin (ng)", y="Progeny (%)", col="Strain") +
      stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
 
+plot_ko
+ggsave("XQTL_IVM_cky-1_KO.png")
+```
+![](../04_analysis/XQTL_IVM_cky-1_KO.png)
+
+### Development assay - RNAi of cky-1
+```R
 cky_rnai <- read.table("RNAi_Development_R.txt", header=T)
 
 cky_rnai_merge <- cky_rnai %>% mutate_if(is.character, str_replace_all, pattern = '_[123]', replacement = '')
@@ -238,8 +260,13 @@ cky_rnai_merge <- cky_rnai_merge %>% mutate_if(is.character, str_replace_all, pa
      labs(title= "F", x="Ivermectin (ng)", y="Progeny (%)", col="Treatment") +
      stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
 
+plot_rnai
+ggsave("XQTL_IVM_cky-1_rnai.png")
+```
+![](../04_analysis/XQTL_IVM_cky-1_rnai.png)
 
 
+```R
 cky_trans <- read.table("Transgenics_Pumping_R.txt", header=T)
 cky_trans_merge <- cky_trans %>% mutate_if(is.character, str_replace_all, pattern = '.R[123]', replacement = '')
 cky_trans_merge <- cky_trans_merge %>% mutate_if(is.character, str_replace_all, pattern = 'CeEFT3_L1', replacement = 'N2+eft3:cky-1.1')
@@ -258,8 +285,10 @@ plot_trans <-
      stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
 
 plot_trans
-```
 
+ggsave("XQTL_IVM_cky-1_trans.png")
+```
+![](../04_analysis/XQTL_IVM_cky-1_trans.png)
 
 
 
