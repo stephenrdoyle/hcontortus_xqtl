@@ -2,6 +2,16 @@
 
 
 
+## Download raw data
+```
+# XQTL ivermectin Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/XQTL_IVM.merged.fst
+
+# Advanced intercross Fst data
+```
+
+
+
 ## Genetic differentiation between pre and post treatment on chromosome 5
 - focused view of chromosome 5 to show main QTL in XQTL replicates
 
@@ -9,7 +19,9 @@
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM
 
-ln -s ../../04_VARIANTS/XQTL_IVM/XQTL_IVM.merged.fst
+ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_IVM/XQTL_IVM.merged.fst
+
+
 ```
 
 
@@ -41,38 +53,48 @@ gw_mean <- mean(xqtl_ivm_fst$FST_MEAN) + 3*sd(xqtl_ivm_fst$FST_MEAN)
 
 
 # extract chromosome 5 data
-ivm_chr5_data <- xqtl_ivm_fst[xqtl_ivm_fst$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
+ivm_chr5_data <-
+     xqtl_ivm_fst[xqtl_ivm_fst$CHR == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
 
 # fix names
-ivm_chr5_data <- ivm_chr5_data %>%
-  mutate(CHR = str_replace_all(CHR, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+ivm_chr5_data <-
+     ivm_chr5_data %>%
+     mutate(CHR = str_replace_all(CHR, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
 
 
 # set colour for chromosomes
-ivm_chr5_data <- mutate(ivm_chr5_data,
-        point_colour = case_when(
-        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
-        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
-        (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
-        (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
-        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
-        (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
-        (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
+ivm_chr5_data <-
+     mutate(ivm_chr5_data,
+     point_colour = case_when(
+     (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
+     (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+     (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+     (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
+     (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
+     (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
+     (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
 # make the plot
-plot_chr5 <- ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-               geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-               geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
-               xlim(0, 50e6) +
-               theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-               labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
-               facet_grid(CHR ~ .)
+plot_chr5 <-
+     ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
+     geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
+     xlim(0, 50e6) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+     labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+     facet_grid(CHR ~ .)
 
 #plot_chr5
-```
+ggsave("XQTL_IVM_chromosome5_replicates.png")
 
-## Figure 4 B <a name = "figure4b"></a>
+```
+!()[/04_analysis/XQTL_IVM_chromosome5_replicates.png]
+
+
+
+
+## Chromosome 5 QTL 
 
 Aim is to show zoomed in region around chromosome 5 main peak, highlighting farm data, genes present, whether genes are differentially expressed
 
@@ -90,11 +112,8 @@ ln -fs /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOM
 ```R
 
 # load data
-# --- genome annotation
-gff <- fread(cmd = "grep ^hcontortus ANNOTATION.gff")
-colnames(gff) <- c("chr", "source", "feature", "start", "end", "point1", "strand", "frame", "info")
 
-
+# load the output of NPstats, and add the drenchrite EC50 per farm
 us_farm1 <-read.table("sample_1.pileup.stats",header=T,sep="\t")
 us_farm1$sample <- "us_farm1"
 us_farm1$ivm_EC50 <- "1.51"
@@ -135,22 +154,30 @@ us_farm_data_chr5 <- us_farm_data_chr5 %>%
 
 
 
-plot_fst <- ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-     geom_point() + scale_color_identity() + scale_size_identity() +
-   geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black")+
-   xlim(36e6,39e6)+
-   labs(title = "B", x="Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
-   theme_bw()+theme(text = element_text(size = 10))
-
-plot_pi <- ggplot(us_farm_data_chr5, aes((window*10000)-5000,log10(Pi), colour=as.numeric(ivm_EC50)))+
-     geom_point(size=0.5)+
+plot_fst <-
+     ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_point() +
+     scale_color_identity() +
+     scale_size_identity() +
+     geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black")+
      xlim(36e6,39e6)+
-     scale_colour_viridis(direction=1,limits = c(0, 800))+
+     labs(title = "B", x="Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+     theme_bw() + theme(text = element_text(size = 10))
+
+plot_pi <-
+     ggplot(us_farm_data_chr5, aes((window*10000)-5000,log10(Pi), colour=as.numeric(ivm_EC50))) +
+     geom_point(size=0.5) +
+     xlim(36e6,39e6) +
+     scale_colour_viridis(direction=1,limits = c(0, 800)) +
      labs(title = "C", x="Genomic position (bp)", y="Nucleotide diversity on\nUS Farms (log10[Pi])", colour="Ivermectin\nEC50\n(uM)")+
-     theme_bw()+theme(text = element_text(size = 10))
+     theme_bw() + theme(text = element_text(size = 10))
 
-
+plot_fst + plot_pi
 ```
+
+
+
+
 
 - analysis of RT-qPCR data comparing cky-1 expression in sensitive and resistant strains of H. contortus and T. circumcincta
 ```bash
@@ -158,14 +185,15 @@ plot_pi <- ggplot(us_farm_data_chr5, aes((window*10000)-5000,log10(Pi), colour=a
 cky_RTqpcr <- read.table("RTQs_cky1_v2.txt", header=T, sep="\t")
 cky_RTqpcr <- filter(cky_RTqpcr, Normaliser != "B-tubulin")
 
-plot_RTqpcr <- ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MHco18(UGA)', 'MHco4(WRS)', 'MHco10(CAVR)', 'MTci2', 'MTci5')), y = LogFoldChange, col=Response)) +
+plot_RTqpcr <-
+     ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MHco18(UGA)', 'MHco4(WRS)', 'MHco10(CAVR)', 'MTci2', 'MTci5')), y = LogFoldChange, col=Response)) +
      geom_boxplot(outlier.size=0.5, outlier.color="black") +
      geom_point(position=position_jitterdodge(jitter.width=0.1),size=1) +
      facet_grid(~Species, drop = TRUE,scales = "free", space = "free") +
-     theme_bw() + theme(text = element_text(size = 10)) +
-     labs(title = "D", x = "Parasite strain", y = "Normalised cky-1 expression\n(log2 fold change)", col="Ivermectin\nphenotype") +
-     theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust=1))
+     theme_bw() + theme(text = element_text(size = 10), axis.text.x = element_text(angle = 30, vjust = 1, hjust=1)) +
+     labs(title = "D", x = "Parasite strain", y = "Normalised cky-1 expression\n(log2 fold change)", col="Ivermectin\nphenotype")
 
+plot_RTqpcr
 ```
 
 
@@ -182,13 +210,14 @@ cky_ko_merge <- cky_ko_merge %>% mutate_if(is.character, str_replace_all, patter
 
 
 
-plot_ko <- ggplot(cky_ko_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
-    geom_boxplot(outlier.size=0.5, outlier.color="black") +
-    ylim(0,140) +
-    geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5)+
-    theme_bw() + theme(text = element_text(size = 10)) +
-    labs(title= "E", x="Ivermectin (ng)", y="Progeny (%)", col="Strain") +
-    stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
+plot_ko <-
+     ggplot(cky_ko_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
+     geom_boxplot(outlier.size=0.5, outlier.color="black") +
+     ylim(0,140) +
+     geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5) +
+     theme_bw() + theme(text = element_text(size = 10)) +
+     labs(title= "E", x="Ivermectin (ng)", y="Progeny (%)", col="Strain") +
+     stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
 
 cky_rnai <- read.table("RNAi_Development_R.txt", header=T)
 
@@ -196,10 +225,11 @@ cky_rnai_merge <- cky_rnai %>% mutate_if(is.character, str_replace_all, pattern 
 cky_rnai_merge <- cky_rnai_merge %>% mutate_if(is.character, str_replace_all, pattern = 'Control', replacement = 'N2')
 cky_rnai_merge <- cky_rnai_merge %>% mutate_if(is.character, str_replace_all, pattern = 'RNAi', replacement = 'N2+RNAi(cky-1)')
 
- plot_rnai <- ggplot(cky_rnai_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
+ plot_rnai <-
+     ggplot(cky_rnai_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
      geom_boxplot(outlier.size=0.5, outlier.color="black") +
      ylim(0,140) +
-     geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5)+
+     geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5) +
      theme_bw() + theme(text = element_text(size = 10)) +
      labs(title= "F", x="Ivermectin (ng)", y="Progeny (%)", col="Treatment") +
      stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
@@ -214,25 +244,28 @@ cky_trans_merge <- filter(cky_trans_merge, Ivermectin != "50")
 
 
 
-plot_trans <- ggplot(cky_trans_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
-    geom_boxplot(outlier.size=0.25, outlier.color="black") +
-    ylim(0,140) +
-    geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5)+
-    theme_bw() + theme(text = element_text(size = 10)) +
-    labs(title= "G", x="Ivermectin (ng)", y="Pharyngeal pumps (%)", col="Treatment") +
-    stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
+plot_trans <-
+     ggplot(cky_trans_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
+     geom_boxplot(outlier.size=0.25, outlier.color="black") +
+     ylim(0,140) +
+     geom_point(position=position_jitterdodge(jitter.width=0.1),aes(group=Group,col=Group),size=0.5)+
+     theme_bw() + theme(text = element_text(size = 10)) +
+     labs(title= "G", x="Ivermectin (ng)", y="Pharyngeal pumps (%)", col="Treatment") +
+     stat_compare_means(aes(group = Group), label = "p.signif", label.y = 130, method = "kruskal.test")
+
+plot_trans
+```
 
 
 
 
-
-
-
-
-
- plot_chr5 / ((plot_fst / plot_pi / plot_RTqpcr) |  (plot_ko / plot_rnai / plot_trans)) +
+- make the multipanel plot
+```bash
+# using patchwork
+plot_chr5 / ((plot_fst / plot_pi / plot_RTqpcr) |  (plot_ko / plot_rnai / plot_trans)) +
      plot_layout(ncol=1, heights = c(2, 6))
 
+# save
 ggsave("XQTL_Figure_5.pdf", useDingbats = FALSE, width = 250, height = 260, units = "mm")
 ggsave("XQTL_Figure_5.png")
 ```
@@ -319,7 +352,7 @@ chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "co
 #   theme(legend.position = "none", text = element_text(size = 8))
 
 ivm_2X.1 <- ggplot(data) +
-     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V287,colour = V1),size=0.05)+
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") + geom_point(aes(1:nrow(data)*5000,V287,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "F", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
@@ -332,7 +365,7 @@ ivm_2X.1 <- ggplot(data) +
 
 #rep2
 control_0.5x.2 <- ggplot(data)+
-     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V51,colour = V1),size=0.05)+
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") + geom_point(aes(1:nrow(data)*5000,V51,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
@@ -341,7 +374,7 @@ control_0.5x.2 <- ggplot(data)+
      theme(legend.position = "none", text = element_text(size = 8))
 
 control_2X.2 <- ggplot(data) +
-     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey")+ geom_point(aes(1:nrow(data)*5000,V135,colour = V1),size=0.05)+
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red")+ geom_point(aes(1:nrow(data)*5000,V135,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
@@ -350,7 +383,7 @@ control_2X.2 <- ggplot(data) +
      theme(legend.position = "none", text = element_text(size = 8))
 
 ivm_0.5X.2 <- ggplot(data) +
-     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V267,colour = V1),size=0.05)+
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") + geom_point(aes(1:nrow(data)*5000,V267,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "C", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
@@ -359,7 +392,7 @@ ivm_0.5X.2 <- ggplot(data) +
      theme(legend.position = "none", text = element_text(size = 8))
 
 ivm_2X.2 <- ggplot(data) +
-     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") +
      geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "D", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
@@ -369,7 +402,7 @@ ivm_2X.2 <- ggplot(data) +
      theme(legend.position = "none", text = element_text(size = 8))
 
  ivm_2X.22 <- ggplot(data) +
-      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") +
+      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") +
       geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
       ylim(0,0.1)+
       labs(title = "E", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
@@ -409,7 +442,7 @@ ivm_2X.2 <- ggplot(data) +
 #  theme(legend.position = "none", text = element_text(size = 10))
 
 ivm_2X.3 <- ggplot(data) +
-     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") +
      geom_point(aes(1:nrow(data)*5000,V305,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "G", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
@@ -427,8 +460,9 @@ ivm_2X.3 <- ggplot(data) +
 (control_0.5x.2 | ivm_0.5X.2 ) / (
 control_2X.2 | ivm_2X.2) / ivm_2X.22 + ivm_2X.1 + ivm_2X.3 + plot_layout(ncol=1)
 
-ggsave("XQTL_Figure6.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
-ggsave("XQTL_Figure6.png")
+ggsave("XQTL_advanced_intercross_panel.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
+ggsave("XQTL_advanced_intercross_panel.png")
+
 ```
 
 
