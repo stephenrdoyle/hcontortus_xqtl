@@ -28,6 +28,9 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_A
 
 # comparison between btubulin freq in XQTL / US farms and ivermectin EC50
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/*.ADfreq
+
+# comparison of 5000 L3 per pool Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_L3_5k.merged.fst
 ```
 
 
@@ -716,14 +719,14 @@ library(patchwork)
 
 # load data
 data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
-data <- L3_5000[L3_5000$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
+data <- data[data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
 # chromosome colours
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
 # plot genome wide diversity
 plot_5k_L3 <- ggplot(data)+
-     geom_point(aes(1:nrow(data) * 5000, V7, alpha = V4, colour = V1),size = 0.1)+
+     geom_point(aes(1:nrow(data) * 5000, V7, colour = V1),size = 0.1)+
      ylim(0, 0.1) +
      labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
