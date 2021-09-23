@@ -89,12 +89,12 @@ plot_chr5 <-
 ggsave("XQTL_IVM_chromosome5_replicates.png")
 
 ```
-!()[/04_analysis/XQTL_IVM_chromosome5_replicates.png]
+!()[04_analysis/XQTL_IVM_chromosome5_replicates.png]
 
 
 
 
-## Chromosome 5 QTL 
+## Chromosome 5 QTL
 
 Aim is to show zoomed in region around chromosome 5 main peak, highlighting farm data, genes present, whether genes are differentially expressed
 
