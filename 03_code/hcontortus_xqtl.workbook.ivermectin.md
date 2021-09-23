@@ -330,45 +330,52 @@ ivm_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V287,colour = V1),size
 
 
 #rep2
-control_0.5x.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V51,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+control_0.5x.2 <- ggplot(data)+
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V51,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
   scale_color_manual(values = chr_colours) +
   scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
   theme_bw()+
   theme(legend.position = "none", text = element_text(size = 8))
 
-control_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V135,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+control_2X.2 <- ggplot(data) +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey")+ geom_point(aes(1:nrow(data)*5000,V135,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
 
-ivm_0.5X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V267,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(title = "C", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+ivm_0.5X.2 <- ggplot(data) +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V267,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(title = "C", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
 
-ivm_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(title = "D", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+ivm_2X.2 <- ggplot(data) +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") +
+     geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(title = "D", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
 
- ivm_2X.22 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
-    ylim(0,0.1)+
-    labs(title = "E", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-    scale_color_manual(values = chr_colours) +
-    scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-    theme_bw()+
-    theme(legend.position = "none", text = element_text(size = 8))
+ ivm_2X.22 <- ggplot(data) +
+      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") +
+      geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
+      ylim(0,0.1)+
+      labs(title = "E", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+      scale_color_manual(values = chr_colours) +
+      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+      theme_bw()+
+      theme(legend.position = "none", text = element_text(size = 8))
 
 
 
@@ -400,13 +407,15 @@ ivm_2X.2 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size
 #   theme_bw()+
 #  theme(legend.position = "none", text = element_text(size = 10))
 
-ivm_2X.3 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V305,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(title = "G", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+ivm_2X.3 <- ggplot(data) +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") +
+     geom_point(aes(1:nrow(data)*5000,V305,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(title = "G", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
 
 #control_0.5x.3 + ivm_0.5X.3 + control_2X.3 + ivm_2X.3 + plot_layout(ncol=2)
 
@@ -657,7 +666,7 @@ library(dplyr)
 # chromosome colours
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
-# load data1
+# load data1
 male_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_ADULT/XQTL_ADULTS.merged.fst",header=F)
 male_data <- male_data[male_data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
