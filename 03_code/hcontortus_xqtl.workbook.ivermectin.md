@@ -5,7 +5,10 @@
 ## Download raw data
 ```
 # XQTL ivermectin Fst data
-wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/XQTL_IVM.merged.fst
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
+
+# Nucleotide diversity data for US farms
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/sample*
 
 # Advanced intercross Fst data
 ```
@@ -98,14 +101,6 @@ ggsave("XQTL_IVM_chromosome5_replicates.png")
 
 Aim is to show zoomed in region around chromosome 5 main peak, highlighting farm data, genes present, whether genes are differentially expressed
 
-```bash
-# working dir:
-cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM
-
-#gff
-ln -fs /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20200407/UPDATED_annotation.gff3 ANNOTATION.gff
-```
-
 
 
 ### R to plot
@@ -173,8 +168,10 @@ plot_pi <-
      theme_bw() + theme(text = element_text(size = 10))
 
 plot_fst + plot_pi
-```
 
+ggsave("XQTL_IVM_chr5QTL_fst_uspi.png")
+```
+![](../04_analysis/XQTL_IVM_chr5QTL_fst_uspi.png)
 
 
 
