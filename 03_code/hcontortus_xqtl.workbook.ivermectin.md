@@ -10,6 +10,9 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_I
 # Nucleotide diversity data for US farms
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/sample*
 
+# RT-qPCR data of cky-1 from H. contortus and T. circumcincta
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/RTQs_cky1_v2.txt
+
 # Advanced intercross Fst data
 ```
 
@@ -121,7 +124,7 @@ us_farm3$ivm_EC50 <- "9.15"
 us_farm4 <-read.table("sample_4.pileup.stats",header=T,sep="\t")
 us_farm4$sample <- "us_farm4"
 us_farm4$ivm_EC50 <- "11.27"
-us_farm5 <-read.table("sample_5.pileup.stats",header=T,sep="\t")
+us_farm5 <-d.table("sample_5.pileup.stats",header=T,sep="\t")
 us_farm5$sample <- "us_farm5"
 us_farm5$ivm_EC50 <- "297.9"
 us_farm6 <-read.table("sample_6.pileup.stats",header=T,sep="\t")
@@ -191,8 +194,12 @@ plot_RTqpcr <-
      labs(title = "D", x = "Parasite strain", y = "Normalised cky-1 expression\n(log2 fold change)", col="Ivermectin\nphenotype")
 
 plot_RTqpcr
-```
 
+ggsave("XQTL_IVM_cky-1_RTqPCR.png")
+
+
+```
+![](../04_analysis/XQTL_IVM_cky-1_RTqPCR.png)
 
 ## C elegans validation of cky-1
 

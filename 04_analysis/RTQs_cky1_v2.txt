@@ -1,0 +1,43 @@
+Species	Gene	Normaliser	Sex	Strain	LogFoldChange	Replicate	Response			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE 1517	susceptible			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE 1589	susceptible			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE 653J	susceptible			
+H. contortus	cky-1	Actin	Male	MHco18(UGA)	4.43622	UGA 8125	resistant			
+H. contortus	cky-1	Actin	Male	MHco18(UGA)	5.42253	UGA 8453	resistant			
+H. contortus	cky-1	Actin	Male	MHco18(UGA)	4.46517	UGA 9115	resistant			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE B1	susceptible			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE B2	susceptible			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE B3	susceptible			
+H. contortus	cky-1	Actin	Male	MHco4(WRS)	1.95783	WRS B1	resistant			
+H. contortus	cky-1	Actin	Male	MHco4(WRS)	2.97243	WRS B2	resistant			
+H. contortus	cky-1	Actin	Male	MHco4(WRS)	1.83893	WRS B3	resistant			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE B1	susceptible			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE B2	susceptible			
+H. contortus	cky-1	Actin	Male	MHco3(ISE)	0	ISE B3	susceptible			
+H. contortus	cky-1	Actin	Male	MHco10(CAVR)	2.26166	CAVR B1	resistant			
+H. contortus	cky-1	Actin	Male	MHco10(CAVR)	2.69147	CAVR B2	resistant			
+H. contortus	cky-1	Actin	Male	MHco10(CAVR)	2.66749	CAVR B3	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 1517	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 1589	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 653J	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco18(UGA)	4.91417	UGA 8125	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco18(UGA)	5.40088	UGA 8453	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco18(UGA)	4.6469	UGA 9115	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 1517	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 1589	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 653J	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco4(WRS)	1.77901	WRS 1522	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco4(WRS)	2.28834	WRS 1554	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco4(WRS)	2.46472	WRS 1578	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 1517 	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 1589	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco3(ISE)	0	ISE 653J	susceptible			
+H. contortus	cky-1	B-tubulin	Male	MHco10(CAVR)	2.22517	CAVR 1539	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco10(CAVR)	2.56538	CAVR 1574	resistant			
+H. contortus	cky-1	B-tubulin	Male	MHco10(CAVR)	2.36655	CAVR 1584	resistant			
+T. circumcincta	cky-1	gapdh	Male	MTci2	0	Tci2	susceptible			
+T. circumcincta	cky-1	gapdh	Male	MTci2	0	Tci2	susceptible			
+T. circumcincta	cky-1	gapdh	Male	MTci2	0	Tci2	susceptible			
+T. circumcincta	cky-1	gapdh	Male	MTci5	0.63336	Tci5	resistant			
+T. circumcincta	cky-1	gapdh	Male	MTci5	1.12141	Tci5	resistant			
+T. circumcincta	cky-1	gapdh	Male	MTci5	1.02905	Tci5	resistant			
