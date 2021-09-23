@@ -89,7 +89,7 @@ plot_chr5 <-
 ggsave("XQTL_IVM_chromosome5_replicates.png")
 
 ```
-![](04_analysis/XQTL_IVM_chromosome5_replicates.png]
+![](../04_analysis/XQTL_IVM_chromosome5_replicates.png)
 
 
 
