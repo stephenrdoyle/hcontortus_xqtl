@@ -734,19 +734,21 @@ data <- data[data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
 # plot genome wide diversity
-plot_5k_L3 <- ggplot(data)+
+plot_5k_L3 <-
+     ggplot(data)+
      geom_point(aes(1:nrow(data) * 5000, V7, colour = V1),size = 0.1)+
      ylim(0, 0.1) +
      labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+ theme(legend.position = "none", text = element_text(size = 10))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
 # extract chromosome 5 data
 data_chr5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
 
 # plot chromosome 5 with zoom on QTL
-plot_5k_L3_chr5 <- ggplot(data_chr5)+
+plot_5k_L3_chr5 <-
+     ggplot(data_chr5)+
      geom_point(aes(V2,V7),size = 0.5, colour = "cornflowerblue")+
      ylim(0,0.1)+
      labs(title = "B",  x = "Genomic position (bp)",  y = "Genetic differentiation (Fst)") +
@@ -780,25 +782,26 @@ chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "co
 male_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_ADULT/XQTL_ADULTS.merged.fst",header=F)
 male_data <- male_data[male_data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
-plot_male <- ggplot(male_data)+
+plot_male <-
+     ggplot(male_data)+
      geom_point(aes(1:nrow(male_data)*5000, V7, colour = V1), size=0.1)+
      #ylim(0,0.2)+
      labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \nsurviving adult males and untreated L3 (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
 
 chr5_maledata <- filter(male_data,male_data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon")
-plot_male_chr5 <- ggplot(chr5_maledata)+
+
+plot_male_chr5 <-
+     ggplot(chr5_maledata)+
      geom_point(aes(V2, V7, colour = V1), size=1)+
      #ylim(0,0.2)+
      xlim(36.5e6,38.5e6)+
      labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \nsurviving adult males and untreated L3 (Fst)") +
      scale_color_manual(values = chr_colours) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
 # dose response curve
 dose_response_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/IVM/DrenchRiteF5_IVM_pooled.txt", header=T)
@@ -886,15 +889,16 @@ rnaseq_data_chr5 <- rnaseq_data_chr5 %>%
 
 
 # parental ISE vs parent UGA
-rnaseq_plot1 <- ggplot(rnaseq_data_chr5) +
-       geom_point(aes(start,log2FoldChange),size=0.5,col="lightgrey")+
-       geom_point(aes(start,log2FoldChange, col=-log10(padj), size=-log10(padj)))+
-       geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange > 2 | log2FoldChange < -2),aes(start,log2FoldChange, label=name_PUGAxPISE)) +
-       scale_colour_viridis(direction=-1, limits = c(0, 30))+
-       scale_size_continuous(limits = c(0, 30)) +
-       theme_bw()+
-       xlim(36e6,39e6)+
-       labs(title="parental ISE vs parent UGA", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+rnaseq_plot1 <-
+     ggplot(rnaseq_data_chr5) +
+     geom_point(aes(start,log2FoldChange),size=0.5,col="lightgrey")+
+     geom_point(aes(start,log2FoldChange, col=-log10(padj), size=-log10(padj)))+
+     geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange > 2 | log2FoldChange < -2),aes(start,log2FoldChange, label=name_PUGAxPISE)) +
+     scale_colour_viridis(direction=-1, limits = c(0, 30))+
+     scale_size_continuous(limits = c(0, 30)) +
+     theme_bw()+
+     xlim(36e6,39e6)+
+     labs(title="parental ISE vs parent UGA", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
 
 
 # parental ISE vs post treatment F3
@@ -910,11 +914,12 @@ rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
 
 
 # pre vs post treatment
-rnaseq_plot3 <-      ggplot(rnaseq_data_chr5) +
-            geom_point(aes(start,log2FoldChange.1),size=0.5,col="lightgrey")+
-            geom_point(aes(start,log2FoldChange.1,col=-log10(padj.1),size=-log10(padj.1)))+
-            geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.1 > 2 | log2FoldChange.1 < -2),aes(start,log2FoldChange.1, label=name_PUGAxPISE)) +
-            scale_colour_viridis(direction=-1,limits = c(0, 30))+
+rnaseq_plot3 <-      
+     ggplot(rnaseq_data_chr5) +
+     geom_point(aes(start,log2FoldChange.1),size=0.5,col="lightgrey")+
+     geom_point(aes(start,log2FoldChange.1,col=-log10(padj.1),size=-log10(padj.1)))+
+     geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.1 > 2 | log2FoldChange.1 < -2),aes(start,log2FoldChange.1, label=name_PUGAxPISE)) +
+     scale_colour_viridis(direction=-1,limits = c(0, 30))+
             scale_size_continuous(limits = c(0, 30)) +
             theme_bw()+
             xlim(36e6,39e6)+
