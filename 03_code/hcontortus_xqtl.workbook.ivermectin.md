@@ -299,10 +299,10 @@ plot_chr5 / ((plot_fst / plot_pi / plot_RTqpcr) |  (plot_ko / plot_rnai / plot_t
      plot_layout(ncol=1, heights = c(2, 6))
 
 # save
-ggsave("XQTL_Figure_5.pdf", useDingbats = FALSE, width = 250, height = 260, units = "mm")
-ggsave("XQTL_Figure_5.png")
+ggsave("XQTL_IVM_Figure.pdf", useDingbats = FALSE, width = 250, height = 260, units = "mm")
+ggsave("XQTL_IVM_Figure.png")
 ```
-
+![](../04_analysis/XQTL_IVM_Figure.png)
 
 
 ```R
