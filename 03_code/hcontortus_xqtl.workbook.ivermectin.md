@@ -31,6 +31,15 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/*.ADfr
 
 # comparison of 5000 L3 per pool Fst data
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_L3_5k.merged.fst
+
+# comparison of adult worms Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_ADULTS.merged.fst
+
+# DrenchRite data for F4 IVM used to make dose response curves
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/DrenchRiteF5_IVM_pooled.txt
+
+# Dose response Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/DOSE_RESPONSE.merged.fst
 ```
 
 
@@ -801,13 +810,13 @@ ivm_dose_response_data <- dplyr::filter(dose_response_data,dose_response_data$Tr
 #preddat <- data.frame(IVM_logged = seq(0, 3.5, .01) )
 #preddat$pred <- predict(logr_probit, newdata = preddat, type = "response")
 
-plot_DR_curve <- ggplot(ivm_dose_response_data,aes(IVM_logged,X._developed_to_L3/100)) +
+plot_DR_curve <-
+     ggplot(ivm_dose_response_data,aes(IVM_logged,X._developed_to_L3/100)) +
      geom_point(aes(color=as.factor(Plate)))+
      #geom_line(data = preddat, aes(y = pred), color = "red")+
      geom_smooth(method="glm",method.args = list(family = quasibinomial(link = "probit")),colour="blue")+
      labs(title = "C", y = "Proportion developing to L3", x = "Ivermectin concentration [log10(nM)]", colour = "Replicate") +
-     theme_bw()+
-     theme(text = element_text(size = 8))
+     theme_bw() + theme(text = element_text(size = 8))
 
 
 # genome wide dose response
@@ -815,14 +824,14 @@ plot_DR_curve <- ggplot(ivm_dose_response_data,aes(IVM_logged,X._developed_to_L3
 dose_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/DOSE_RESPONSE/DOSE_RESPONSE.merged.fst",header=F)
 dose_data <- dose_data[dose_data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
-plot_DR_gw <- ggplot(dose_data)+
+plot_DR_gw <-
+     ggplot(dose_data)+
      geom_point(aes(1:nrow(dose_data)*5000, V7, colour = V1), size=0.1)+
      #ylim(0,0.2)+
      labs(title = "D", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \n<EC25 and >EC75 L3 pools (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
 
      # chr5_dose_data <- filter(dose_data,dose_data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon")
@@ -841,7 +850,7 @@ plot_male + (plot_male_chr5 | plot_DR_curve) + plot_DR_gw + plot_layout(ncol=1)
 ggsave("XQTL_SupplementaryFigureX_male_doseresponse.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("XQTL_SupplementaryFigureX_male_doseresponse.png")
 ```
-
+![](../04_analysis/XQTL_SupplementaryFigureX_male_doseresponse.png)
 
 
 
