@@ -750,9 +750,9 @@ plot_5k_L3 + plot_5k_L3_chr5 + plot_layout(ncol = 1)
 
 # save it.
 ggsave("XQTL_SupplementaryFigure_5000L3.pdf", useDingbats = FALSE, width = 170, height = 100, units = "mm")
-ggsave("XQTL_SupplementaryFigure_5000L3.png")
+ggsave("XQTL_SupplementaryFigure_5000L3.2.png")
 ```
-![](../04_analysis/XQTL_SupplementaryFigure_5000L3.png)
+![](../04_analysis/XQTL_SupplementaryFigure_5000L3.2.png)
 
 
 ## Direct vs indirect selection
