@@ -318,13 +318,14 @@ chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "co
 #   theme_bw()+
 #   theme(legend.position = "none", text = element_text(size = 8))
 
-ivm_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V287,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(title = "F", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+ivm_2X.1 <- ggplot(data) +
+     geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V287,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(title = "F", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
 
 #control_0.5x.1 + ivm_0.5X.1 + control_2X.1 + ivm_2X.1 + plot_layout(ncol=2)
 
@@ -334,10 +335,10 @@ control_0.5x.2 <- ggplot(data)+
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey") + geom_point(aes(1:nrow(data)*5000,V51,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw()+
+     theme(legend.position = "none", text = element_text(size = 8))
 
 control_2X.2 <- ggplot(data) +
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "grey")+ geom_point(aes(1:nrow(data)*5000,V135,colour = V1),size=0.05)+
