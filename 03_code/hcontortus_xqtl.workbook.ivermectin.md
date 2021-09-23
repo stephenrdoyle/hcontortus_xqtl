@@ -305,6 +305,8 @@ ggsave("XQTL_IVM_Figure.png")
 ![](../04_analysis/XQTL_IVM_Figure.png)
 
 
+
+### Versions of the RT-qPCR. Not used, just comparing
 ```R
 # testing our some different plot designs for the RT-qPCR data
 plot_1 <- ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MHco18(UGA)', 'MHco4(WRS)', 'MHco10(CAVR)', 'MTci2', 'MTci5')), y = LogFoldChange, col=Response)) +
@@ -330,8 +332,9 @@ plot_3 <-  ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MH
           theme(axis.text.x = element_text(angle = 30, vjust = 1, hjust=1))
 
 plot_a + plot_b + plot_c
+ggsave("XQTL_IVM_rtqpcr_altversions.png")
 ```
-
+![](../04_analysis/XQTL_IVM_rtqpcr_altversions.png)
 
 
 
