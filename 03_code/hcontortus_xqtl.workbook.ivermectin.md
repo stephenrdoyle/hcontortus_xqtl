@@ -23,11 +23,11 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/RNAi_D
 # C. elegans cky-1 transgenic pharyngeal pumping
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/Transgenics_Pumping_R.txt
 
-
-
 # Advanced intercross Fst data
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_ADVANCED_INTERCROSS.merged.fst
 
+# comparison between btubulin freq in XQTL / US farms and ivermectin EC50
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/*.ADfreq
 ```
 
 
@@ -367,29 +367,29 @@ chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "co
 
 # rep1
 control_0.5x.1 <- ggplot(data)+
-     geom_point(aes(1:nrow(data)*5000, V17,  colour = V1),size=0.05)+
-     ylim(0,0.1) +
+     geom_point(aes(1:nrow(data)*5000, V17,  colour = V1), size=0.05)+
+     ylim(0, 0.1) +
      labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
-control_2X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+control_2X.1 <-
+     ggplot(data)+geom_point(aes(1:nrow(data)*5000,V11,colour = V1),size=0.05)+
+     ylim(0, 0.1) +
+     labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
-ivm_0.5X.1 <- ggplot(data)+geom_point(aes(1:nrow(data)*5000,V251,colour = V1),size=0.05)+
-  ylim(0,0.1)+
-  labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
-  scale_color_manual(values = chr_colours) +
-  scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-  theme_bw()+
-  theme(legend.position = "none", text = element_text(size = 8))
+ivm_0.5X.1 <-
+     ggplot(data) +
+     geom_point(aes(1:nrow(data)*5000,V251,colour = V1),size=0.05)+
+     ylim(0,0.1)+
+     labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
+     scale_color_manual(values = chr_colours) +
+     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
 ivm_2X.1 <- ggplot(data) +
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") + geom_point(aes(1:nrow(data)*5000,V287,colour = V1),size=0.05)+
@@ -397,8 +397,7 @@ ivm_2X.1 <- ggplot(data) +
      labs(title = "F", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
 control_0.5x.1 + ivm_0.5X.1 + control_2X.1 + ivm_2X.1 + plot_layout(ncol=2)
 ggsave("XQTL_IVM_AI_rep1.png")
@@ -409,42 +408,42 @@ ggsave("XQTL_IVM_AI_rep1.png")
 
 #rep2
 ```R
-control_0.5x.2 <- ggplot(data)+
+control_0.5x.2 <-
+     ggplot(data)+
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") + geom_point(aes(1:nrow(data)*5000,V51,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "A", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
-control_2X.2 <- ggplot(data) +
+control_2X.2 <-
+     ggplot(data) +
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red")+ geom_point(aes(1:nrow(data)*5000,V135,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "B", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
-ivm_0.5X.2 <- ggplot(data) +
+ivm_0.5X.2 <-
+     ggplot(data) +
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") + geom_point(aes(1:nrow(data)*5000,V267,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "C", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
-ivm_2X.2 <- ggplot(data) +
+ivm_2X.2 <-
+     ggplot(data) +
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") +
      geom_point(aes(1:nrow(data)*5000,V297,colour = V1),size=0.05)+
      ylim(0,0.1)+
      labs(title = "D", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 8))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
  ivm_2X.22 <- ggplot(data) +
       geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") +
@@ -453,8 +452,7 @@ ivm_2X.2 <- ggplot(data) +
       labs(title = "E", x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
       scale_color_manual(values = chr_colours) +
       scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-      theme_bw()+
-      theme(legend.position = "none", text = element_text(size = 8))
+      theme_bw() + theme(legend.position = "none", text = element_text(size = 8))
 
 
 control_0.5x.2 + ivm_0.5X.2 + control_2X.2 + ivm_2X.2 + plot_layout(ncol=2)
@@ -467,7 +465,8 @@ ggsave("XQTL_IVM_AI_rep2.png")
 #rep3
 
 control_0.5x.3 <-
-     ggplot(data)+geom_point(aes(1:nrow(data)*5000,V83,colour = V1),size=0.1)+
+     ggplot(data) +
+     geom_point(aes(1:nrow(data)*5000,V83,colour = V1),size=0.1) +
      ylim(0,0.1)+
      labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
@@ -476,7 +475,8 @@ control_0.5x.3 <-
 
 
 control_2X.3 <-
-     ggplot(data)+geom_point(aes(1:nrow(data)*5000,V161,colour = V1),size=0.1)+
+     ggplot(data) +
+     geom_point(aes(1:nrow(data)*5000,V161,colour = V1),size=0.1)+
      ylim(0,0.1)+
      labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
@@ -484,14 +484,16 @@ control_2X.3 <-
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
 ivm_0.5X.3 <-
-     ggplot(data)+geom_point(aes(1:nrow(data)*5000,V281,colour = V1),size=0.1)+
+     ggplot(data) +
+     geom_point(aes(1:nrow(data)*5000,V281,colour = V1),size=0.1)+
      ylim(0,0.1)+
      labs(x = "Chromosomal position (bp)",  y = "Genetic differentiation between \npre- and post-treatment (Fst)") +
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
-ivm_2X.3 <- ggplot(data) +
+ivm_2X.3 <-
+     ggplot(data) +
      geom_rect(xmin= 44449*5000 , xmax= 44508*5000, ymin= 0 , ymax= 1, colour = "red") +
      geom_point(aes(1:nrow(data)*5000,V305,colour = V1),size=0.05)+
      ylim(0,0.1)+
@@ -545,6 +547,8 @@ vcftools --vcf XQTL_IVM.raw.snpeff.vcf --keep ivm_posttreatment_samples.list --p
 for i in `ls ivm*AD.FORMAT`; do
       grep "^hcon" ${i} | awk -F '[\t,]' '{print $1,$2,$4/($3+$4),$6/($5+$6),$8/($7+$8),$10/($9+$10)}' OFS="\t" > ${i%.AD.FORMAT}.ADfreq;
 done
+
+cp *.ADfreq ~/lustre118_link/hc/XQTL/05_ANALYSIS/IVM/
 ```
 
 - need to extract the beta-tubulin variant positions from US field data
@@ -560,6 +564,8 @@ vcftools --vcf 1.hcontortus_chr1_Celeg_TT_arrow_pilon.snpeff.vcf --keep samples.
 
 # wrangle the data to generate allele frequencies for each variant positon
 grep "^hcon" us_farms_btub1.AD.FORMAT | awk -F '[\t,]' '{print $1,$2,$4/($3+$4),$6/($5+$6),$8/($7+$8),$10/($9+$10),$12/($11+$12),$14/($13+$14),$16/($15+$16),$18/($17+$18),$20/($19+$20),$22/($21+$22)}' OFS="\t" > us_farms_btub1.ADfreq
+
+cp *.ADfreq ~/lustre118_link/hc/XQTL/05_ANALYSIS/IVM/
 ```
 
 
@@ -592,7 +598,8 @@ data <- data %>%
 
 
 # make the plot
-plot_a <- ggplot(data) +
+plot_a <-
+     ggplot(data) +
      geom_segment(aes(x = "1.PRE", xend = "2.POST", y = PRE_TREATMENT, yend = POST_TREATMENT, col = factor(SAMPLE_ID), group = POS), size = 1) +
      labs(title = "A", x = "Sampling time-point", y = "Resistant allele frequency", col = "Replicate") +
      ylim(-0.05, 1.05) +
@@ -619,7 +626,8 @@ p.data <- stat.test
 
 
 # make new plot with p values annotated on it
-plot_a <- plot_a +
+plot_a <-
+     plot_a +
      geom_text(data = p.data, aes(x = 1.5, y = 0.95, group = POS, label = paste('P = ',p.adj)), size = 3)
 
 plot_a
@@ -666,7 +674,8 @@ colnames(cor.data) <- c("COR", "PVALUE", "CHR", "POS")
 
 
 # make the plot
-plot_b <- ggplot(us_btub1) +
+plot_b <-
+     ggplot(us_btub1) +
      geom_smooth(aes(IVM_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey', se = FALSE) +
      geom_jitter(aes(IVM_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2) +
      geom_text_repel(aes(IVM_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 2) +
@@ -675,7 +684,9 @@ plot_b <- ggplot(us_btub1) +
      facet_grid(. ~ POS) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
-plot_b <- plot_b + geom_text(data = cor.data,  aes(x = 500,  y = 1,  group = POS,  label = paste('r = ', signif(COR, 3), '\n', 'P = ', signif(PVALUE, 3))), size = 3)
+plot_b <-
+     plot_b +
+     geom_text(data = cor.data,  aes(x = 500,  y = 1,  group = POS,  label = paste('r = ', signif(COR, 3), '\n', 'P = ', signif(PVALUE, 3))), size = 3)
 
 # combine panels a and b using patchwork
 plot_a + plot_b + plot_layout(ncol = 2)
@@ -685,7 +696,7 @@ ggsave("FigureSX_USfarm_btub1vsIVM.pdf",  useDingbats = FALSE,  width = 170,  he
 ggsave("FigureSX_USfarm_btub1vsIVM.png")
 
 ```
-![](04_analysis/FigureSX_USfarm_btub1vsIVM.png)
+![](../04_analysis/FigureSX_USfarm_btub1vsIVM.png)
 
 
 
