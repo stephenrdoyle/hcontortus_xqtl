@@ -373,11 +373,12 @@ ggsave("XQTL_IVM_rtqpcr_altversions.png")
 - these analyses used to visualise the advanced intercross experiments, which were the half-dose followed by double-dose ivermectin treatment
 - in the data, the replicates are found in the following columns
 
-|    condition |    Rep1 |    Rep2 |    Rep3 |
-|    control - pre v 0.5X     |    V17  |    V51  |    V83  |
-|    control - pre v 2X  |    |    V11  |    V135 |    V161 |
-|    IVM pre v 0.5x |    V251 |    V267 |    V281 |
-|    IVM pre v 2x   |    V287 |    V297 |    V305
+| condition | Rep1 | Rep2 | Rep3 |
+| --- | --- | --- | --- |
+| control: pre v 0.5X | V17 | V51 | V83 |
+| control: pre v 2X | V11 | V135 | V161 |
+| IVM: pre v 0.5x | V251 | V267 | V281 |
+| IVM: pre v 2x|    V287 |    V297 |    V305 |
 
 ```bash
 #load libraries
