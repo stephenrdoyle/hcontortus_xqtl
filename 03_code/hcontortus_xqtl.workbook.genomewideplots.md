@@ -80,6 +80,28 @@ ggsave("XQTL_genomewide_parents.png")
 
 Aim is to show genetic differentiation between pre and post treatment F3 generation for each of the control,  benzimidazole,  levamisole,  and ivermectin XQTL datasets
 
+| Group | Replicate Pair | Data column |
+| --- | --- | --- |
+| Control | 1:4 | V11 |
+|   | 2:5 | V21 |
+|   | 3:6 | V29 |
+| BZ | 1:5 | V13 |
+|    | 2:6 | V27 |
+|    | 3:7 | V39 |
+|    | 4:8 | V49 |
+| LEV | Replicates
+# 1:5 = V13
+# 2:6 = V27
+# 3:7 = V39
+# 4:8 = V49
+
+# IVM Replicates
+# 1:5 = V13
+# 2:6 = V27
+# 3:7 = V39
+# 4:8 = V49
+
+
 ```R
 # load required libraries
 library(tidyverse)
@@ -512,6 +534,8 @@ plot_b <- ggplot(data)+
      scale_x_continuous(breaks=seq(0, 3e8, 0.5e8))+
      theme_bw()+theme(legend.position="none", text = element_text(size=10))+
      facet_grid(LABEL~.)
+
+plot_b
 
 ```
 ```R
