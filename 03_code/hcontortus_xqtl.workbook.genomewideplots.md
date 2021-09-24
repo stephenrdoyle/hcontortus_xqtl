@@ -86,7 +86,6 @@ library(tidyverse)
 library(patchwork)
 
 
-
 # control
 control <- read.table("XQTL_CONTROL.merged.fst", header=F)
 control <- control[control$V1!="hcontortus_chr_mtDNA_arrow_pilon", ]
@@ -144,7 +143,8 @@ data_gws <- data %>%
 chr_colours<-c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
 # make the plot
-plot_b <- ggplot(data) +
+plot_b <-
+     ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST_MEAN,  colour = CHR,  group = LABEL), size = 0.1) +
      #ylim(0, 0.12) +
@@ -162,11 +162,13 @@ plot_a + plot_b + plot_layout(ncol = 1,  heights = c(1, 4))
 ggsave("genomewide_fst_plots.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("genomewide_fst_plots.png")
 ```
-![](04_analysis/genomewide_fst_plots.png)
+![](../04_analysis/genomewide_fst_plots.png)
 
 
-# replicate 1
+## genome wide plots for F3 generation per replicate group
 
+### Replicate 1
+```bash
 data_gws <- data %>%
     group_by(LABEL) %>%
     summarise(GWS = mean(FST_R1) + 3*sd(FST_R1))
@@ -183,8 +185,14 @@ ggplot(data) +
 
 ggsave("genomewide_fst_plots_R1_supplement.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("genomewide_fst_plots_R1_supplement.png")
+```
+![](../04_analysis/genomewide_fst_plots_R1_supplement.png)
 
-# replicate 2
+
+
+
+### replicate 2
+```bash
 data_gws <- data %>%
     group_by(LABEL) %>%
     summarise(GWS = mean(FST_R2) + 3*sd(FST_R2))
@@ -201,8 +209,12 @@ ggplot(data) +
 
 ggsave("genomewide_fst_plots_R2_supplement.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("genomewide_fst_plots_R2_supplement.png")
+```
+![](../04_analysis/genomewide_fst_plots_R2_supplement.png)
 
-# replicate 3
+
+### replicate 3
+```bash
 data_gws <- data %>%
     group_by(LABEL) %>%
     summarise(GWS = mean(FST_R3) + 3*sd(FST_R3))
@@ -219,11 +231,14 @@ data_gws <- data %>%
 
 ggsave("genomewide_fst_plots_R3_supplement.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("genomewide_fst_plots_R3_supplement.png")
+```
+![](../04_analysis/genomewide_fst_plots_R3_supplement.png)
 
 
-
-# US field genome-wide plots
-
+## Genome wide plots of US field samples
+### Susceptible farm 1 vs other farms
+```R
+# load libraries
 library(ggplot2)
 library(patchwork)
 
@@ -234,7 +249,8 @@ fst <-read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/US_FI
 fst <- fst[fst$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
 # susceptibles
-plot_1 <- ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
+plot_1 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1)) +
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 9 (ivermectin susceptible)",  y = "Genetic differentiation (Fst)")+
@@ -243,7 +259,8 @@ plot_1 <- ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
 # UGA_S vs moderates
-plot_2 <- ggplot(fst,aes(1:nrow(fst)*10000,V7,colour = V1))+
+plot_2 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V7,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 2 (moderate ivermectin resistance)", y = "Genetic differentiation (Fst)")+
@@ -251,7 +268,8 @@ plot_2 <- ggplot(fst,aes(1:nrow(fst)*10000,V7,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_3 <- ggplot(fst,aes(1:nrow(fst)*10000,V9,colour = V1))+
+plot_3 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V9,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 3 (moderate ivermectin resistance)",   y = "Genetic differentiation (Fst)")+
@@ -259,7 +277,8 @@ plot_3 <- ggplot(fst,aes(1:nrow(fst)*10000,V9,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_4 <- ggplot(fst,aes(1:nrow(fst)*10000,V11,colour = V1))+
+plot_4 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V11,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 4 (moderate ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
@@ -269,7 +288,8 @@ plot_4 <- ggplot(fst,aes(1:nrow(fst)*10000,V11,colour = V1))+
 
 
 # UGA_S vs high resistance
-plot_5 <- ggplot(fst,aes(1:nrow(fst)*10000,V13,colour = V1))+
+plot_5 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V13,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 5 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
@@ -277,7 +297,8 @@ plot_5 <- ggplot(fst,aes(1:nrow(fst)*10000,V13,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_6 <- ggplot(fst,aes(1:nrow(fst)*10000,V15,colour = V1))+
+plot_6 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V15,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 6 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
@@ -285,7 +306,8 @@ plot_6 <- ggplot(fst,aes(1:nrow(fst)*10000,V15,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_7 <- ggplot(fst,aes(1:nrow(fst)*10000,V17,colour = V1))+
+plot_7 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V17,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 7 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
@@ -293,7 +315,8 @@ plot_7 <- ggplot(fst,aes(1:nrow(fst)*10000,V17,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_8 <- ggplot(fst,aes(1:nrow(fst)*10000,V19,colour = V1))+
+plot_8 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V19,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 8 (high ivermectin resistance)",   y = "Genetic differentiation (Fst)")+
@@ -301,7 +324,8 @@ plot_8 <- ggplot(fst,aes(1:nrow(fst)*10000,V19,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_9 <- ggplot(fst,aes(1:nrow(fst)*10000,V23,colour = V1))+
+plot_9 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V23,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 10 (high ivermectin resistance)", x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)")+
@@ -313,11 +337,14 @@ plot_1 + plot_2 + plot_3 + plot_4 + plot_5 + plot_6 + plot_7 + plot_8 + plot_9 +
 
 ggsave("XQTL_SupplementaryFigure_USfarm1.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
 ggsave("XQTL_SupplementaryFigure_USfarm1.png")
+```
+![](../04_analysis/XQTL_SupplementaryFigure_USfarm1.png)
 
 
-
-# susceptibles
-plot_1 <- ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
+### Susceptible farm 9 vs other farms
+```bash
+plot_1 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 9 (ivermectin susceptible)",  y = "")+
@@ -326,7 +353,8 @@ plot_1 <- ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
 # UGA_S vs moderates
-plot_2 <- ggplot(fst,aes(1:nrow(fst)*10000,V37,colour = V1))+
+plot_2 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V37,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 2 (moderate ivermectin resistance)", y = "")+
@@ -334,7 +362,8 @@ plot_2 <- ggplot(fst,aes(1:nrow(fst)*10000,V37,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_3 <- ggplot(fst,aes(1:nrow(fst)*10000,V51,colour = V1))+
+plot_3 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V51,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 3 (moderate ivermectin resistance)",   y = "")+
@@ -342,7 +371,8 @@ plot_3 <- ggplot(fst,aes(1:nrow(fst)*10000,V51,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_4 <- ggplot(fst,aes(1:nrow(fst)*10000,V63,colour = V1))+
+plot_4 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V63,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 4 (moderate ivermectin resistance)",  y = "")+
@@ -352,7 +382,8 @@ plot_4 <- ggplot(fst,aes(1:nrow(fst)*10000,V63,colour = V1))+
 
 
 # UGA_S vs high resistance
-plot_5 <- ggplot(fst,aes(1:nrow(fst)*10000,V73,colour = V1))+
+plot_5 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V73,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 5 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
@@ -360,7 +391,8 @@ plot_5 <- ggplot(fst,aes(1:nrow(fst)*10000,V73,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_6 <- ggplot(fst,aes(1:nrow(fst)*10000,V81,colour = V1))+
+plot_6 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V81,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 6 (high ivermectin resistance)",  y = "")+
@@ -368,7 +400,8 @@ plot_6 <- ggplot(fst,aes(1:nrow(fst)*10000,V81,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_7 <- ggplot(fst,aes(1:nrow(fst)*10000,V87,colour = V1))+
+plot_7 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V87,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 7 (high ivermectin resistance)",  y = "")+
@@ -376,7 +409,8 @@ plot_7 <- ggplot(fst,aes(1:nrow(fst)*10000,V87,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_8 <- ggplot(fst,aes(1:nrow(fst)*10000,V91,colour = V1))+
+plot_8 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V91,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 8 (high ivermectin resistance)",   y = "")+
@@ -384,7 +418,8 @@ plot_8 <- ggplot(fst,aes(1:nrow(fst)*10000,V91,colour = V1))+
      scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
      theme_bw()+theme(legend.position = "none", text = element_text(size = 8), axis.text.x = element_blank(), axis.title.x = element_blank())
 
-plot_9 <- ggplot(fst,aes(1:nrow(fst)*10000,V95,colour = V1))+
+plot_9 <-
+     ggplot(fst,aes(1:nrow(fst)*10000,V95,colour = V1))+
      geom_point(size=0.5,alpha=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 10 (high ivermectin resistance)", x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)")+
@@ -396,8 +431,8 @@ plot_1 + plot_2 + plot_3 + plot_4 + plot_5 + plot_6 + plot_7 + plot_8 + plot_9 +
 
 ggsave("XQTL_SupplementaryFigure_USfarm2.pdf", useDingbats = FALSE, width = 170, height = 250, units = "mm")
 ggsave("XQTL_SupplementaryFigure_USfarm2.png")
-
-
+```
+![](../04_analysis/XQTL_SupplementaryFigure_USfarm2.png)
 
 
 
