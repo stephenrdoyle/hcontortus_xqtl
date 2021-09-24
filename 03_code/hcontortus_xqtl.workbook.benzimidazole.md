@@ -276,11 +276,13 @@ plot_b
 ggsave("XQTL_BZ_btubSNPs.png")
 ```
 ![](../04_analysis/XQTL_BZ_btubSNPs.png)
----
 
-## Figure 3 C <a name="figure3c"></a>
 
-Aim is the show correlation between Glu198Val variant in beta tubulin isotype 2 and Benzimidazole EC50
+
+
+## Beta tubulin isotype 2 Glu198Val variant
+
+Aim is the show correlation between beta tubulin isotype 2 Glu198Val variant  and Benzimidazole EC50
 
 ### Prepare the data
 ```shell
@@ -316,38 +318,31 @@ bz_conc <- c(1, 19.93, 15, 7.71, 15, 61.57, 29.6, NA, 9.67, 29.6)
 us_btub2$BZ_CONCENTRATION <- bz_conc
 colnames(us_btub2) <- c("CHR", "POS", "SAMPLE_ID", "ALLELE_FREQ", "BZ_CONCENTRATION")
 
-us_btub2 <- us_btub2 %>%
-  mutate(POS = str_replace(POS,  c("13435823"),  c("Glu198Val")))
+us_btub2 <-
+     us_btub2 %>%
+     mutate(POS = str_replace(POS,  c("13435823"),  c("Glu198Val")))
 
 # calculate correlation coefficient between alllele frequency and concentration
 af_bz_cor <- cor.test(us_btub2$ALLELE_FREQ,  us_btub2$BZ_CONCENTRATION,  method = "pearson",  use = "complete.obs")
 
 # make the plot
-plot_c <- ggplot(us_btub2)+
+plot_c <-
+     ggplot(us_btub2)+
      geom_smooth(aes(BZ_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey')+
      geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2)+
      geom_text(aes(15, 0.95, label = paste('r = ', signif(af_bz_cor$estimate, 3), '\n', 'P = ', signif(af_bz_cor$p.value, 3))), size = 2.5)+
-     geom_text_repel(aes(BZ_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 3.5)+
+     geom_text_repel(aes(BZ_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 3.5) +
      labs(title = "C", y = "Variant Allele Frequency", x = "Benzimidazole EC50 (uM)", col = "US farm ID") +
      ylim(-0.05, 1) +
      #facet_grid(. ~ POS) +
      facet_grid(POS ~ "US farm") +
-     theme_bw()+
-     theme(legend.position = "none", text = element_text(size = 10))
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
+plot_c
 
-     plot_d <- ggplot(us_btub2)+
-          geom_smooth(aes(BZ_CONCENTRATION, ALLELE_FREQ), method = 'glm', col = 'grey')+
-          geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2)+
-          geom_text(aes(15, 0.95, label = paste('r = ', signif(af_bz_cor$estimate, 3), '\n', 'P = ', signif(af_bz_cor$p.value, 3))), size = 2.5)+
-          geom_text_repel(aes(BZ_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 3.5)+
-          labs(title = "C", y = "Variant Allele Frequency", x = "Benzimidazole EC50 (uM)", col = "US farm ID") +
-          ylim(-0.05, 1) +
-          #facet_grid(. ~ POS) +
-          facet_grid(POS ~ "US farm") +
-          theme_bw()+
-          theme(legend.position = "none", text = element_text(size = 10))
+ggsave("XQTL_BZ_btubIso2_vs_EC50.png")
 ```
+![](../04_analysis/XQTL_BZ_btubIso2_vs_EC50.png)
 
 ```R
 # bring the panels together
@@ -359,7 +354,7 @@ plot_a / (plot_b | plot_c)
 ggsave("Figure_benzimidazole.pdf",  useDingbats = FALSE, width = 170, height = 130, units = "mm")
 ggsave("Figure_benzimidazole.png")
 ```
-![](04_analysis/Figure_benzimidazole.png)
+![](../04_analysis/Figure_benzimidazole.png)
 
 
 
