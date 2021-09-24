@@ -952,6 +952,119 @@ rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
 ```
 
 
+```R
+library(ggplot2)
+library(patchwork)
+sample1 <-read.table("sample_1.pileup.stats",header=T,sep="\t")
+sample2 <-read.table("sample_2.pileup.stats",header=T,sep="\t")
+sample3 <-read.table("sample_3.pileup.stats",header=T,sep="\t")
+sample4 <-read.table("sample_4.pileup.stats",header=T,sep="\t")
+sample5 <-read.table("sample_5.pileup.stats",header=T,sep="\t")
+sample6 <-read.table("sample_6.pileup.stats",header=T,sep="\t")
+sample7 <-read.table("sample_7.pileup.stats",header=T,sep="\t")
+sample8 <-read.table("sample_8.pileup.stats",header=T,sep="\t")
+sample9 <-read.table("sample_9.pileup.stats",header=T,sep="\t")
+sample10 <-read.table("sample_10.pileup.stats",header=T,sep="\t")
+
+plot_S1_pi <- ggplot(sample1)+
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample10$Pi)),size=.1,alpha=0.5,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample8$Pi)),size=.1,alpha=0.5,col="red")+
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample7$Pi)),size=.1,alpha=0.5,col="green")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample6$Pi)),size=.1,alpha=0.5,col="orange")+
+     geom_point(aes(window*10000,log10(sample1$Pi/sample5$Pi)),size=.1,alpha=0.5,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+
+     labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+
+plot_S2_pi <- ggplot(sample1)+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=.1,alpha=0.5,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=.1,alpha=0.5,col="red")+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=.1,alpha=0.5,col="green")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=.1,alpha=0.5,col="orange")+
+     geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=.1,alpha=0.5,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+
+     labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+
+plot_S3_pi <- ggplot(sample1)+
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample1$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample1$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample1$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+
+plot_S4_pi <- ggplot(sample1)+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+
+plot_S1_pi + plot_S2_pi + plot_S3_pi + plot_S4_pi + plot_layout(ncol=1)
+
+
+sample1.5 <- sample1[sample1$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample2.5 <- sample2[sample2$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample3.5 <- sample3[sample3$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample4.5 <- sample4[sample4$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample5.5 <- sample5[sample5$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample6.5 <- sample6[sample6$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample7.5 <- sample7[sample7$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample8.5 <- sample8[sample8$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample9.5 <- sample9[sample9$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+sample10.5  <- sample10[sample10$chr=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
+
+plot_S3_pi <- ggplot(sample1.5)+
+     geom_point(aes(window<em>10000,log10(sample1.5$Pi/sample10.5$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample1.5$Pi/sample8.5$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample1.5$Pi/sample7.5$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample1.5$Pi/sample6.5$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample1.5$Pi/sample5.5$Pi)),size=1,alpha=1,col="yellow")+
+     theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="UGA_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+
+#plot labeled windows in chromosome V region
+plot1.5 <- ggplot(sample1.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="UGA_S")+
+     geom_text_repel(data=subset(sample1.5,Pi <= 0.001))
+
+plot5.5 <- ggplot(sample5.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Alday_R")+
+     geom_text_repel(data=subset(sample5.5,Pi <= 0.001))
+
+plot6.5 <- ggplot(sample6.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Mulligan_R")+
+     geom_text_repel(data=subset(sample6.5,Pi <= 0.001))
+
+plot7.5 <- ggplot(sample7.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Rau_Shelby_R")+
+     geom_text_repel(data=subset(sample7.5,Pi <= 0.001))
+
+plot8.5 <- ggplot(sample8.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Pena_R")+
+     geom_text_repel(data=subset(sample8.5,Pi <= 0.001))
+
+plot10.5 <- ggplot(sample10.5,aes(window<em>10000,log10(Pi),label=window</em>10000))+
+     geom_point(size=1,alpha=1,col="black")+theme_bw()+xlim(3.65e7,3.8e7)+ylim(-5,-1)+labs(title="Strickland_R")+
+     geom_text_repel(data=subset(sample10.5,Pi <= 0.001))
+
+plot1.5 + plot5.5 + plot6.5 + plot7.5 + plot8.5 + plot10.5  + plot_layout(ncol=1)
+
+
+plot_S4_pi <- ggplot(sample1)+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample10$Pi)),size=1,alpha=1,col="blue")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample8$Pi)),size=1,alpha=1,col="red")+
+     geom_point(aes(window<em>10000,log10(sample9$Pi/sample7$Pi)),size=1,alpha=1,col="green")+
+     geom_point(aes(window</em>10000,log10(sample9$Pi/sample6$Pi)),size=1,alpha=1,col="orange")+
+     geom_point(aes(window*10000,log10(sample9$Pi/sample5$Pi)),size=1,alpha=1,col="yellow")+
+     facet_grid(.~sample1$chr)+theme_bw()+xlim(3.65e7,3.8e7)+
+     labs(title="Idaho_S vs R", x="Genomic position", y="log10(S[Pi]/R[Pi])")
+```
+
+
+
 
 
 ******
