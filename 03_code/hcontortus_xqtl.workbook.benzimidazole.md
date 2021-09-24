@@ -1,14 +1,23 @@
-# Figure 3 - Benzimidazole
+# X-QTL Benzimidazole analyses
+- code
+     - code below describes most of the final analyses used to make figures in the manuscript.
+     - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward.
+- raw data
+     - raw data can be access via links in my FTP, which should allow the figures to be recreated.
+     - the raw data is provides to facilitate open access and data reuse. If used, please cite the paper.
 
-1. [Figure 3 A](#figure3a)
-2. [Figure 3 B](#figure3b)
-3. [Figure 3 C](#figure3c)
 
----
+## Download raw data
+```bash
+# XQTL benzimidazole Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
+```
 
-## Figure 3 A  <a name="figure3a"></a>
 
-Aim is to show genetic differentiation between pre/post benzimidazole treatment on chromosome 1 where the major peak lies
+
+
+## BZ QTL on chromosome 1
+- Aim is to show genetic differentiation between pre/post benzimidazole treatment on chromosome 1 where the major peak lies
 
 ```shell
 # working dir:
@@ -30,7 +39,6 @@ xqtl_bz_fst <- xqtl_bz_fst %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49))
 colnames(xqtl_bz_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
 
 
-
 # calculate a genome wide significance cutoff
 gw_r1 <- mean(xqtl_bz_fst$FST_R1)+3*sd(xqtl_bz_fst$FST_R1)
 gw_r2 <- mean(xqtl_bz_fst$FST_R2)+3*sd(xqtl_bz_fst$FST_R2)
@@ -47,55 +55,48 @@ xqtl_bz_fst_chr1 <- xqtl_bz_fst_chr1 %>%
 
 
 
-#xqtl_bz_fst_chr1_peaks <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD),]
-
-
-# # get predicted peak windows
-#
-# peaks <- read.table("peak.windows.bed", header = T)
-#
-# peak_subset <- xqtl_bz_fst_chr1[(xqtl_bz_fst_chr1$V2 >= peaks$PEAK_START_COORD) & (xqtl_bz_fst_chr1$V2 <= peaks$PEAK_END_COORD), ]
 
 # set colours for data, based on thresholds and replicates
 
-# blue - #6699FFFF" - under threshold for all replicates
-# yellow - #FFCC00FF - one replicate above the threshold
-# orange - #FF9900FF - two replicates above threshold
-# red - #FF0000FF - three replicates above threshold
+#-  blue - #6699FFFF" - under threshold for all replicates
+#-  yellow - #FFCC00FF - one replicate above the threshold
+#-  orange - #FF9900FF - two replicates above threshold
+#-  red - #FF0000FF - three replicates above threshold
 
-xqtl_bz_fst_chr1 <- mutate(xqtl_bz_fst_chr1,
-       point_colour = case_when(
-       (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
-       (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
-       (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
-       (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
-       (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
-       (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
-       (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
+xqtl_bz_fst_chr1 <-
+     mutate(xqtl_bz_fst_chr1,point_colour = case_when(
+          (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#6699FFFF",
+          (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+          (FST_R1 < gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FFCC00FF",
+          (FST_R1 < gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FFCC00FF",
+          (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 < gw_r3) ~ "#FF9900FF",
+          (FST_R1 > gw_r1 & FST_R2 < gw_r2 & FST_R3 > gw_r3) ~ "#FF9900FF",
+          (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
 
 # make the plot
-plot_a <- ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-               geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-               geom_vline(xintercept = 7029790, linetype = "dashed", col = "black") +                  
-               geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
-               ylim(0, 0.15) + xlim(0, 50e6) +
-               theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-               labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
-               facet_grid(CHR ~ .)
+plot_a <-
+     ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
+     geom_vline(xintercept = 7029790, linetype = "dashed", col = "black") +                  
+     geom_point() +
+     facet_grid(CHR~.) +
+     scale_color_identity() + scale_size_identity() +
+     ylim(0, 0.15) + xlim(0, 50e6) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+     labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+     facet_grid(CHR ~ .)
 
+plot_a
 
-
-
-
+ggsave("XQTL_BZ_chromosome1.png")
 ```
----
+![](../04_analysis/XQTL_BZ_chromosome1.png)
 
 
 
-## Figure 3 B - beta tubulin isotype 1 data <a name="figure3b"></a>
-
-Aim is to show allele frequencies of Phe167Tyr and Phe200Tyr pre and post treatment, including non-treated time matched control
+## beta tubulin isotype 1 data
+- Aim is to show allele frequencies of Phe167Tyr and Phe200Tyr pre and post treatment, including non-treated time matched control
 
 ### prepare the data
 ```shell

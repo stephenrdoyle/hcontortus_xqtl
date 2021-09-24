@@ -100,7 +100,13 @@ ivm_chr5_data <-
 
 
 
-# set colour for chromosomes
+# set colour for points based on number of replicates above genomewide mean Fst
+
+#-  blue - #6699FFFF" - under threshold for all replicates
+#-  yellow - #FFCC00FF - one replicate above the threshold
+#-  orange - #FF9900FF - two replicates above threshold
+#-  red - #FF0000FF - three replicates above threshold
+
 ivm_chr5_data <-
      mutate(ivm_chr5_data,
      point_colour = case_when(
@@ -824,7 +830,7 @@ dose_response_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/0
 ivm_dose_response_data <- dplyr::filter(dose_response_data,dose_response_data$Treatment=="IVM_aglycone" & dose_response_data$Total>0)
 
 
-# didnt use this in the end, but keeping for later use. 
+# didnt use this in the end, but keeping for later use.
 #probit model
 #logr_probit <- glm(IVM_logged ~ (X._developed_to_L3/100), data=ivm_dose_response_data, family=binomial(link="probit"))
 #preddat <- data.frame(IVM_logged = seq(0, 3.5, .01) )
