@@ -378,7 +378,7 @@ ggsave("XQTL_IVM_rtqpcr_altversions.png")
 | control: pre v 0.5X | V17 | V51 | V83 |
 | control: pre v 2X | V11 | V135 | V161 |
 | IVM: pre v 0.5x | V251 | V267 | V281 |
-| IVM: pre v 2x|    V287 |    V297 |    V305 |
+| IVM: pre v 2x | V287 | V297 | V305 |
 
 ```bash
 #load libraries
@@ -393,18 +393,10 @@ data <- data[data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
 # set chromosome colours
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
+```
 
-
-
-#						Rep1	Rep2	Rep3
-#control - pre v 0.5X	V17		V51		V83
-#control - pre v 2X		V11		V135	V161
-
-#IVM pre v 0.5x			V251	V267	V281
-#IVM pre v 2x			V287	V297	V305
-
-
-# rep1
+### replicate set 1
+```R
 control_0.5x.1 <- ggplot(data)+
      geom_point(aes(1:nrow(data)*5000, V17,  colour = V1), size=0.05)+
      ylim(0, 0.1) +
@@ -445,7 +437,7 @@ ggsave("XQTL_IVM_AI_rep1.png")
 
 
 
-#rep2
+### replicate set 2
 ```R
 control_0.5x.2 <-
      ggplot(data)+
@@ -500,9 +492,9 @@ ggsave("XQTL_IVM_AI_rep2.png")
 ```
 ![](../04_analysis/XQTL_IVM_AI_rep2.png)
 
-```R
-#rep3
 
+### Replicate set 3
+```R
 control_0.5x.3 <-
      ggplot(data) +
      geom_point(aes(1:nrow(data)*5000,V83,colour = V1),size=0.1) +
@@ -547,7 +539,7 @@ ggsave("XQTL_IVM_AI_rep3.png")
 ```
 ![](../04_analysis/XQTL_IVM_AI_rep3.png)
 
-
+### Bringing the panels together to make a figure for the paper
 ```R
 # summary of XQTL and AI endpoints
 (control_0.5x.2 | ivm_0.5X.2 ) / (
@@ -560,14 +552,12 @@ ggsave("XQTL_advanced_intercross_panel.png")
 ![](../04_analysis/XQTL_advanced_intercross_panel.png)
 
 
-#-----------------------------------------------------------------------------------------
 
 ## Evidence of selection on beta-tubulin by ivermectin
 - this has been proposed in a couple of different papers - that ivermectin treatment selects for beta-tubulin variation - however, it doesnt see to hold up.
 - Therefore, aim is to show frequency of Phe167Tyr Phe200Tyr variants pre/post IVM treatment in genetic cross, and then against EC50 for ivermectin in US farms
 
-
-- Prepare the data
+- first step is to prepare the data
 ```shell
 #working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/XQTL_IVM
@@ -741,11 +731,10 @@ ggsave("FigureSX_USfarm_btub1vsIVM.png")
 
 
 
-#-------------------------------------------------------------------------------
-
-
 
 ## 5000 L3 per pool example
+- we did an experiment after the main X-QTL to see what the effect of using 5000 L3 per pool (vs 200 L3 per pool) would have on refining the chromosome 5 QTL
+
 - used in Supplementary Figure X
 ```R
 # load libraries
@@ -835,6 +824,7 @@ dose_response_data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/0
 ivm_dose_response_data <- dplyr::filter(dose_response_data,dose_response_data$Treatment=="IVM_aglycone" & dose_response_data$Total>0)
 
 
+# didnt use this in the end, but keeping for later use. 
 #probit model
 #logr_probit <- glm(IVM_logged ~ (X._developed_to_L3/100), data=ivm_dose_response_data, family=binomial(link="probit"))
 #preddat <- data.frame(IVM_logged = seq(0, 3.5, .01) )
