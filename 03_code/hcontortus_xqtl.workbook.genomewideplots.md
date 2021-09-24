@@ -1,11 +1,25 @@
-# Figure 2 - Fst plot for parent strains
+# XQTL: genome-wide plots of genetic differentiaiton
+- code
+     - code below describes most of the final analyses used to make figures in the manuscript.
+     - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward.
+- raw data
+     - raw data can be access via links in my FTP, which should allow the figures to be recreated.
+     - the raw data is provides to facilitate open access and data reuse. If used, please cite the paper.
 
-1. [Figure 2 A](#figure2a)
-2. [Figure 2 B](#figure2b)
 
 
----
-## Figure 2 A <a name="figure2a"></a>
+## Download raw data
+```
+# download data needed to make the figures
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/CONTROL/XQTL_CONTROL.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/LEV/XQTL_LEV.merged.fst
+wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/PARENTS/XQTL_PARENTS.merged.fst
+```
+
+
+## Genome-wide: parental generation
 
 Aim is to show genetic differentiation between the two parental strains,  MHco3(ISE) and MHco18(UGA)
 
@@ -14,14 +28,7 @@ Aim is to show genetic differentiation between the two parental strains,  MHco3(
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/GENOMEWIDE
 ```
 
-```
-# download data needed to make the figures
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_BZ.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_CONTROL.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_IVM.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_LEV.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/figure2/XQTL_PARENTS.merged.fst
-```
+
 
 ### R to plot
 ```R
@@ -30,7 +37,7 @@ library(tidyverse)
 library(patchwork)
 
 
-# reformat the data
+# load and reformat the data
 parents <- read.table("XQTL_PARENTS.merged.fst",  header = F)
 parents <- parents[parents$V1 != "hcontortus_chr_mtDNA_arrow_pilon",  ]
 parents <- dplyr::select(parents,  V1,  V2,  V7)
@@ -41,7 +48,7 @@ colnames(parents) <- c("CHR",  "POS",  "FST",  "LABEL",  "ROW_ID")
 
 data <- parents
 
-# genome wide significance per sample
+# calculate the genome wide significance per sample
 data_gws <- data %>%
     group_by(LABEL) %>%
     summarise(GWS = mean(FST) + 3*sd(FST))
@@ -50,7 +57,8 @@ data_gws <- data %>%
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
 # make the plot
-plot_a <- ggplot(data)+
+plot_a <-
+     ggplot(data)+
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed",  col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL),  size = 0.1) +
      ylim(0, 1) +
@@ -60,9 +68,15 @@ plot_a <- ggplot(data)+
      theme_bw() + theme(legend.position = "none",  text = element_text(size = 10), strip.text.y = element_text(size = 6)) +
      facet_grid(LABEL ~ .)
 
-```
+plot_a
 
-## Figure 2 B <a name="figure2b"></a>
+ggsave("XQTL_genomewide_parents.png")
+```
+![](../04_analysis/XQTL_genomewide_parents.png)
+
+
+
+## Genome-wide: F3 generation before and after drug treatment
 
 Aim is to show genetic differentiation between pre and post treatment F3 generation for each of the control,  benzimidazole,  levamisole,  and ivermectin XQTL datasets
 
