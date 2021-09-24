@@ -360,13 +360,10 @@ ggsave("Figure_benzimidazole.png")
 
 
 
-#---------------------------------------------------------------------------------------
+## Beta tubulin isotype 1 data from US farms
+- Aim is to determine the frequency of Phe167Tyr & Phe200Tyr variants in the US farm dataset
 
-## Figure S1 - isotype 1 data from US farms <a name="Figure_S1"></a>
-
-Aim is to determine the frequency of Phe167Tyr & Phe200Tyr variants in the US farm dataset
-
-## Prepare the data
+### Prepare the data
 ```shell
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/US_FIELD/VCF
@@ -393,11 +390,16 @@ library(rstatix)
 
 # reformat data
 us_btub1 <- read.table("us_farms_btub1.ADfreq")
+
 colnames(us_btub1) <- c("CHR", "POS", "Farm 1", "Farm 2", "Farm 3", "Farm 4", "Farm 5", "Farm 6", "Farm 7", "Farm 8", "Farm 9", "Farm 10")
+
 us_btub1 <- melt(us_btub1,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
+
 colnames(us_btub1) <- c("CHR", "POS", "SAMPLE_ID", "ALLELE_FREQ")
-us_btub1 <- us_btub1 %>%
-  mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
+
+us_btub1 <-
+     us_btub1 %>%
+     mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
 
 # make the figure
 ggplot(us_btub1, aes(x = SAMPLE_ID, y = ALLELE_FREQ, fill = factor(POS))) +
@@ -409,7 +411,7 @@ ggplot(us_btub1, aes(x = SAMPLE_ID, y = ALLELE_FREQ, fill = factor(POS))) +
 ggsave("FigureSX_USfarm_btub1.pdf",  useDingbats=FALSE, width=170, height=100, units="mm")
 ggsave("FigureSX_USfarm_btub1.png")
 ```
-![](04_analysis/FigureSX_USfarm_btub1.png)
+![](../04_analysis/FigureSX_USfarm_btub1.png)
 
 
 
