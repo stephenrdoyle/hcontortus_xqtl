@@ -251,7 +251,7 @@ fst <- fst[fst$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 # susceptibles
 plot_1 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1)) +
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 9 (ivermectin susceptible)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -261,7 +261,7 @@ plot_1 <-
 # UGA_S vs moderates
 plot_2 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V7,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 2 (moderate ivermectin resistance)", y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -270,7 +270,7 @@ plot_2 <-
 
 plot_3 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V9,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 3 (moderate ivermectin resistance)",   y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -279,7 +279,7 @@ plot_3 <-
 
 plot_4 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V11,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 4 (moderate ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -290,7 +290,7 @@ plot_4 <-
 # UGA_S vs high resistance
 plot_5 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V13,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 5 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -299,7 +299,7 @@ plot_5 <-
 
 plot_6 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V15,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 6 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -308,7 +308,7 @@ plot_6 <-
 
 plot_7 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V17,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 7 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -317,7 +317,7 @@ plot_7 <-
 
 plot_8 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V19,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 8 (high ivermectin resistance)",   y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -326,7 +326,7 @@ plot_8 <-
 
 plot_9 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V23,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 10 (high ivermectin resistance)", x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -345,7 +345,7 @@ ggsave("XQTL_SupplementaryFigure_USfarm1.png")
 ```bash
 plot_1 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V21,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 1 (ivermectin susceptible) vs Farm 9 (ivermectin susceptible)",  y = "")+
      scale_color_manual(values = chr_colours) +
@@ -355,7 +355,7 @@ plot_1 <-
 # UGA_S vs moderates
 plot_2 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V37,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 2 (moderate ivermectin resistance)", y = "")+
      scale_color_manual(values = chr_colours) +
@@ -364,7 +364,7 @@ plot_2 <-
 
 plot_3 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V51,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 3 (moderate ivermectin resistance)",   y = "")+
      scale_color_manual(values = chr_colours) +
@@ -373,7 +373,7 @@ plot_3 <-
 
 plot_4 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V63,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 4 (moderate ivermectin resistance)",  y = "")+
      scale_color_manual(values = chr_colours) +
@@ -384,7 +384,7 @@ plot_4 <-
 # UGA_S vs high resistance
 plot_5 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V73,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 5 (high ivermectin resistance)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
@@ -393,7 +393,7 @@ plot_5 <-
 
 plot_6 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V81,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 6 (high ivermectin resistance)",  y = "")+
      scale_color_manual(values = chr_colours) +
@@ -402,7 +402,7 @@ plot_6 <-
 
 plot_7 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V87,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 7 (high ivermectin resistance)",  y = "")+
      scale_color_manual(values = chr_colours) +
@@ -411,7 +411,7 @@ plot_7 <-
 
 plot_8 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V91,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 8 (high ivermectin resistance)",   y = "")+
      scale_color_manual(values = chr_colours) +
@@ -420,7 +420,7 @@ plot_8 <-
 
 plot_9 <-
      ggplot(fst,aes(1:nrow(fst)*10000,V95,colour = V1))+
-     geom_point(size=0.5,alpha=0.5)+
+     geom_point(size=0.5)+
      ylim(0,1)+
      labs(title = "Farm 9 (ivermectin susceptible) vs Farm 10 (high ivermectin resistance)", x = "Chromosomal position (bp)",  y = "Genetic differentiation (Fst)")+
      scale_color_manual(values = chr_colours) +
