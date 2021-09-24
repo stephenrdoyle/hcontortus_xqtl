@@ -41,6 +41,7 @@ mkdir 05_ANALYSIS
 
 ## Preparing the reference <a name="reference"></a>
 - reference genome is the latest chromosome-scale assembly for *H. contortus*, available at [WormBse Parasite](https://parasite.wormbase.org/Haemonchus_contortus_prjeb506/Info/Index/) and is described in [Doyle et al 2020 Communications Biology](https://doi.org/10.1038/s42003-020-01377-3).
+
 ```shell
 cd ${WORKING}/01_REFERENCE
 
@@ -79,9 +80,11 @@ mkdir TRIM
 cd TRIM
 
 rm run_trim_all
+
 while read name lane; do \
-echo "bsub.py --queue yesterday --threads 7 20 trim_P ${WORKING}/00_SCRIPTS/run_trimmomatic.sh ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
-done < ../samples_lanes.list ; \
+     echo "bsub.py --queue yesterday --threads 7 20 trim_P ${WORKING}/00_SCRIPTS/run_trimmomatic.sh ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
+     done < ../samples_lanes.list ; \
+
 chmod a+x run_trim_all; \
 ./run_trim_all
 
@@ -141,6 +144,7 @@ SLIDINGWINDOW:10:20 MINLEN:50
 cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/03_MAPPING/PARENTS
 
 screen
+
 while read NAME; do
      ~sd21/bash_scripts/run_bwamem_splitter.sh ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_PARENTS/TRIM/${NAME}.paired_R2.fastq.gz;
      done < sample.list &
@@ -172,20 +176,22 @@ read2=$4
 ID="U$(date +%s)"
 
 if [ "$#" -eq 0 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-	echo ""
-    echo "Usage: ~sd21/bash_scripts/run_bwa_splitter <SAMPLE_PREFIX> <REFERENCE> <R1.fastq> <R2.fastq>"
-    echo ""
-    exit 0
+     echo ""
+     echo "Usage: ~sd21/bash_scripts/run_bwa_splitter <SAMPLE_PREFIX> <REFERENCE> <R1.fastq> <R2.fastq>"
+     echo ""
+     exit 0
 fi
 
 if [ -d "${sample_name}_bwasplitter_out" ]; then
-	echo -e "\nThere is already a run started with this sample name. Rename and start again\n"
-    exit 0
+     echo -e "\nThere is already a run started with this sample name. Rename and start again\n"
+     exit 0
 fi
 
 
 mkdir ${sample_name}_bwasplitter_out
+
 cd ${sample_name}_bwasplitter_out
+
 mkdir logfiles
 
 # prepare reference and split data
@@ -194,17 +200,19 @@ sample_name=$"{1}"
 reference=$"{2}"
 read1=$"{3}"
 read2=$"{4}"
+
 ln -sf $"{reference}" ref.fa
+
 bwa index -b 100000000 ref.fa
 
 if [[ $read1 =~ \.gz$ ]]
-then ln -sf $"{read1}" R1.fq.gz; zcat R1.fq.gz | split -d -a 3 -l 4000000 - R1_tmp_
-else ln -sf $"{read1}" R1.fq; split -d -a 3 -l 4000000 R1.fq R1_tmp_
+     then ln -sf $"{read1}" R1.fq.gz; zcat R1.fq.gz | split -d -a 3 -l 4000000 - R1_tmp_
+     else ln -sf $"{read1}" R1.fq; split -d -a 3 -l 4000000 R1.fq R1_tmp_
 fi
 
 if [[ $read2 =~ \.gz$ ]]
-then ln -sf $"{read2}" R2.fq.gz; zcat R2.fq.gz | split -d -a 3 -l 4000000 - R2_tmp_
-else ln -sf $"{read2}" R2.fq; split -d -a 3 -l 4000000 R2.fq R2_tmp_
+     then ln -sf $"{read2}" R2.fq.gz; zcat R2.fq.gz | split -d -a 3 -l 4000000 - R2_tmp_
+     else ln -sf $"{read2}" R2.fq; split -d -a 3 -l 4000000 R2.fq R2_tmp_
 fi
 
 
@@ -216,11 +224,17 @@ chmod a+x step1_bwasplitter
 
 # prepare split mapping and set off mapping
 echo -e "# prepare the split mapping run files
+
 sample_name=$"{1}"
+
 n=0
+
 for i in \` ls -1 R1_* \` ; do
-let \"n+=1\"
-echo -e \"bwa mem -t 4 -R '@RG\\\\\\\\\\\tRG:$"{sample_name}"\\\\\\\\\\\tID:$"{sample_name}"\\\\\\\\\\\tSM:$"{sample_name}"' -Y -M ref.fa $"{i}" $"{i/R1/R2}" | samtools view --threads 4 -b - | samtools sort --threads 4 -o $"{i/R1/bwamem}".tmp.sort.bam - \"  > step2.2_bwamem_tmp_$"{n}"; done; chmod a+x step2.2_bwamem_tmp_*
+     let \"n+=1\"
+     echo -e \"bwa mem -t 4 -R '@RG\\\\\\\\\\\tRG:$"{sample_name}"\\\\\\\\\\\tID:$"{sample_name}"\\\\\\\\\\\tSM:$"{sample_name}"' -Y -M ref.fa $"{i}" $"{i/R1/R2}" | samtools view --threads 4 -b - | samtools sort --threads 4 -o $"{i/R1/bwamem}".tmp.sort.bam - \"  > step2.2_bwamem_tmp_$"{n}";
+     done;
+     chmod a+x step2.2_bwamem_tmp_*
+
 touch step2_FINISHED" > step2.1_bwasplitter
 
 chmod a+x step2.1_bwasplitter
@@ -230,22 +244,41 @@ chmod a+x step2.1_bwasplitter
 # merge mapping, mark duplicates, generate stats, and finalise
 
 echo -e "# merge mapping, mark duplicates, generate stats, and finalise
+
 sample_name=$"{1}"
+
 ls -1 *.tmp.sort.bam > bam.fofn
+
 samtools merge --threads 4 -cpf -b bam.fofn tmp.merged.sorted.bam
+
 #rm *.tmp.sort.bam
-java -Xmx20g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/picard-tools-2.5.0/picard.jar MarkDuplicates INPUT=tmp.merged.sorted.bam OUTPUT=merged.sorted.marked.bam METRICS_FILE=tmp.merged.sorted.marked.metrics TMP_DIR=$PWD/tmp
+
+java -Xmx20g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/picard-tools-2.5.0/picard.jar MarkDuplicates INPUT=tmp.merged.sorted.bam
+
+OUTPUT=merged.sorted.marked.bam METRICS_FILE=tmp.merged.sorted.marked.metrics TMP_DIR=$PWD/tmp
+
 samtools flagstat merged.sorted.marked.bam > $"{sample_name}".merged.sorted.marked.flagstat
+
 #samtools-1.3 stats merged.sorted.marked.bam | grep ^SN | cut -f 2- > $"{sample_name}".merged.sorted.marked.stats
+
 bamtools stats -in merged.sorted.marked.bam > $"{sample_name}".merged.sorted.marked.bamstats
+
 samtools view --threads 4 -F 12 -b merged.sorted.marked.bam -o $"{sample_name}".merged.sorted.marked.bam
+
 samtools view --threads 4 -f 12 merged.sorted.marked.bam -o $"{sample_name}".unmapped.bam
+
 samtools index -b $"{sample_name}".merged.sorted.marked.bam
+
 rm R[12]_*
+
 rm -r *tmp*
+
 mv *.[eo] logfiles/
+
 touch step3_FINISHED
+
 touch bam_splitter_COMPLETE" > step3_bwasplitter
+
 chmod a+x step3_bwasplitter
 
 
@@ -291,6 +324,7 @@ ls -1 *bam > bam.list
 
 #--- once indel realignment is completed, remove the original mapping files, keeping only the realigned bam
 rm *marked.bam
+
 rm *marked.bam.bai
 
 #--- remove the trimmed fastqs - they are only taking up disk space
@@ -304,23 +338,28 @@ BAM_LIST=$2
 module load gatk/3.7.0
 
 samtools faidx ${REFERENCE}
+
 samtools dict  ${REFERENCE} >  ${REFERENCE%.fa}.dict
 
 echo -e "/software/pathogen/etc/gatk/3.7.0/wrappers/gatk -T RealignerTargetCreator --num_threads 7 -R ${REFERENCE} \\" > run_gatk_RealignerTargetCreator
+
 while read SAMPLE; do
-echo -e "--input_file ${SAMPLE} \\" >> run_gatk_RealignerTargetCreator;
+     echo -e "--input_file ${SAMPLE} \\" >> run_gatk_RealignerTargetCreator;
 done < ${BAM_LIST}
+
 echo -e "-o all_samples.intervals" >> run_gatk_RealignerTargetCreator
 
 chmod a+x run_gatk_RealignerTargetCreator
+
 bsub -q long -n 15 -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J step_01_gatk_indel_realigner -e step_01_gatk_indel_realigner.e -o step_01_gatk_indel_realigner.o ./run_gatk_RealignerTargetCreator
 
 while read SAMPLE; do
-echo -e "bsub -q long -w "step_01_gatk_indel_realigner" -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J step_02_gatk_indel_realigner -e step_02_gatk_indel_realigner.e -o  step_02_gatk_indel_realigner.o /software/pathogen/etc/gatk/3.7.0/wrappers/gatk -T IndelRealigner \
--R ${REFERENCE} \\
--I ${SAMPLE} \\
--targetIntervals all_samples.intervals \\
--o ${SAMPLE%.bam}.realigned.bam" >> run_gatk_IndelRealigner; done < ${BAM_LIST}
+     echo -e "bsub -q long -w "step_01_gatk_indel_realigner" -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J step_02_gatk_indel_realigner -e step_02_gatk_indel_realigner.e -o  step_02_gatk_indel_realigner.o /software/pathogen/etc/gatk/3.7.0/wrappers/gatk -T IndelRealigner \
+     -R ${REFERENCE} \\
+     -I ${SAMPLE} \\
+     -targetIntervals all_samples.intervals \\
+     -o ${SAMPLE%.bam}.realigned.bam" >> run_gatk_IndelRealigner;
+done < ${BAM_LIST}
 
 
 chmod a+x run_gatk_IndelRealigner
@@ -360,12 +399,18 @@ bamlist=$3
 
 #--- Step 1: prepare input files
 cp $ref ref.tmp
+
 samtools faidx ref.tmp
+
 fastaq to_fasta -l 0 ref.tmp ref.tmp2
+
 samtools faidx ref.tmp2
+
 grep ">" ref.tmp | cut -f1  -d" " | sed -e 's/>//g' | cat -n > ref_seq.tmp.list
 
-while read number sequences; do grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.fasta; done < ref_seq.tmp.list
+while read number sequences; do
+     grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.fasta;
+done < ref_seq.tmp.list
 
 
 #while read name; do
@@ -374,14 +419,16 @@ while read number sequences; do grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.
 #	fi; done < ${bamlist}
 
 while read number sequences; do
-echo -e "samtools mpileup -b $bamlist -r $sequences -f ref.tmp -t DP,SP,AD,ADF,INFO/AD -F0.25 -d500 -E -o $number.$sequences.tmp.mpileup" > run_mpileup.tmp.$number;
+     echo -e "samtools mpileup -b $bamlist -r $sequences -f ref.tmp -t DP,SP,AD,ADF,INFO/AD -F0.25 -d500 -E -o $number.$sequences.tmp.mpileup" > run_mpileup.tmp.$number;
 done < ref_seq.tmp.list
+
 chmod a+x run_mpileup.tmp*
 
 #while read number sequences; do \
 #echo -e "\
 #samtools-1.3 mpileup -b $bamlist -r $sequences -f ref.tmp -t DP,SP,AD,ADF,INFO/AD -F0.25 -d500 -E -o $number.$sequences.tmp.mpileup" > run_mp_$sequences.$number; done < ref_seq.tmp.list
 jobs=$( wc -l ref_seq.tmp.list | cut -f1 -d" " )
+
 bsub -q long -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J mpileup_array[1-$jobs] -e mpileup_array[1-$jobs].e -o mpileup_array[1-$jobs].o ./run_mpileup.tmp.\$LSB_JOBINDEX
 
 
@@ -405,6 +452,7 @@ bsub -q long -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J mp
 
 
 echo -e "prefix=\$1; cat \$(find ./ -name \"*.mpileup\" | sort -V) > \${prefix}.mpileup; touch mpileup_FINISHED" > run_mp_combine
+
 chmod a+x run_mp_combine
 
 bsub -q normal -w "done(mpileup_array)"  -R'span[hosts=1] select[mem>1000] rusage[mem=1000]' -n1 -M1000 -J mp_combine -e mp_combine.e -o mp_combine.o ./run_mp_combine ${prefix}
@@ -446,12 +494,18 @@ bamlist=$3
 
 #--- Step 1: prepare input files
 cp $ref ref.tmp
+
 samtools faidx ref.tmp
+
 fastaq to_fasta -l 0 ref.tmp ref.tmp2
+
 samtools faidx ref.tmp2
+
 grep ">" ref.tmp | cut -f1  -d" " | sed -e 's/>//g' | cat -n > ref_seq.tmp.list
 
-while read number sequences; do grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.fasta; done < ref_seq.tmp.list
+while read number sequences; do
+     grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.fasta;
+done < ref_seq.tmp.list
 
 
 #while read name; do
@@ -460,20 +514,22 @@ while read number sequences; do grep -A1 "$sequences" ref.tmp2 > $sequences.tmp.
 #	fi; done < ${bamlist}
 
 while read number sequences; do
-echo -e "samtools mpileup --ignore-RG -Ou -t DP,SP,AD,ADF,INFO/AD -b $bamlist -r $sequences -f ref.tmp -F0.25 -d500 -E | bcftools call -vm -Oz -o $number.$sequences.tmp.vcf.gz" > run_mpileup2vcf.tmp.$number;
+     echo -e "samtools mpileup --ignore-RG -Ou -t DP,SP,AD,ADF,INFO/AD -b $bamlist -r $sequences -f ref.tmp -F0.25 -d500 -E | bcftools call -vm -Oz -o $number.$sequences.tmp.vcf.gz" > run_mpileup2vcf.tmp.$number;
 done < ref_seq.tmp.list
+
 chmod a+x run_mpileup2vcf.tmp*
 
 
 jobs=$( wc -l ref_seq.tmp.list | cut -f1 -d" " )
+
 bsub -q long -R'span[hosts=1] select[mem>10000] rusage[mem=10000]' -M10000 -J mpileup2vcf_array[1-$jobs] -e mpileup2vcf_array[1-$jobs].e -o mpileup2vcf_array[1-$jobs].o ./run_mpileup2vcf.tmp.\$LSB_JOBINDEX
 
 
 
 #--- Step 2: bring it together
 
-
 echo -e "ls -1v *.tmp.vcf.gz > vcffiles.fofn && vcf-concat -f vcffiles.fofn | gzip -c >  ${prefix}.raw.vcf.gz" > run_mp2vcf_combine
+
 chmod a+x run_mp2vcf_combine
 
 bsub -q normal -w "done(mpileup2vcf_array)"  -R'span[hosts=1] select[mem>1000] rusage[mem=1000]' -n1 -M1000 -J mp2vcf_combine -e mp2vcf_combine.e -o mp2vcf_combine.o ./run_mp2vcf_combine ${prefix}
@@ -524,10 +580,12 @@ ncol=$(awk 'NR==1{print NF}' mpileup_data.tmp)
 
 
 for((i=1, start=1, end=$inc; i < ncol/inc + 1; i++, start+=inc, end+=inc)); do
-  cut -f$start-$end mpileup_data.tmp > "pileup.tmp.$i"
+     cut -f$start-$end mpileup_data.tmp > "pileup.tmp.$i"
 done
 
-for i in pileup.tmp.*; do paste mpileup_positions.tmp $i > ${i#pileup.tmp.}.final.pileup; done
+for i in pileup.tmp.*; do
+     paste mpileup_positions.tmp $i > ${i#pileup.tmp.}.final.pileup;
+done
 
 #rm *tmp*
 
@@ -572,7 +630,7 @@ java -jar ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/mpileup2sync.j
 --fastq-type sanger
 
 while read NUMBER NAME; do
-grep "\${NAME}" ${PREFIX}.raw.sync > \${NUMBER}.\${NAME}.raw.sync.tmp
+     grep "\${NAME}" ${PREFIX}.raw.sync > \${NUMBER}.\${NAME}.raw.sync.tmp
 done < ref.fa.sequence-names.tmp" > run_make_syncronised_file.tmp.${ID}
 
 chmod a+x run_make_syncronised_file.tmp.${ID}
@@ -580,10 +638,10 @@ chmod a+x run_make_syncronised_file.tmp.${ID}
 
 #---- make fst and fet arrays
 while read NUMBER NAME; do
-echo -e "\
-perl ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/fisher-test.pl --input ${NUMBER}.${NAME}.raw.sync.tmp --output ${NUMBER}.${NAME}.fet.tmp --min-count 4 --min-coverage 30 --max-coverage 2% --suppress-noninformative
+     echo -e "\
+     perl ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/fisher-test.pl --input ${NUMBER}.${NAME}.raw.sync.tmp --output ${NUMBER}.${NAME}.fet.tmp --min-count 4 --min-coverage 30 --max-coverage 2% --suppress-noninformative
 
-perl ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/fst-sliding.pl --pool-size ${POOL_SIZE} --window-size ${WINDOW} --step-size ${WINDOW} --min-count 4 --min-coverage 30 --max-coverage 2% --input ${NUMBER}.${NAME}.raw.sync.tmp --output ${NUMBER}.${NAME}.raw.fst.tmp" > run_pp2_split.tmp.${ID}.${NUMBER};
+     perl ~sd21/lustre118_link/software/POOLSEQ/popoolation2_1201/fst-sliding.pl --pool-size ${POOL_SIZE} --window-size ${WINDOW} --step-size ${WINDOW} --min-count 4 --min-coverage 30 --max-coverage 2% --input ${NUMBER}.${NAME}.raw.sync.tmp --output ${NUMBER}.${NAME}.raw.fst.tmp" > run_pp2_split.tmp.${ID}.${NUMBER};
 done < ref.fa.sequence-names.tmp
 chmod a+x *run_pp2_split*
 
@@ -623,9 +681,13 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff
 mkdir data/HCON_V4_20200130
 
 cd  data/HCON_V4_20200130
+
 ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/REF/HAEM_V4_final.chr.fa HCON_V4_Dec2019.fa
+
 ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20191212/UPDATED_annotation.gff3 genes.gff
+
 gffread genes.gff -g HCON_V4_20200130.fa -y protein.fa
+
 cp HCON_V4_20200130.fa ../genomes/
 
 # modify config file
@@ -653,15 +715,6 @@ bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e sn
 
 
 [↥ **Back to top**](#top)
-
-
-
-
-
-
-
-
-
 
 
 
@@ -719,7 +772,10 @@ mkdir ../../../03_MAPPING/XQTL
 ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPING/XQTL/sample.list
 
 screen
-while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_XQTL/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_XQTL/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
+
+while read NAME; do
+     ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_XQTL/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_XQTL/TRIM/${NAME}.paired_R2.fastq.gz;
+done < sample.list &
 
 
 #--- cleanup
@@ -814,15 +870,18 @@ cd TRIM
 
 rm run_trim_all
 while read name lane; do \
-echo "bsub.py --threads 7 20 trim_AI /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
+     echo "bsub.py --threads 7 20 trim_AI /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
 done < ../samples_lanes.list ; \
+
 chmod a+x run_trim_all; \
+
 ./run_trim_all
 
 
 
 # merge trimmed reads into R1 and R2 files with sensible names
 echo -e '"cat ../samples_lanes.list | cut -f1 | sort | uniq | while read -r name; do zcat ${name}_*paired_R1.fastq.gz | gzip > ${name}_R1.fastq.gz; zcat ${name}_*paired_R2.fastq.gz | gzip > ${name}_R2.fastq.gz; done"' > run_cat_reads
+
 chmod a+x run_cat_reads
 
 bsub.py --queue yesterday 1 cat_reads ./run_cat_reads
@@ -832,6 +891,7 @@ bsub.py --queue yesterday 1 cat_reads ./run_cat_reads
 #--- note slight tweak to remove the "paired" named samples, to make sure only picking up the merged read samples
 
 mkdir /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/03_MAPPING/ADVANCED_INTERCROSS
+
 ls -1 *R1.fastq.gz | grep -v "paired" | sed 's/_R1.fastq.gz//g' > ../../../03_MAPPING/ADVANCED_INTERCROSS/sample.list
 
 
@@ -840,7 +900,9 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/03_MAPPING/ADVANCED_INTERCROSS
 
 screen
 
-while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_ADVANCED_INTERCROSS/TRIM/${NAME}_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_ADVANCED_INTERCROSS/TRIM/${NAME}_R2.fastq.gz; done < sample.list &
+while read NAME; do
+     ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_ADVANCED_INTERCROSS/TRIM/${NAME}_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_ADVANCED_INTERCROSS/TRIM/${NAME}_R2.fastq.gz;
+done < sample.list &
 
 
 #--- clean up
@@ -851,6 +913,7 @@ rm -r *out
 
 #--- realign indels using GATK - needs to be done given either GATK Unified Genotyper, or Popoolation2 is used for SNPs - note this does not need to be done if GATK Haplotype caller is used
 ls -1 *bam > bam.list
+
 ln -s /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa
 
 ~sd21/bash_scripts/run_gatk_indel_realigner HAEM_V4_final.chr.fa bam.list
@@ -938,7 +1001,9 @@ iget 27606_3#2.cram .
 # cram to fastq
 bsub.py 2 c2fq ~sd21/bash_scripts/run_cram2fastq
 
-ls -1 *gz | while read -r NAME; do rename s/#/_/ ${NAME}; done
+ls -1 *gz | while read -r NAME; do
+     rename s/#/_/ ${NAME};
+done
 
 
 #--- trim reads
@@ -947,9 +1012,11 @@ cd TRIM
 
 rm run_trim_all
 while read name lane; do \
-echo "bsub.py --threads 7 20 trim_XQTL /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
+     echo "bsub.py --threads 7 20 trim_XQTL /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
 done < ../samples_lanes.list ; \
+
 chmod a+x run_trim_all; \
+
 ./run_trim_all
 
 
@@ -966,7 +1033,9 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/03_MAPPING/DOSE_RESPONSE/
 
 screen
 
-while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_DOSE_RESPONSE/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_DOSE_RESPONSE/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
+while read NAME; do
+     ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_DOSE_RESPONSE/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_DOSE_RESPONSE/TRIM/${NAME}.paired_R2.fastq.gz;
+done < sample.list &
 
 
 
@@ -1016,7 +1085,7 @@ rm *tmp*
 
 
 ## Analysis of US farm samples from Ray Kaplan
-```
+```bash
 mkdir 02_RAW/RAW_US_FIELD
 cd 02_RAW/RAW_US_FIELD
 
@@ -1061,9 +1130,11 @@ cd TRIM
 
 rm run_trim_all
 while read name lane; do \
-echo "bsub.py --queue yesterday --threads 7 20 trim_P /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
+     echo "bsub.py --queue yesterday --threads 7 20 trim_P /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/00_SCRIPTS/run_trimmomatic ${name}_${lane} ../${lane}_1.fastq.gz ../${lane}_2.fastq.gz" >> run_trim_all; \
 done < ../samples_lanes.list ; \
+
 chmod a+x run_trim_all; \
+
 ./run_trim_all
 
 
@@ -1084,7 +1155,10 @@ ls -1 *.paired_R1.fastq.gz | sed 's/.paired_R1.fastq.gz//g' > ../../../03_MAPPIN
 cd /lustre/scratch118/infgen/team133/sd21/hc/XQTL/03_MAPPING/US_FIELD
 
 screen
-while read NAME; do ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R2.fastq.gz; done < sample.list &
+
+while read NAME; do
+     ~sd21/bash_scripts/run_bwamem_splitter ${NAME} /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/01_REFERENCE/HAEM_V4_final.chr.fa /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R1.fastq.gz /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/02_RAW/RAW_US_FIELD/TRIM/${NAME}.paired_R2.fastq.gz;
+done < sample.list &
 
 
 mv *out/*.marked.bam .
@@ -1099,7 +1173,9 @@ mv *out/*.marked.bam.bai .
 # split into multiple fastq files due to high output
 
 touch run_merger.tmp
-for i in $( cat ../../02_RAW/RAW_US_FIELD/samples_lanes.list | cut -f1 | sort | uniq ); do echo "bsub.py 10 merge_${i}_tmp ./run_merge.tmp ${i} &" >> run_merger.tmp; done
+for i in $( cat ../../02_RAW/RAW_US_FIELD/samples_lanes.list | cut -f1 | sort | uniq ); do
+     echo "bsub.py 10 merge_${i}_tmp ./run_merge.tmp ${i} &" >> run_merger.tmp;
+done
 
 echo 'SAMPLE=$1; ls -1 ${SAMPLE}*.bam > ${SAMPLE}.tmp.bamlist ; samtools-1.3 merge -c -b ${SAMPLE}.tmp.bamlist ${SAMPLE}.merge.bam; samtools-1.3 index -b ${SAMPLE}.merge.bam' > run_merge.tmp
 
@@ -1166,12 +1242,12 @@ rm *tmp*
 
 
 
-XQTL key
+#XQTL key
 #Rep1.1	Rep1.2	Rep2	Rep3
 #V13	V27	V39	V49
 
-Advanced intercross key
-Rep1	Rep2	Rep3
+#Advanced intercross key
+#Rep1	Rep2	Rep3
 #control - pre v 0.5X	V17		V51		V83
 #control - pre v 2X		V11		V135	V161
 #IVM pre v 0.5x			V251	V267	V281
@@ -1192,7 +1268,7 @@ for i in $(ls -1 sample_*splitpileup.stats | sed 's/*chr*.*$//g' | sort -V | uni
           cat ${j} | grep -v "window" | awk -v CHR=${CHR} '{print CHR,$0}' OFS="\t" >> ${i}.pileup.stats;
           done;
 done
-
+```
 
 ```R
 library(ggplot2)
@@ -1315,7 +1391,7 @@ plot_S4_pi <- ggplot(sample1)+
 
 
 # run SNPeff
-
+```bash
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/ls -lev_pretreatment -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_AI.raw.vcf >  XQTL_AI.raw.snpeff.vcf"
 
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130  XQTL_BZ.raw.vcf >  XQTL_BZ.raw.snpeff.vcf"
@@ -1324,203 +1400,5 @@ bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e sn
 
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 XQTL_LEV.raw.vcf > XQTL_LEV.raw.snpeff.vcf"
 
-
-
-
-
-
-#L3_5000
-L3_5000 <- read.table("XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
-data<-L3_5000
-
-ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000_c2<-L3_5000[L3_5000$V1=="hcontortus_chr2_Celeg_TT_arrow_pilon",]
-data<-L3_5000_c2
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.035)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous()+
-  xlim(2.4e6,3.5e6)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000_c5<-L3_5000[L3_5000$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-data<-L3_5000_c5
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous()+
-  xlim(35e6,40e6)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000 <- read.table("XQTL_L3_5k/XQTL_L3_5k.merged.fst",header=F)
-data<-L3_5000
-
-ggplot(data)+geom_point(aes(1:nrow(data)*5000,V7,alpha=V4,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous(breaks=seq(0,3e8,0.5e8))+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000_c2<-L3_5000[L3_5000$V1=="hcontortus_chr2_Celeg_TT_arrow_pilon",]
-data<-L3_5000_c2
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.035)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous()+
-  xlim(2.4e6,3.5e6)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-L3_5000_c5<-L3_5000[L3_5000$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-data<-L3_5000_c5
-ggplot(data)+geom_point(aes(V2,V7,colour = ifelse(as.numeric(V1) %% 2 ==1, "0", "1")),size=0.1)+
-  ylim(0,0.1)+
-  xlab("Relative window position in genome")+
-  ylab("Fst")+
-  scale_color_manual(values=pal)+
-  scale_x_continuous()+
-  xlim(35e6,40e6)+
-  theme_bw()+
-  theme(legend.position="none",
-        panel.background=element_blank(),
-        axis.line = element_line(colour = "black"),
-        axis.ticks = element_line(colour = "grey70", size = 0.2),
-        panel.grid.major = element_line(colour = "grey70", size = 0.2),
-        panel.border = element_rect(colour = "black", fill=NA, size=1))
-
-
-
-#snpeff
 bsub -q long -R "select[mem>5000] rusage[mem=5000]" -M5000 -o snpeff_new.o -e snpeff_new.e "java -Xmx4g -jar /nfs/users/nfs_s/sd21/lustre118_link/software/COMPARATIVE_GENOMICS/snpEff/snpEff.jar -no-intergenic -no-downstream -no-upstream HCON_V4_20200130 GBX_PARENTS.raw.vcf.gz > GBX_PARENTS.raw.snpeff.vcf.gz"
-
-cd ~/lustre118_link/hc/XQTL/04_VARIANTS/PARENTS
-
-```R
-library(ggplot2,dplyr,ggrepel,data.table, patchwork)
-
-parents <-read.table("XQTL_PARENTS.merged.fst",header=F)
-xqtl <- read.table("../XQTL_IVM/XQTL_IVM.merged.fst",header=F)
-data <- inner_join(parents,xqtl,c("V1","V2"))
-
-data_chr5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-
-ggplot(data,aes(V7.x,V13,col=V1,label=V2))+geom_point() +
-geom_text_repel(data = subset(data, V7.x > 0.4 & V13 > 0.03  ))
-
-
-ggplot(data,aes(V2,V7.x*V13,label=V2))+geom_point(size=0.1)+facet_grid(V1~.)+geom_text_repel(data = subset(data, V7.x > 0.4 & V13 > 0.03  ))
 ```
-
-
-```R
-xqtl_fet <- fread("xqtl_chr5.2.fet",header=F)
-parents_fet <- fread("parents_chr5.fet",header=F)
-data_fet <- inner_join(parents_fet,xqtl_fet,c("V1","V2"))
-
-ggplot(data_fet,aes(V2,V7*V4.y,label=V2))+geom_point(size=0.1)+facet_grid(V1~.)
-
-
-
-p1 <- ggplot(data_chr5,aes(V2,V7.x*V13,label=V2))+geom_point(size=0.1)+geom_text_repel(data = subset(data_chr5, V7.x > 0.4 & V13 > 0.03  ))+xlim(25e6,55e6)
-
-p2 <- ggplot(data_fet2,aes(V2,V7*V4.y,label=V2))+geom_point(size=0.1)+geom_text_repel(data = subset(data_fet, V7*V4.y>150  ))+xlim(30e6,45e6)
-p1 + p2 + plot_layout(ncol=1)
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-R
-library(ggplot2,dplyr,ggrepel,data.table, patchwork)
-
-parents <-read.table("XQTL_PARENTS.merged.fst",header=F)
-xqtl <- read.table("../XQTL_IVM/XQTL_IVM.merged.fst",header=F)
-data <- inner_join(parents,xqtl,c("V1","V2"))
-
-data_chr5 <- data[data$V1=="hcontortus_chr5_Celeg_TT_arrow_pilon",]
-
-ggplot(data,aes(V7.x,V13,col=V1,label=V2))+geom_point() +
-geom_text_repel(data = subset(data, V7.x > 0.4 & V13 > 0.03  ))
-
-
-ggplot(data,aes(V2,V7.x*V13,label=V2))+geom_point(size=0.1)+facet_grid(V1~.)+geom_text_repel(data = subset(data, V7.x > 0.4 & V13 > 0.03  ))
-
-
-
-
-xqtl_fet <- fread("xqtl_chr5.2.fet",header=F)
-parents_fet <- fread("parents_chr5.fet",header=F)
-data_fet <- inner_join(parents_fet,xqtl_fet,c("V1","V2"))
-
-ggplot(data_fet,aes(V2,V7*V4.y,label=V2))+geom_point(size=0.1)+facet_grid(V1~.)
-
-
-
-p1 <- ggplot(data_chr5,aes(V2,V7.x*V13,label=V2))+geom_point(size=0.1)+geom_text_repel(data = subset(data_chr5, V7.x > 0.4 & V13 > 0.03  ))+xlim(25e6,55e6)
-
-p2 <- ggplot(data_fet2,aes(V2,V7*V4.y,label=V2))+geom_point(size=0.1)+geom_text_repel(data = subset(data_fet, V7*V4.y>150  ))+xlim(30e6,45e6)
-p1 + p2 + plot_layout(ncol=1)
