@@ -1,9 +1,14 @@
 # XQTL: ivermectin analyses
+- code
+     - code below describes most of the final analyses used to make figures in the manuscript.
+     - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward.
+- raw data
+     - raw data can be access via links in my FTP, which should allow the figures to be recreated.
+     - the raw data is provides to facilitate open access and data reuse. If used, please cite the paper.
 
 
 
 ## Download raw data
-- to recreate the analyses described below, data can be obtained from my FTP using wget or similar
 ```
 # XQTL ivermectin Fst data
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
@@ -127,16 +132,11 @@ ggsave("XQTL_IVM_chromosome5_replicates.png")
 
 
 ## Chromosome 5 QTL
-
-Aim is to show zoomed in region around chromosome 5 main peak, highlighting farm data, genes present, whether genes are differentially expressed
-
+- Aim is to show zoomed in region around chromosome 5 main peak, highlighting farm data, genes present, whether genes are differentially expressed
 
 
-### R to plot
+### Zoom on Fst from XQTL and nucleaotide diversity on US farms.
 ```R
-
-# load data
-
 # load the output of NPstats, and add the drenchrite EC50 per farm
 us_farm1 <-read.table("sample_1.pileup.stats",header=T,sep="\t")
 us_farm1$sample <- "us_farm1"
@@ -169,15 +169,16 @@ us_farm10 <-read.table("sample_10.pileup.stats",header=T,sep="\t")
 us_farm10$sample <- "us_farm10"
 us_farm10$ivm_EC50 <- "259.4"
 
-
+# merge dataframes - this could have been done earlier, but wanted to add drug response data to each here first
 us_farm_data <-  dplyr::bind_rows(us_farm1, us_farm2, us_farm3, us_farm4, us_farm5, us_farm6, us_farm7, us_farm8, us_farm9, us_farm10)
 
+# extract and fix name of chromosome 5
 us_farm_data_chr5 <- us_farm_data[us_farm_data$chr == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
 us_farm_data_chr5 <- us_farm_data_chr5 %>%
  mutate(chr = str_replace_all(chr, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
 
-
+# make plots
 plot_fst <-
      ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
      geom_point() +
@@ -198,19 +199,22 @@ plot_pi <-
 
 plot_fst + plot_pi
 
+# save it
 ggsave("XQTL_IVM_chr5QTL_fst_uspi.png")
 ```
 ![](../04_analysis/XQTL_IVM_chr5QTL_fst_uspi.png)
 
 
 
+## Analysis of RT-qPCR data comparing cky-1 expression in sensitive and resistant strains of *H. contortus* and *T. circumcincta*
+- RT-qPCR data obtained from Roz Laing in Glasgow
 
-- analysis of RT-qPCR data comparing cky-1 expression in sensitive and resistant strains of H. contortus and T. circumcincta
 ```bash
-
+# read data
 cky_RTqpcr <- read.table("RTQs_cky1_v2.txt", header=T, sep="\t")
 cky_RTqpcr <- filter(cky_RTqpcr, Normaliser != "B-tubulin")
 
+# make plot
 plot_RTqpcr <-
      ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MHco18(UGA)', 'MHco4(WRS)', 'MHco10(CAVR)', 'MTci2', 'MTci5')), y = LogFoldChange, col=Response)) +
      geom_boxplot(outlier.size=0.5, outlier.color="black") +
@@ -231,18 +235,21 @@ ggsave("XQTL_IVM_cky-1_RTqPCR.png")
 
 
 
-## C elegans validation of cky-1
+## *C. elegans* validation of cky-1
 ### Development assay - Balanced knockout of cky-1
 ```R
+# load libraries
 library(tidyverse)
 library(ggpubr)
 
+# read data
 cky_ko <- read.table("VC2274_Development_R.txt", header=T)
 
+# maniplating the naming of samples to make it easier to combine replicates and plot
 cky_ko_merge <- cky_ko %>% mutate_if(is.character, str_replace_all, pattern = '.R[123]', replacement = '')
 cky_ko_merge <- cky_ko_merge %>% mutate_if(is.character, str_replace_all, pattern = 'VC2274', replacement = 'VC2274:cky-1(gk1011)')
 
-
+# make plot
 plot_ko <-
      ggplot(cky_ko_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
      geom_boxplot(outlier.size=0.5, outlier.color="black") +
@@ -257,15 +264,20 @@ ggsave("XQTL_IVM_cky-1_KO.png")
 ```
 ![](../04_analysis/XQTL_IVM_cky-1_KO.png)
 
+
+
 ### Development assay - RNAi of cky-1
 ```R
+# load data
 cky_rnai <- read.table("RNAi_Development_R.txt", header=T)
 
+# maniplating the naming of samples to make it easier to combine replicates and plot
 cky_rnai_merge <- cky_rnai %>% mutate_if(is.character, str_replace_all, pattern = '_[123]', replacement = '')
 cky_rnai_merge <- cky_rnai_merge %>% mutate_if(is.character, str_replace_all, pattern = 'Control', replacement = 'N2')
 cky_rnai_merge <- cky_rnai_merge %>% mutate_if(is.character, str_replace_all, pattern = 'RNAi', replacement = 'N2+RNAi(cky-1)')
 
- plot_rnai <-
+# make plot
+plot_rnai <-
      ggplot(cky_rnai_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
      geom_boxplot(outlier.size=0.5, outlier.color="black") +
      ylim(0,140) +
@@ -280,15 +292,18 @@ ggsave("XQTL_IVM_cky-1_rnai.png")
 ![](../04_analysis/XQTL_IVM_cky-1_rnai.png)
 
 
+### Development assay - transgenesis of cky-1
 ```R
+# load data
 cky_trans <- read.table("Transgenics_Pumping_R.txt", header=T)
+
+# maniplating the naming of samples to make it easier to combine replicates and plot
 cky_trans_merge <- cky_trans %>% mutate_if(is.character, str_replace_all, pattern = '.R[123]', replacement = '')
 cky_trans_merge <- cky_trans_merge %>% mutate_if(is.character, str_replace_all, pattern = 'CeEFT3_L1', replacement = 'N2+eft3:cky-1.1')
 cky_trans_merge <- cky_trans_merge %>% mutate_if(is.character, str_replace_all, pattern = 'CeEFT3_L2', replacement = 'N2+eft3:cky-1.2')
 cky_trans_merge <- filter(cky_trans_merge, Ivermectin != "50")
 
-
-
+# make plot
 plot_trans <-
      ggplot(cky_trans_merge, aes(as.factor(Ivermectin),Normalised*100, col=Group)) +
      geom_boxplot(outlier.size=0.25, outlier.color="black") +
@@ -355,17 +370,28 @@ ggsave("XQTL_IVM_rtqpcr_altversions.png")
 
 
 ## Advanced intercross analysis
+- these analyses used to visualise the advanced intercross experiments, which were the half-dose followed by double-dose ivermectin treatment
+- in the data, the replicates are found in the following columns
+
+|    condition |    Rep1 |    Rep2 |    Rep3 |
+|    control - pre v 0.5X     |    V17  |    V51  |    V83  |
+|    control - pre v 2X  |    |    V11  |    V135 |    V161 |
+|    IVM pre v 0.5x |    V251	V267	V281
+#IVM pre v 2x			V287	V297	V305
+
 ```bash
-#-----
+#load libraries
 library(ggplot2)
 library(patchwork)
 
+# load data
 data <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS/ADVANCED_INTERCROSS/XQTL_ADVANCED_INTERCROSS.merged.fst",header=F)
+
+# remove mtDNA as not needed
 data <- data[data$V1!="hcontortus_chr_mtDNA_arrow_pilon",]
 
-# chromosome colours
+# set chromosome colours
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
-
 
 
 
@@ -920,10 +946,10 @@ rnaseq_plot3 <-
      geom_point(aes(start,log2FoldChange.1,col=-log10(padj.1),size=-log10(padj.1)))+
      geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.1 > 2 | log2FoldChange.1 < -2),aes(start,log2FoldChange.1, label=name_PUGAxPISE)) +
      scale_colour_viridis(direction=-1,limits = c(0, 30))+
-            scale_size_continuous(limits = c(0, 30)) +
-            theme_bw()+
-            xlim(36e6,39e6)+
-            labs(title="pre vs post treatment", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+     scale_size_continuous(limits = c(0, 30)) +
+     theme_bw()+
+     xlim(36e6,39e6)+
+     labs(title="pre vs post treatment", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
 
 rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
 ```
