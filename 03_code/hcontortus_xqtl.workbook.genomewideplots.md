@@ -81,7 +81,8 @@ ggsave("XQTL_genomewide_parents.png")
 - Aim is to show genetic differentiation between pre and post treatment F3 generation for each of the control,  benzimidazole,  levamisole,  and ivermectin XQTL datasets
 - the replicate sets of the treatment groups are outlined below
      - note: for the drug treatment conditions, the first and second replicates are technical replicates of the one biological replicate. In the analyses, only the first of the technical replicates were used.
-     - oth
+     - otherwise, the replicates are biological replicates
+- the "replicate" pair represents the pre vs post treatment fro
 
 | Group | Replicate Pair | Data column |
 | --- | --- | --- |
@@ -101,7 +102,7 @@ ggsave("XQTL_genomewide_parents.png")
 |    | 3:7 | V39 |
 |    | 4:8 | V49 |
 
--
+
 
 
 ```R
