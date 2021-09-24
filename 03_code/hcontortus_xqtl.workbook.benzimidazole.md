@@ -11,6 +11,9 @@
 ```bash
 # XQTL benzimidazole Fst data
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
+
+# beta tubulin allele frequencies of canonical resistant SNPs in XQTL treated and control populations, US farms, and in ivermectin treated samples
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/*ADfreq
 ```
 
 
@@ -188,7 +191,6 @@ bz_data <- dplyr::full_join(bz_pre,  bz_post,  by = c("CHR", "POS", "SAMPLE_ID")
 bz_data$TREATMENT <- "2. Benzimidazole"
 colnames(bz_data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TREATMENT", "TREATMENT")
 
-
 control_pre <- read.table("control_pretreatment.ADfreq")
 control_pre <- filter(control_pre,V1=="hcontortus_chr1_Celeg_TT_arrow_pilon")
 colnames(control_pre) <- c("CHR", "POS", "R1", "R2", "R3")
@@ -208,60 +210,72 @@ colnames(control_data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TR
 data <- dplyr::bind_rows(control_data,  bz_data)
 
 # change the labels
-data <- data %>%
-  mutate(POS = str_replace_all(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
-
-
+data <-
+     data %>%
+     mutate(POS = str_replace_all(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
 
 # make the plot
-plot <- ggplot(data) +
+plot <-
+     ggplot(data) +
      geom_segment(aes(x = "1.PRE",  xend = "2.POST",  y = PRE_TREATMENT,  yend = POST_TREATMENT, col = factor(SAMPLE_ID), group = POS),  size = 1) +
      labs(title = "B", x = "Sampling time-point", y = "Resistant allele frequency", col = "Replicate") +
      ylim(0, 1) +
      facet_grid(POS ~ TREATMENT) +
      theme_bw() + theme(text = element_text(size = 10))
 
-# perform pairwise t tests between pre/post for each SNP on BZ treated samples
-bz_data_stats <- bz_data %>%
-  gather(key = "TREATMENT",  value = "FREQ",  PRE_TREATMENT,  POST_TREATMENT)
 
-bz_stat.test <- bz_data_stats %>%
-    group_by(POS) %>%
-    pairwise_t_test(
-      FREQ ~ TREATMENT,  paired = TRUE,
-      p.adjust.method = "bonferroni"
-      ) %>%
-    select(-df,  -statistic,  -p) # Remove details
+# perform pairwise t tests between pre/post for each SNP on BZ treated samples
+bz_data_stats <-
+     bz_data %>%
+     gather(key = "TREATMENT",  value = "FREQ",  PRE_TREATMENT,  POST_TREATMENT)
+
+bz_stat.test <-
+     bz_data_stats %>%
+     group_by(POS) %>%
+     pairwise_t_test(
+          FREQ ~ TREATMENT,  paired = TRUE,
+          p.adjust.method = "bonferroni"
+          ) %>%
+     select(-df,  -statistic,  -p) # Remove details
 
 bz_stat.test$TREATMENT <- "2. Benzimidazole"
-bz_stat.test <- bz_stat.test %>%
-  mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
+bz_stat.test <-
+     bz_stat.test %>%
+     mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
 
 # perform pairwise t tests between pre/post for each SNP on control samples
-control_data_stats <- control_data %>%
-  gather(key = "TREATMENT",  value = "FREQ",  PRE_TREATMENT,  POST_TREATMENT)
+control_data_stats <-
+     control_data %>%
+     gather(key = "TREATMENT",  value = "FREQ",  PRE_TREATMENT,  POST_TREATMENT)
 
-control_stat.test <- control_data_stats %>%
-    group_by(POS) %>%
-    pairwise_t_test(
-      FREQ ~ TREATMENT,  paired = TRUE,
-      p.adjust.method = "bonferroni"
-      ) %>%
-    select(-df,  -statistic,  -p) # Remove details
+control_stat.test <-
+     control_data_stats %>%
+     group_by(POS) %>%
+     pairwise_t_test(
+          FREQ ~ TREATMENT,  paired = TRUE,
+          p.adjust.method = "bonferroni"
+          ) %>%
+          select(-df,  -statistic,  -p) # Remove details
 
 
 control_stat.test$TREATMENT <- "1. Untreated"
-control_stat.test <- control_stat.test %>%
-  mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
+control_stat.test <-
+     control_stat.test %>%
+     mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
 
 p.data <- dplyr::bind_rows(control_stat.test,  bz_stat.test)
 
 
 # make new plot with p values annotated on it
-plot_b <- plot +
+plot_b <-
+     plot +
      geom_text(data = p.data,  aes(x = 1.5,  y = 0.95,  group = POS,  label = paste('P = ', p.adj)), size = 2.5)
-```
 
+plot_b
+
+ggsave("XQTL_BZ_btubSNPs.png")
+```
+![](../04_analysis/XQTL_BZ_btubSNPs.png)
 ---
 
 ## Figure 3 C <a name="figure3c"></a>
