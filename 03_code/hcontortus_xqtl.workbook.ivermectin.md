@@ -122,13 +122,16 @@ ivm_chr5_data <-
 plot_chr5 <-
      ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
      geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-     geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
+     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
+     geom_point() + facet_grid(CHR~.) +
+     scale_color_identity() + scale_size_identity() +
      xlim(0, 50e6) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
      labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
      facet_grid(CHR ~ .)
 
-#plot_chr5
+plot_chr5
+
 ggsave("XQTL_IVM_chromosome5_replicates.png")
 
 ```
@@ -146,7 +149,7 @@ ggsave("XQTL_IVM_chromosome5_replicates.png")
 # load the output of NPstats, and add the drenchrite EC50 per farm
 us_farm1 <-read.table("sample_1.pileup.stats",header=T,sep="\t")
 us_farm1$sample <- "us_farm1"
-us_farm1$ivm_EC50 <- "1.51"
+us_farm1$ivm_EC50 <- "0.19"
 us_farm2 <-read.table("sample_2.pileup.stats",header=T,sep="\t")
 us_farm2$sample <- "us_farm2"
 us_farm2$ivm_EC50 <- "12.04"
@@ -167,10 +170,10 @@ us_farm7$sample <- "us_farm7"
 us_farm7$ivm_EC50 <- "312.1"
 us_farm8 <-read.table("sample_8.pileup.stats",header=T,sep="\t")
 us_farm8$sample <- "us_farm8"
-us_farm8$ivm_EC50 <- "NA"
+us_farm8$ivm_EC50 <- "224"
 us_farm9 <-read.table("sample_9.pileup.stats",header=T,sep="\t")
 us_farm9$sample <- "us_farm9"
-us_farm9$ivm_EC50 <- "0.977"
+us_farm9$ivm_EC50 <- "1.51"
 us_farm10 <-read.table("sample_10.pileup.stats",header=T,sep="\t")
 us_farm10$sample <- "us_farm10"
 us_farm10$ivm_EC50 <- "259.4"
@@ -187,7 +190,8 @@ us_farm_data_chr5 <- us_farm_data_chr5 %>%
 # make plots
 plot_fst <-
      ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-     geom_point() +
+     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
+     geom_point(size=0.25) +
      scale_color_identity() +
      scale_size_identity() +
      geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black")+
@@ -196,10 +200,11 @@ plot_fst <-
      theme_bw() + theme(text = element_text(size = 10))
 
 plot_pi <-
-     ggplot(us_farm_data_chr5, aes((window*10000)-5000,log10(Pi), colour=as.numeric(ivm_EC50))) +
-     geom_point(size=0.5) +
+     ggplot(us_farm_data_chr5, aes((window*10000)-5000,Pi, group=ivm_EC50, colour=as.numeric(ivm_EC50))) +
+     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
+     geom_point(size=0.25) +
      xlim(36e6,39e6) +
-     scale_colour_viridis(direction=1,limits = c(0, 800)) +
+     scale_colour_viridis(direction=-1,limits = c(0, 620), option="viridis") +
      labs(title = "C", x="Genomic position (bp)", y="Nucleotide diversity on\nUS Farms (log10[Pi])", colour="Ivermectin\nEC50\n(uM)")+
      theme_bw() + theme(text = element_text(size = 10))
 
@@ -267,7 +272,9 @@ plot_ko <-
 
 plot_ko
 ggsave("XQTL_IVM_cky-1_KO.png")
+
 ```
+
 ![](../04_analysis/XQTL_IVM_cky-1_KO.png)
 
 
@@ -294,7 +301,9 @@ plot_rnai <-
 
 plot_rnai
 ggsave("XQTL_IVM_cky-1_rnai.png")
+
 ```
+
 ![](../04_analysis/XQTL_IVM_cky-1_rnai.png)
 
 
@@ -322,7 +331,9 @@ plot_trans <-
 plot_trans
 
 ggsave("XQTL_IVM_cky-1_trans.png")
+
 ```
+
 ![](../04_analysis/XQTL_IVM_cky-1_trans.png)
 
 
@@ -617,10 +628,12 @@ library(rstatix)
 # reform the data
 pre <- read.table("ivm_btub_pretreatment.ADfreq")
 colnames(pre) <- c("CHR", "POS", "R1", "R1.2", "R2", "R3")
+pre <- pre %>% select("CHR", "POS", "R1", "R2", "R3")
 pre <- melt(pre, id = c("CHR", "POS"), variable.name = "SAMPLE_ID")
 
 post <- read.table("ivm_btub_posttreatment.ADfreq")
 colnames(post) <- c("CHR", "POS", "R1", "R1.2", "R2", "R3")
+post <- post %>% select("CHR", "POS", "R1", "R2", "R3")
 post <- melt(post, id = c("CHR", "POS"), variable.name = "SAMPLE_ID")
 
 data <- dplyr::full_join(pre, post, by = c("CHR", "POS", "SAMPLE_ID"))
@@ -676,7 +689,7 @@ colnames(us_btub1) <- c("CHR", "POS", "Farm 1", "Farm 2", "Farm 3", "Farm 4", "F
 us_btub1 <- melt(us_btub1,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 # manually input the EC50 data from Table SX
-ivm_conc <- c(1.51, 1.51, 12.04, 12.04, 9.15, 9.15, 11.27, 11.27, 297.9, 297.9, 619, 619, 312.1, 312.1, NA, NA, 0.977, 0.977, 259.4, 259.4)
+ivm_conc <- c(0.19, 0.19, 12.04, 12.04, 9.15, 9.15, 11.27, 11.27, 297.9, 297.9, 619, 619, 312.1, 312.1, 224, 224, 1.51, 1.51, 259.4, 259.4)
 
 us_btub1$IVM_CONCENTRATION <- ivm_conc
 colnames(us_btub1) <- c("CHR", "POS", "SAMPLE_ID", "ALLELE_FREQ", "IVM_CONCENTRATION")
@@ -724,10 +737,10 @@ plot_b <-
      geom_text(data = cor.data,  aes(x = 500,  y = 1,  group = POS,  label = paste('r = ', signif(COR, 3), '\n', 'P = ', signif(PVALUE, 3))), size = 3)
 
 # combine panels a and b using patchwork
-plot_a + plot_b + plot_layout(ncol = 2)
+plot_a + plot_b + plot_layout(ncol = 1)
 
 # save it
-ggsave("FigureSX_USfarm_btub1vsIVM.pdf",  useDingbats = FALSE,  width = 170,  height = 100,  units = "mm")
+ggsave("FigureSX_USfarm_btub1vsIVM.pdf",  useDingbats = FALSE,  width = 150,  height = 150,  units = "mm")
 ggsave("FigureSX_USfarm_btub1vsIVM.png")
 
 ```
@@ -838,6 +851,9 @@ ivm_dose_response_data <- dplyr::filter(dose_response_data,dose_response_data$Tr
 
 plot_DR_curve <-
      ggplot(ivm_dose_response_data,aes(IVM_logged,X._developed_to_L3/100)) +
+     geom_vline(aes(xintercept=log10(3.9)), linetype = "dashed", col = "black") +
+     geom_vline(aes(xintercept=log10(15.6)), linetype = "dashed", col = "black") +
+     geom_vline(aes(xintercept=log10(62.5)), linetype = "dashed", col = "black") +
      geom_point(aes(color=as.factor(Plate)))+
      #geom_line(data = preddat, aes(y = pred), color = "red")+
      geom_smooth(method="glm",method.args = list(family = quasibinomial(link = "probit")),colour="blue")+
