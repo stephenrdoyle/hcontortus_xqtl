@@ -56,7 +56,12 @@ lev_chr45_data <- mutate(lev_chr45_data,
 # make the plot
 plot_a <- ggplot(lev_chr45_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
                geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-               geom_point() + facet_grid(CHR~.) + scale_color_identity() + scale_size_identity() +
+               geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 4"), aes(xintercept=14977822), linetype = "dashed", col = "black") +
+               geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 4"), aes(xintercept=14991116), linetype = "dashed", col = "black") +
+               geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 5"), aes(xintercept=31508821), linetype = "dashed", col = "black") +
+               geom_point() +
+               facet_grid(CHR~.) +
+               scale_color_identity() + scale_size_identity() +
                xlim(0, 50e6) +
                theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
                labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
@@ -64,9 +69,10 @@ plot_a <- ggplot(lev_chr45_data, aes(POS, FST_MEAN, colour=point_colour, size=if
 
 
 #plot_a
+
 ```
 
-## Figure 4 B <a name = "figure4b"></a>
+## acr-8 gene model
 
 Aim is to show a gene model of acr-8, highlighing the position of the lev-resistance associated indel and the new Ser168Thr variant
 
@@ -76,6 +82,7 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/LEV
 
 #gff
 ln -fs /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOME_CURATION/20200407/UPDATED_annotation.gff3 ANNOTATION.gff
+
 ```
 
 
@@ -154,38 +161,39 @@ utr2 <- rbind(utr52, utr32)
 # make plot
 plot_b <- ggplot()+
 #gene1
- geom_rect(data = utr1, aes(xmin = utr1$start, ymin = 0.5, xmax = utr1$end, ymax = 1.5), fill = NA, col = "grey", size = 0.4) +
- geom_segment(data = intron1, aes(x = intron1$start, xend = intron1$start + intron1$midpoint, y = 1, yend = 1.5), size = 0.5) +
- geom_segment(data = intron1, aes(x = intron1$start + intron1$midpoint, xend = intron1$end, y = 1.5, yend = 1), size = 0.5) +
- geom_rect(data = cds1, aes(xmin = cds1$start, ymin = 0.5, xmax = cds1$end, ymax = 1.5), fill = "grey", col = NA) +
- geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 1, label = gene1),size = 2) +
- geom_segment(aes(x = 31521884, xend = 31521884, y = 0.5, yend = 1.5), size = 1, col = "orange") + # Ser168Thr
- geom_text(aes(x = 31521884, y = 0.35), label = "Ser168Thr", size = 2) +
-#gene2
- geom_rect(data = utr2, aes(xmin = utr2$start, ymin = 2, xmax = utr2$end, ymax = 3), fill = NA, col = "grey", size = 0.4) +
- geom_segment(data = intron2, aes(x = intron2$start, xend = intron2$start+intron2$midpoint, y = 2.5, yend = 3), size = 0.5) +
- geom_segment(data = intron2, aes(x = intron2$start+intron2$midpoint, xend = intron2$end, y = 3, yend = 2.5), size = 0.5) +
- geom_rect(data = cds2, aes(xmin = cds2$start, ymin = 2, xmax = cds2$end, ymax = 3), fill = "grey", col = NA) +
- geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 2.5, label = gene2), size = 2) +
- # acr-8 indel
- geom_segment(aes(x = 31527022, xend = 31527022, y = 0.5, yend = 3), size = 1, col = "red") +
- geom_text(aes(x = 31527022, y = 0.35), label = "indel", size = 2) +
- # plot layout
- theme_classic()+
- #xlab("Genome position (bp)")+
- labs(title = "B", x = paste("Chromosome 5 position (bp)"))+
- xlim(mrna1$start - (0.1 * (mrna1$end - mrna1$start)), mrna1$end + (0.25 * (mrna1$end-mrna1$start))) +
- scale_y_reverse(lim = c(3, 0.35)) +
- scale_fill_discrete(guide = FALSE) +
- theme(axis.title.y = element_blank(),
-    axis.text.y = element_blank(),
-    axis.ticks.y = element_blank(),
-    text = element_text(size = 10))
+     geom_rect(data = utr1, aes(xmin = utr1$start, ymin = 0.5, xmax = utr1$end, ymax = 1.5), fill = NA, col = "grey", size = 0.4) +
+     geom_segment(data = intron1, aes(x = intron1$start, xend = intron1$start + intron1$midpoint, y = 1, yend = 1.5), size = 0.5) +
+     geom_segment(data = intron1, aes(x = intron1$start + intron1$midpoint, xend = intron1$end, y = 1.5, yend = 1), size = 0.5) +
+     geom_rect(data = cds1, aes(xmin = cds1$start, ymin = 0.5, xmax = cds1$end, ymax = 1.5), fill = "grey", col = NA) +
+     geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 1, label = gene1),size = 2) +
+     geom_segment(aes(x = 31521884, xend = 31521884, y = 0.5, yend = 1.5), size = 1, col = "orange") + # Ser168Thr
+     geom_text(aes(x = 31521884, y = 0.35), label = "Ser168Thr", size = 2) +
+     #gene2
+     geom_rect(data = utr2, aes(xmin = utr2$start, ymin = 2, xmax = utr2$end, ymax = 3), fill = NA, col = "grey", size = 0.4) +
+     geom_segment(data = intron2, aes(x = intron2$start, xend = intron2$start+intron2$midpoint, y = 2.5, yend = 3), size = 0.5) +
+     geom_segment(data = intron2, aes(x = intron2$start+intron2$midpoint, xend = intron2$end, y = 3, yend = 2.5), size = 0.5) +
+     geom_rect(data = cds2, aes(xmin = cds2$start, ymin = 2, xmax = cds2$end, ymax = 3), fill = "grey", col = NA) +
+     geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 2.5, label = gene2), size = 2) +
+     # acr-8 indel
+     geom_segment(aes(x = 31527022, xend = 31527022, y = 0.5, yend = 3), size = 1, col = "red") +
+     geom_text(aes(x = 31527022, y = 0.35), label = "indel", size = 2) +
+     # plot layout
+     theme_classic()+
+     #xlab("Genome position (bp)")+
+     labs(title = "B", x = paste("Chromosome 5 position (bp)"))+
+     xlim(mrna1$start - (0.1 * (mrna1$end - mrna1$start)), mrna1$end + (0.25 * (mrna1$end-mrna1$start))) +
+     scale_y_reverse(lim = c(3, 0.35)) +
+     scale_fill_discrete(guide = FALSE) +
+     theme(axis.title.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          text = element_text(size = 10))
 
 #plot_b
+
 ```
 
-## Figure 4 C <a name = "figure4c"></a>
+## Acr-8 indel
 
 Aim is to show a zoomed in view of the acr-8 indel, showing sequnecing reads spanning the deletion and that they have been soft clipped when mapped because of the indel. Two slightly different deletion coordinates are found, from: 31527022 to 31527119 (97 bp) and 31527022 to 31527121 (99 bp).
 
@@ -413,9 +421,11 @@ plot_e <- ggplot() + geom_blank()
 plot_a / (plot_b | plot_d) / (plot_c | plot_e)  + plot_layout(ncol = 1, height = c(4, 1.5, 3))
 
 
-ggsave("XQTL_Figure_4.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
-ggsave("XQTL_Figure_4.png")
+ggsave("XQTL_Figure_lev.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
+ggsave("XQTL_Figure_lev.png")
+
 ```
+
 ![](04_analysis/XQTL_Figure_4.png)
 
 
@@ -426,7 +436,7 @@ ggsave("XQTL_Figure_4.png")
 
 
 ### INCOMPLETE - get frequency of acr8 variant from global dataset
-```shell
+```bash
 #-----
 grep "pre" bam.list > lev_pretreatment_samples.list
 grep "post" bam.list > lev_posttreatment_samples.list
@@ -436,6 +446,7 @@ grep "post" ../XQTL_CONTROL/bam.list > control_posttreatment_samples.list
 
 for i in $(ls *.list); do
 vcftools --gzvcf 5.hcontortus_chr5_Celeg_TT_arrow_pilon.cohort.vcf.gz --keep ${i} --positions acr8.positions --freq --out global_${i}; done
+
 ```
 
 
@@ -558,6 +569,7 @@ while read old new; do samtools faidx wbp_acr8.fa ${new}; done < rename > wb_cla
 module load mafft/7.407=1
 
 mafft --localpair --maxiterate 16 --reorder "wb_cladeV_acr8.fa" > "wb_cladeV_acr8.aln"
+
 ```
 
 ### R to plot
@@ -611,7 +623,9 @@ ggplot(data, aes(y = name, x = position)) +
 # save it
 ggsave("acr8_multiple_sequence_alignment.pdf", width = 170, height = 180, units = "mm")
 ggsave("acr8_multiple_sequence_alignment.png")
+
 ```
+
 ![](04_analysis/acr8_multiple_sequence_alignment.png)
 
 ******
