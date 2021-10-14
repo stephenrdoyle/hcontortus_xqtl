@@ -82,7 +82,7 @@ ggsave("XQTL_genomewide_parents.png")
 - the replicate sets of the treatment groups are outlined below
      - note: for the drug treatment conditions, the first and second replicates are technical replicates of the one biological replicate. In the analyses, only the first of the technical replicates were used.
      - otherwise, the replicates are biological replicates
-- the "replicate" pair represents the pre vs post treatment fro
+- the "replicate" pair represents the pre vs post treatment from the same sheep
 
 | Group | Replicate Pair | Data column |
 | --- | --- | --- |

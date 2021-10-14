@@ -3,11 +3,12 @@
 
 
 
-Aim is show genetic differentiation between rpe and post treatment levamisole samples on chromosomes 4 and 5
+Aim is show genetic differentiation between pre and post treatment levamisole samples on chromosomes 4 and 5
 
 ```shell
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/LEV
+
 ```
 
 ### R to plot

@@ -14,6 +14,7 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ
 
 # beta tubulin allele frequencies of canonical resistant SNPs in XQTL treated and control populations, US farms, and in ivermectin treated samples
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/*ADfreq
+
 ```
 
 
@@ -25,6 +26,7 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/*ADfreq
 ```shell
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/BZ
+
 ```
 
 ### R to plot
@@ -78,7 +80,7 @@ xqtl_bz_fst_chr1 <-
 
 
 # make the plot
-plot_a <-
+plot_bz_chr1 <-
      ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
      geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
      geom_vline(xintercept = 7029790, linetype = "dashed", col = "black") +                  
@@ -90,9 +92,10 @@ plot_a <-
      labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
      facet_grid(CHR ~ .)
 
-plot_a
+plot_bz_chr1
 
 ggsave("XQTL_BZ_chromosome1.png")
+
 ```
 ![](../04_analysis/XQTL_BZ_chromosome1.png)
 
@@ -267,13 +270,14 @@ p.data <- dplyr::bind_rows(control_stat.test,  bz_stat.test)
 
 
 # make new plot with p values annotated on it
-plot_b <-
+plot_AF_btub1 <-
      plot +
      geom_text(data = p.data,  aes(x = 1.5,  y = 0.95,  group = POS,  label = paste('P = ', p.adj)), size = 2.5)
 
-plot_b
+plot_AF_btub1
 
 ggsave("XQTL_BZ_btubSNPs.png")
+
 ```
 ![](../04_analysis/XQTL_BZ_btubSNPs.png)
 
@@ -298,6 +302,7 @@ vcftools --vcf 2.hcontortus_chr2_Celeg_TT_arrow_pilon.snpeff.vcf --keep samples.
 for i in `ls *AD.FORMAT`; do
       grep "^hcon" ${i} | awk -F '[\t,]' '{print $1,$2,$4/($3+$4),$6/($5+$6),$8/($7+$8),$10/($9+$10),$12/($11+$12),$14/($13+$14),$16/($15+$16),$18/($17+$18),$20/($19+$20),$22/($21+$22)}' OFS="\t" > ${i%.AD.FORMAT}.ADfreq;
 done
+
 ```
 
 ### R to plot
@@ -313,7 +318,7 @@ us_btub2 <- read.table("us_farms_btub2.ADfreq")
 colnames(us_btub2) <- c("CHR", "POS", "Farm 1", "Farm 2", "Farm 3", "Farm 4", "Farm 5", "Farm 6", "Farm 7", "Farm 8", "Farm 9", "Farm 10")
 us_btub2 <- melt(us_btub2,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
-bz_conc <- c(1, 19.93, 15, 7.71, 15, 61.57, 29.6, NA, 9.67, 29.6)
+bz_conc <- c(0.05, 19.93, 15, 7.71, 15, 61.57, 29.6, 18.47, 9.67, 29.6)
 
 us_btub2$BZ_CONCENTRATION <- bz_conc
 colnames(us_btub2) <- c("CHR", "POS", "SAMPLE_ID", "ALLELE_FREQ", "BZ_CONCENTRATION")
@@ -326,7 +331,7 @@ us_btub2 <-
 af_bz_cor <- cor.test(us_btub2$ALLELE_FREQ,  us_btub2$BZ_CONCENTRATION,  method = "pearson",  use = "complete.obs")
 
 # make the plot
-plot_c <-
+plot_btub2_EC50 <-
      ggplot(us_btub2)+
      geom_smooth(aes(BZ_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey')+
      geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2)+
@@ -338,21 +343,23 @@ plot_c <-
      facet_grid(POS ~ "US farm") +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
 
-plot_c
+plot_btub2_EC50
 
 ggsave("XQTL_BZ_btubIso2_vs_EC50.png")
+
 ```
 ![](../04_analysis/XQTL_BZ_btubIso2_vs_EC50.png)
 
 ```R
 # bring the panels together
 # plot it
-plot_a / (plot_b | plot_c)
+plot_bz_chr1 / (plot_AF_btub1 | plot_btub2_EC50)
 
 
 # save it
 ggsave("Figure_benzimidazole.pdf",  useDingbats = FALSE, width = 170, height = 130, units = "mm")
 ggsave("Figure_benzimidazole.png")
+
 ```
 ![](../04_analysis/Figure_benzimidazole.png)
 
@@ -376,6 +383,7 @@ vcftools --vcf 1.hcontortus_chr1_Celeg_TT_arrow_pilon.snpeff.vcf --keep samples.
 
 # convert allele count data to variant frequency
 grep "^hcon" us_farms_btub1.AD.FORMAT | awk -F '[\t, ]' '{print $1, $2, $4/($3+$4), $6/($5+$6), $8/($7+$8), $10/($9+$10), $12/($11+$12), $14/($13+$14), $16/($15+$16), $18/($17+$18), $20/($19+$20), $22/($21+$22)}' OFS="\t" > us_farms_btub1.ADfreq
+
 ```
 
 ### R to plot
@@ -410,6 +418,7 @@ ggplot(us_btub1, aes(x = SAMPLE_ID, y = ALLELE_FREQ, fill = factor(POS))) +
 # save it
 ggsave("FigureSX_USfarm_btub1.pdf",  useDingbats=FALSE, width=170, height=100, units="mm")
 ggsave("FigureSX_USfarm_btub1.png")
+
 ```
 ![](../04_analysis/FigureSX_USfarm_btub1.png)
 
