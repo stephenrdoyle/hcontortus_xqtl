@@ -204,7 +204,7 @@ plot_pi <-
      geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
      geom_point(size=0.25) +
      xlim(36e6,39e6) +
-     scale_colour_viridis(direction=-1,limits = c(0, 620), option="viridis") +
+     scale_colour_viridis(direction=-1,limits = c(0, 620), option="magma") +
      labs(title = "C", x="Genomic position (bp)", y="Nucleotide diversity on\nUS Farms (log10[Pi])", colour="Ivermectin\nEC50\n(uM)")+
      theme_bw() + theme(text = element_text(size = 10))
 
