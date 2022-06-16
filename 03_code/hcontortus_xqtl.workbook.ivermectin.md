@@ -1,4 +1,9 @@
 # XQTL: ivermectin analyses
+
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
+
 - code
      - code below describes most of the final analyses used to make figures in the manuscript.
      - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward.

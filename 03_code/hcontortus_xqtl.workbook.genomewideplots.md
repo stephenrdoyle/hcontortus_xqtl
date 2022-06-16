@@ -1,21 +1,26 @@
-# XQTL: genome-wide plots of genetic differentiaiton
+# XQTL: genome-wide plots of genetic differentiation
+
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
 - code
-     - code below describes most of the final analyses used to make figures in the manuscript.
-     - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward.
+     - the code below describes most of the final analyses used to make figures in the manuscript.
+     - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward to modify.
 - raw data
      - raw data can be access via links in my FTP, which should allow the figures to be recreated.
-     - the raw data is provides to facilitate open access and data reuse. If used, please cite the paper.
+     - the raw data is provided to facilitate open access and data reuse. If used, please cite the paper.
 
 
 
 ## Download raw data
 ```
 # download data needed to make the figures
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/CONTROL/XQTL_CONTROL.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/LEV/XQTL_LEV.merged.fst
-wget ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/PARENTS/XQTL_PARENTS.merged.fst
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/CONTROL/XQTL_CONTROL.merged.fst
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/LEV/XQTL_LEV.merged.fst
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/PARENTS/XQTL_PARENTS.merged.fst
+
 ```
 
 
@@ -25,19 +30,18 @@ Aim is to show genetic differentiation between the two parental strains,  MHco3(
 
 ```shell
 # my working dir:
-cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/GENOMEWIDE
+cd /nfs/users/nfs_s/sd21/lustre118_link/haemonchus_contortus/XQTL/05_ANALYSIS/GENOMEWIDE
 ```
-
-
 
 ### R to plot
 ```R
 # load required libraries
 library(tidyverse)
 library(patchwork)
+library(qvalue)
 
 
-# load and reformat the data
+# load and reformat the parental data
 parents <- read.table("XQTL_PARENTS.merged.fst",  header = F)
 parents <- parents[parents$V1 != "hcontortus_chr_mtDNA_arrow_pilon",  ]
 parents <- dplyr::select(parents,  V1,  V2,  V7)
@@ -46,7 +50,30 @@ parents$LABEL <- "MHco3(ISE) vs MHco18(UGA)"
 parents$ROW_ID <- 1:nrow(parents)
 colnames(parents) <- c("CHR",  "POS",  "FST",  "LABEL",  "ROW_ID")
 
-data <- parents
+
+# load and reformat the control data - note there are three replicates, so taking the mean value for Fst
+control <- read.table("XQTL_CONTROL.merged.fst", header=F)
+control <- control[control$V1!="hcontortus_chr_mtDNA_arrow_pilon", ]
+control <- dplyr::select(control,  V1,  V2,  V11 , V21, V29)
+control <- control %>% mutate(FST = rowMeans(select(.,V11,V21,V29)))
+control <- dplyr::select(control,  V1,  V2,  FST)
+control$LABEL <- "1. Control"
+control$ROW_ID <- 1:nrow(control)
+colnames(control) <- c("CHR",  "POS", "FST",  "LABEL",  "ROW_ID")
+
+
+# combine the data together
+data <- dplyr::bind_rows(parents, control)
+
+
+data <- data %>%
+ mutate(CHR = str_replace_all(CHR, c("hcontortus_chr1_Celeg_TT_arrow_pilon" = "Chromosome 1",
+ "hcontortus_chr2_Celeg_TT_arrow_pilon" = "Chromosome 2",
+ "hcontortus_chr3_Celeg_TT_arrow_pilon" = "Chromosome 3",
+ "hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4",
+ "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5",
+ "hcontortus_chrX_Celeg_TT_arrow_pilon" = "Chromosome X")))
+
 
 # calculate the genome wide significance per sample
 data_gws <- data %>%
@@ -56,19 +83,23 @@ data_gws <- data %>%
 # chromosome colours
 chr_colours <- c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
+
 # make the plot
 plot_a <-
      ggplot(data)+
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed",  col = "black") +
-     geom_point(aes(ROW_ID * 5000,  FST,  colour = CHR,  group = LABEL),  size = 0.1) +
-     ylim(0, 1) +
-     labs(title = "A",  x = "Genomic position (bp)",  y = expression(paste("Genetic differentiation"," (",~italic(F)[ST],")"))) +
+     geom_point(aes(POS,  FST,  colour = CHR),  size = 0.1) +
+     labs(title = "A", x="", y = expression(paste("Genetic differentiation"," (",~italic(F)[ST],")"))) +
      scale_color_manual(values = chr_colours) +
-     scale_x_continuous(breaks = seq(0,  3e8,  0.5e8), limits = c(0,  300e6)) +
-     theme_bw() + theme(legend.position = "none",  text = element_text(size = 10), strip.text.y = element_text(size = 6)) +
-     facet_grid(LABEL ~ .)
+     facet_grid(~factor(LABEL, levels=c("MHco3(ISE) vs MHco18(UGA)", "1. Control")) ~ CHR, space="free_x", scales="free", switch="x") +
+     theme_bw() +  theme(panel.spacing.x = unit(0, "lines"), strip.text.x = element_text(angle = 0), legend.position = "none", axis.text.x=element_blank(), text = element_text(size = 10), strip.text.y = element_text(size = 6), axis.ticks.x=element_blank())
 
 plot_a
+
+
+
+
+
 
 ggsave("XQTL_genomewide_parents.png")
 ```
@@ -109,25 +140,54 @@ ggsave("XQTL_genomewide_parents.png")
 # load required libraries
 library(tidyverse)
 library(patchwork)
-
+library(qvalue)
 
 # control
 control <- read.table("XQTL_CONTROL.merged.fst", header=F)
 control <- control[control$V1!="hcontortus_chr_mtDNA_arrow_pilon", ]
 control <- dplyr::select(control,  V1,  V2,  V11 , V21, V29)
 control <- control %>% mutate(mean_FST = rowMeans(select(.,V11,V21,V29)))
+#control <- control %>% mutate(mean_FST = rowMeans(select(.,V11)))
 control$LABEL <- "1. Control"
 control$ROW_ID <- 1:nrow(control)
-colnames(control) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
 
-# benzimidazole
+# calculate zscore
+control <- control %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+# convert zscore into a pvalue
+control <- control %>% mutate(PNORM = 2*pnorm(-abs(control$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+control_q_data <- qvalue(control$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+control$QVALUE <- control_q_data$qvalues
+
+colnames(control) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID", "ZSCORE", "PNORM", "QVALUE")
+
+
+
+
+# fenbendazole
 bz <- read.table("XQTL_BZ.merged.fst", header = F)
 bz <- bz[bz$V1 != "hcontortus_chr_mtDNA_arrow_pilon", ]
 bz <- dplyr::select(bz,  V1,  V2,  V13 , V39, V49)
 bz <- bz %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
-bz$LABEL <- "2. Benzimidazole"
+#bz <- bz %>% mutate(mean_FST = rowMeans(select(.,V13)))
+bz$LABEL <- "2. Fenbendazole"
 bz$ROW_ID <- 1:nrow(bz)
-colnames(bz) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
+
+# calculate zscore
+bz <- bz %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+# convert zscore into a pvalue
+bz <- bz %>% mutate(PNORM = 2*pnorm(-abs(bz$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+bz_q_data <- qvalue(bz$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+bz$QVALUE <- bz_q_data$qvalues
+
+colnames(bz) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID", "ZSCORE", "PNORM", "QVALUE")
+
+
 
 data <- dplyr::bind_rows(control, bz)
 
@@ -139,7 +199,19 @@ lev <- dplyr::select(lev,  V1,  V2,  V13 , V39, V49)
 lev <- lev %>% mutate(mean_FST = rowMeans(select(.,V13)))
 lev$LABEL <- "3. Levamisole"
 lev$ROW_ID <- 1:nrow(lev)
-colnames(lev) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
+
+# calculate zscore
+lev <- lev %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+# convert zscore into a pvalue
+lev <- lev %>% mutate(PNORM = 2*pnorm(-abs(lev$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+lev_q_data <- qvalue(lev$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+lev$QVALUE <- lev_q_data$qvalues
+
+colnames(lev) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID", "ZSCORE", "PNORM", "QVALUE")
+
 
 
 data <- dplyr::bind_rows(data, lev)
@@ -149,18 +221,36 @@ ivm <- read.table("XQTL_IVM.merged.fst", header = F)
 ivm <- ivm[ivm$V1 != "hcontortus_chr_mtDNA_arrow_pilon", ]
 ivm <- dplyr::select(ivm,  V1,  V2,  V13 , V39, V49)
 ivm <- ivm %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
+#ivm <- ivm %>% mutate(mean_FST = rowMeans(select(.,V13)))
 ivm$LABEL <- "4. Ivermectin"
 ivm$ROW_ID <- 1:nrow(ivm)
-colnames(ivm) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID")
+
+# calculate zscore
+ivm <- ivm %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+# convert zscore into a pvalue
+ivm <- ivm %>% mutate(PNORM = 2*pnorm(-abs(ivm$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+ivm_q_data <- qvalue(ivm$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+ivm$QVALUE <- ivm_q_data$qvalues
+
+colnames(ivm) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID", "ZSCORE", "PNORM", "QVALUE")
 
 
 data <- dplyr::bind_rows(data, ivm)
 
 
-# genome wide signficance per sample
-data_gws <- data %>%
-    group_by(LABEL) %>%
-    summarise(GWS = mean(FST_MEAN) + 3*sd(FST_MEAN))
+data <- data %>%
+ mutate(CHR = str_replace_all(CHR, c("hcontortus_chr1_Celeg_TT_arrow_pilon" = "Chromosome 1",
+ "hcontortus_chr2_Celeg_TT_arrow_pilon" = "Chromosome 2",
+ "hcontortus_chr3_Celeg_TT_arrow_pilon" = "Chromosome 3",
+ "hcontortus_chr4_Celeg_TT_arrow_pilon" = "Chromosome 4",
+ "hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5",
+ "hcontortus_chrX_Celeg_TT_arrow_pilon" = "Chromosome X")))
+
+
+
 
 
 
@@ -168,7 +258,7 @@ data_gws <- data %>%
 chr_colours<-c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "cornflowerblue")
 
 # make the plot
-plot_b <-
+/* plot_b <-
      ggplot(data) +
      geom_hline(data = data_gws,  aes(yintercept = GWS),  linetype = "dashed", col = "black") +
      geom_point(aes(ROW_ID * 5000,  FST_MEAN,  colour = CHR,  group = LABEL), size = 0.1) +
@@ -177,17 +267,61 @@ plot_b <-
      scale_color_manual(values = chr_colours) +
      scale_x_continuous(breaks = seq(0, 3e8, 0.5e8), limits = c(0, 300e6)) + ylim(0,0.15) +
      theme_bw() + theme(legend.position = "none", text = element_text(size=10)) +
-     facet_grid(LABEL ~ .)
+     facet_grid(LABEL ~ .) */
+
+
+plot_b <- ggplot(data) +
+     geom_point(aes(POS,  -log10(QVALUE),  colour = CHR,  group = LABEL),  size = 0.1) +
+     facet_grid(LABEL~CHR, space="free_x", scales="free_x", switch="x") + theme_minimal() +
+     ylim(0,60) +
+     theme_bw() +  theme(panel.spacing.x = unit(0, "lines"), strip.text.x = element_text(angle = 0), legend.position = "none", axis.text.x=element_blank(), text = element_text(size = 10), strip.text.y = element_text(size = 6), axis.ticks.x=element_blank()) +
+     scale_color_manual(values = chr_colours) +
+     labs(title = "B", x = "",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " ("-log[10] qvalue,")"))) +
+     geom_hline(yintercept=-log10(0.05/nrow(data)), linetype="dashed")
+
+
 
 
 # combine the parental and XQTL plots into a single figure
-plot_a + plot_b + plot_layout(ncol = 1,  heights = c(1, 4))
+plot_a + plot_b + plot_layout(ncol = 1,  heights = c(2, 4))
 
 # save it
 ggsave("genomewide_fst_plots.pdf", useDingbats = FALSE, width = 170, height = 200, units = "mm")
 ggsave("genomewide_fst_plots.png")
 ```
 ![](../04_analysis/genomewide_fst_plots.png)
+
+
+
+
+
+# calculate zscore
+data <- data %>% mutate(zscore = (FST - mean(FST))/sd(FST))
+
+# convert zscore into a pvalue
+data <- data %>% mutate(pnorm = 2*pnorm(-abs(data$zscore)))
+
+# calculated a FDR adjusted qvalue
+q_data <- qvalue(data$pnorm, fdr.level=0.05, pi0.method="bootstrap")
+data$qvalue <- q_data$qvalues
+
+
+
+plot_b <- ggplot(data) +
+     geom_point(aes(POS,  -log10(QVALUE),  colour = CHR,  group = LABEL),  size = 0.1) +
+     facet_grid(LABEL~CHR, space="free_x", scales="free_x", switch="x") + theme_minimal() +
+     ylim(0,60) +
+     theme_bw() +  theme(panel.spacing.x = unit(0, "lines"), strip.text.x = element_text(angle = 0), legend.position = "none", axis.text.x=element_blank(), text = element_text(size = 10), strip.text.y = element_text(size = 6), axis.ticks.x=element_blank()) +
+     geom_hline(yintercept=-log10(0.05/nrow(data)), linetype="dashed")
+
+
+
+
+
+
+
+
+
 
 
 ## genome wide plots for F3 generation per replicate group
