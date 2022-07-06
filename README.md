@@ -21,7 +21,8 @@ The code for the analysis is broken up into subsections as follows:
 - [Benzimidazole analyses](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.benzimidazole.md)  
 - [Levamisole analyses](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.levamisole.md)  
 - [Ivermectin analyses](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.ivermectin.md)  
-- [US field samples](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.US_field_genomewide.md)  
+- [US field samples](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.US_field_genomewide.md)
+- [Haplotype block analysis](https://github.com/stephenrdoyle/hcontortus_xqtl/blob/master/03_code/hcontortus_xqtl.workbook.haplotypeblocks.md)
 
 To recreate the figures, some data will need to be downloaded from my FTP repository, which can be accessed here: ftp://ftp.sanger.ac.uk/pub/project/pathogens/sd21/hcontortus_xqtl/
 
