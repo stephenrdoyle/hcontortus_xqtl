@@ -1,4 +1,8 @@
 ## Peak finding
+
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
 - didnt use this in the end, but keeping for future reference
 ```shell
 

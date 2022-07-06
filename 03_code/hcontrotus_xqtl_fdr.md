@@ -1,5 +1,8 @@
 # XQTL supplementary data - looking a fst distribution, and cutoffs
 
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
 ```bash
 # working dir:
 cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/04_VARIANTS

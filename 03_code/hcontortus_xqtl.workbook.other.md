@@ -1,6 +1,7 @@
-hcontortus_xqtl.workbook.other
+# hcontortus_xqtl.workbook.other
 
-
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
 
 ###########################################################################################
 # allele frequencies for Jamie

@@ -1,4 +1,8 @@
 # XQTL analysis - mapping_variants
+
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
 - this workbook contains the workflow to map raw sequencing reads and perform variant calling
 
 1. [Preparing the reference](#reference)

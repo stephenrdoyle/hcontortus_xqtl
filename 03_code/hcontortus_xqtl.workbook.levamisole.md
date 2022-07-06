@@ -12,19 +12,75 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/haemonchus_contortus/XQTL/05_ANALYSIS/LE
 
 ```
 
+# calculate zscore
+data <- data %>% mutate(zscore = (FST - mean(FST))/sd(FST))
+
+# convert zscore into a pvalue
+data <- data %>% mutate(pnorm = 2*pnorm(-abs(data$zscore)))
+
+# calculated a FDR adjusted qvalue
+q_data <- qvalue(data$pnorm, fdr.level=0.05, pi0.method="bootstrap")
+data$qvalue <- q_data$qvalues
+
+
+
+plot_b <- ggplot(data) +
+     geom_point(aes(POS,  -log10(QVALUE),  colour = CHR,  group = LABEL),  size = 0.1) +
+     facet_grid(LABEL~CHR, space="free_x", scales="free_x", switch="x") + theme_minimal() +
+     ylim(0,60) +
+     theme_bw() +  theme(panel.spacing.x = unit(0, "lines"), strip.text.x = element_text(angle = 0), legend.position = "none", axis.text.x=element_blank(), text = element_text(size = 10), strip.text.y = element_text(size = 6), axis.ticks.x=element_blank()) +
+     geom_hline(yintercept=-log10(0.05/nrow(data)), linetype="dashed")
+
+
+     # control
+     control <- read.table("XQTL_CONTROL.merged.fst", header=F)
+     control <- control[control$V1!="hcontortus_chr_mtDNA_arrow_pilon", ]
+     control <- dplyr::select(control,  V1,  V2,  V11 , V21, V29)
+     control <- control %>% mutate(mean_FST = rowMeans(select(.,V11,V21,V29)))
+     #control <- control %>% mutate(mean_FST = rowMeans(select(.,V11)))
+     control$LABEL <- "1. Control"
+     control$ROW_ID <- 1:nrow(control)
+
+     # calculate zscore
+     control <- control %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+     # convert zscore into a pvalue
+     control <- control %>% mutate(PNORM = 2*pnorm(-abs(control$ZSCORE)))
+
+     # calculated a FDR adjusted qvalue
+     control_q_data <- qvalue(control$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+     control$QVALUE <- control_q_data$qvalues
+
+     colnames(control) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN",  "LABEL",  "ROW_ID", "ZSCORE", "PNORM", "QVALUE")
+
+
+
 ### R to plot
 ```R
 # load required libraries
 library(ggplot2)
 library(dplyr)
 library(stringr)
+library(qvalue)
 
 # load and reformat the data
 xqtl_lev_fst <- read.table("XQTL_LEV.merged.fst", header = F)
-xqtl_lev_fst <- xqtl_lev_fst[xqtl_lev_fst$V1! = "hcontortus_chr_mtDNA_arrow_pilon", ]
+xqtl_lev_fst <- xqtl_lev_fst[xqtl_lev_fst$V1 != "hcontortus_chr_mtDNA_arrow_pilon", ]
 xqtl_lev_fst <- dplyr::select(xqtl_lev_fst,  V1,  V2,  V13 , V39, V49)
 xqtl_lev_fst <- xqtl_lev_fst %>% mutate(mean_FST = rowMeans(select(.,V13)))
-colnames(xqtl_lev_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
+
+# calculate zscore
+xqtl_lev_fst <- xqtl_lev_fst %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+# convert zscore into a pvalue
+xqtl_lev_fst <- xqtl_lev_fst %>% mutate(PNORM = 2*pnorm(-abs(xqtl_lev_fst$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+xqtl_lev_fst_q_data <- qvalue(xqtl_lev_fst$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+xqtl_lev_fst$QVALUE <- xqtl_lev_fst_q_data$qvalues
+
+colnames(xqtl_lev_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN", "ZSCORE", "PNORM", "QVALUE")
+
 
 # calculate a genome wide significance cutoff
 gw_r1 <- mean(xqtl_lev_fst$FST_R1) + 3*sd(xqtl_lev_fst$FST_R1)
@@ -55,18 +111,20 @@ lev_chr45_data <- mutate(lev_chr45_data,
 
 
 # make the plot
-plot_a <- ggplot(lev_chr45_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-               geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-               geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 4"), aes(xintercept=14977822), linetype = "dashed", col = "black") +
-               geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 4"), aes(xintercept=14991116), linetype = "dashed", col = "black") +
-               geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 5"), aes(xintercept=31508821), linetype = "dashed", col = "black") +
-               geom_point() +
-               facet_grid(CHR~.) +
-               scale_color_identity() + scale_size_identity() +
-               xlim(0, 50e6) +
-               theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-               labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
-               facet_grid(CHR ~ .)
+
+plot_a <- ggplot(lev_chr45_data, aes(POS/10^6, -log10(QVALUE), colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_hline(yintercept = -log10(0.05/nrow(lev_chr45_data)), linetype = "dashed", col = "black") +
+     geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 4"), aes(xintercept=14977822/10^6), linetype = "dashed", col = "black") +
+     geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 4"), aes(xintercept=14991116/10^6), linetype = "dashed", col = "black") +
+     geom_vline(data=filter(lev_chr45_data, CHR=="Chromosome 5"), aes(xintercept=31508821/10^6), linetype = "dashed", col = "black") +                
+     geom_point() +
+     facet_grid(CHR~.) +
+     scale_color_identity() + scale_size_identity() +
+     #ylim(0, 80) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+     labs(title = "A", x = "Genomic position (Mb)", y = expression(paste("-log10(q-value)"))) +
+     facet_grid(CHR ~ .)
+
 
 
 #plot_a
@@ -92,8 +150,8 @@ ln -fs /nfs/users/nfs_s/sd21/lustre118_link/hc/GENOME/TRANSCRIPTOME/TRANSCRIPTOM
 # load required R libraries
 library(data.table)
 # note - "data.table" has a function called "fread" which is great for quickly loading really large datasets
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
+
 
 # load data
 # --- genome annotation
@@ -161,23 +219,28 @@ utr2 <- rbind(utr52, utr32)
 
 # make plot
 plot_b <- ggplot()+
-#gene1
-     geom_rect(data = utr1, aes(xmin = utr1$start, ymin = 0.5, xmax = utr1$end, ymax = 1.5), fill = NA, col = "grey", size = 0.4) +
+     #gene1
+     geom_rect(data=mrna1, aes(xmin = mrna1$start, xmax = mrna1$end, ymin = 0.5, ymax = 1.5), fill="grey95") +
+     geom_rect(data = utr1, aes(xmin = utr1$start, ymin = 0.5, xmax = utr1$end, ymax = 1.5), fill = "white", col = "darkgrey", size = 0.4) +      
      geom_segment(data = intron1, aes(x = intron1$start, xend = intron1$start + intron1$midpoint, y = 1, yend = 1.5), size = 0.5) +
      geom_segment(data = intron1, aes(x = intron1$start + intron1$midpoint, xend = intron1$end, y = 1.5, yend = 1), size = 0.5) +
-     geom_rect(data = cds1, aes(xmin = cds1$start, ymin = 0.5, xmax = cds1$end, ymax = 1.5), fill = "grey", col = NA) +
+     geom_rect(data = cds1, aes(xmin = cds1$start, ymin = 0.5, xmax = cds1$end, ymax = 1.5), fill = "darkgrey", col = NA) +
      geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 1, label = gene1),size = 2) +
-     geom_segment(aes(x = 31521884, xend = 31521884, y = 0.5, yend = 1.5), size = 1, col = "orange") + # Ser168Thr
+     geom_segment(aes(x = 31521884, xend = 31521884, y = 0.5, yend = 1.5), size = 1, col = "blue") + # Ser168Thr
      geom_text(aes(x = 31521884, y = 0.35), label = "Ser168Thr", size = 2) +
+
      #gene2
+     geom_rect(data=mrna2, aes(xmin = mrna2$start, xmax = mrna2$end, ymin = 2, ymax = 3), fill="grey95") +
      geom_rect(data = utr2, aes(xmin = utr2$start, ymin = 2, xmax = utr2$end, ymax = 3), fill = NA, col = "grey", size = 0.4) +
      geom_segment(data = intron2, aes(x = intron2$start, xend = intron2$start+intron2$midpoint, y = 2.5, yend = 3), size = 0.5) +
      geom_segment(data = intron2, aes(x = intron2$start+intron2$midpoint, xend = intron2$end, y = 3, yend = 2.5), size = 0.5) +
      geom_rect(data = cds2, aes(xmin = cds2$start, ymin = 2, xmax = cds2$end, ymax = 3), fill = "grey", col = NA) +
      geom_text(aes(x = mrna1$end+(0.15*(mrna1$end-mrna1$start)), y = 2.5, label = gene2), size = 2) +
+
      # acr-8 indel
-     geom_segment(aes(x = 31527022, xend = 31527022, y = 0.5, yend = 3), size = 1, col = "red") +
+     geom_segment(aes(x = 31527022, xend = 31527022, y = 0.5, yend = 3), size = 1, col = "orange") +
      geom_text(aes(x = 31527022, y = 0.35), label = "indel", size = 2) +
+
      # plot layout
      theme_classic()+
      #xlab("Genome position (bp)")+
@@ -364,7 +427,7 @@ plot_d <- ggplot(data) +
    labs(title = "D", x = "Sampling time-point", y = "Variant allele frequency", col = "Replicate") +
    ylim(0, 1) +
    theme_bw() + theme(text = element_text(size = 10), legend.position = "none")
-   facet_grid(. ~ "Ser168Thr")
+
 
 # perform pairwise t tests between pre/post for each SNP on BZ treated samples
 lev_data_stats <- lev_data %>%

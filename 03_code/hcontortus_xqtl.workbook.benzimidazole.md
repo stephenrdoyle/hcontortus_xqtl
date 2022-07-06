@@ -1,4 +1,8 @@
 # X-QTL Benzimidazole analyses
+
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
 - code
      - code below describes most of the final analyses used to make figures in the manuscript.
      - some code describes hard links to places in my Sanger working environment, and so will need to be modified. However, this should be obvious and straightforward.
@@ -21,11 +25,11 @@ wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/*ADfreq
 
 
 ## BZ QTL on chromosome 1
-- Aim is to show genetic differentiation between pre/post benzimidazole treatment on chromosome 1 where the major peak lies
+- Aim is to show genetic differentiation between pre/post fenbendazole treatment on chromosome 1 where the major peak lies
 
 ```shell
 # working dir:
-cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/BZ
+cd /nfs/users/nfs_s/sd21/lustre118_link/haemonchus_contortus/XQTL/05_ANALYSIS/BZ
 
 ```
 
@@ -34,29 +38,50 @@ cd /nfs/users/nfs_s/sd21/lustre118_link/hc/XQTL/05_ANALYSIS/BZ
 # load required libraries
 library(tidyverse)
 library(patchwork)
+library(qvalue)
 
 # import fst data
+
 xqtl_bz_fst <- read.table("XQTL_BZ.merged.fst", header = F)
-
-# reformat
-xqtl_bz_fst <- dplyr::select(xqtl_bz_fst,  V1,  V2, V13, V39, V49)
+xqtl_bz_fst <- dplyr::select(xqtl_bz_fst,  V1,  V2,  V13 , V39, V49)
 xqtl_bz_fst <- xqtl_bz_fst %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
-colnames(xqtl_bz_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
 
 
-# calculate a genome wide significance cutoff
-gw_r1 <- mean(xqtl_bz_fst$FST_R1)+3*sd(xqtl_bz_fst$FST_R1)
-gw_r2 <- mean(xqtl_bz_fst$FST_R2)+3*sd(xqtl_bz_fst$FST_R2)
-gw_r3 <- mean(xqtl_bz_fst$FST_R3)+3*sd(xqtl_bz_fst$FST_R3)
-gw_mean <- mean(xqtl_bz_fst$FST_MEAN)+3*sd(xqtl_bz_fst$FST_MEAN)
+# calculate zscore
+xqtl_bz_fst <- xqtl_bz_fst %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
 
+# convert zscore into a pvalue
+xqtl_bz_fst <- xqtl_bz_fst %>% mutate(PNORM = 2*pnorm(-abs(xqtl_bz_fst$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+xqtl_bz_fst_q_data <- qvalue(xqtl_bz_fst$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+xqtl_bz_fst$QVALUE <- xqtl_bz_fst_q_data$qvalues
+
+colnames(xqtl_bz_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN", "ZSCORE", "PNORM", "QVALUE")
 
 # extract chromosome 1 data
 xqtl_bz_fst_chr1 <- xqtl_bz_fst[xqtl_bz_fst$CHR == "hcontortus_chr1_Celeg_TT_arrow_pilon", ]
 
-# fix names
+ # fix names
 xqtl_bz_fst_chr1 <- xqtl_bz_fst_chr1 %>%
  mutate(CHR = str_replace_all(CHR, c("hcontortus_chr1_Celeg_TT_arrow_pilon" = "Chromosome 1")))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -80,7 +105,7 @@ xqtl_bz_fst_chr1 <-
 
 
 # make the plot
-plot_bz_chr1 <-
+/* plot_bz_chr1 <-
      ggplot(xqtl_bz_fst_chr1, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
      geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
      geom_vline(xintercept = 7029790, linetype = "dashed", col = "black") +                  
@@ -90,7 +115,21 @@ plot_bz_chr1 <-
      ylim(0, 0.15) + xlim(0, 50e6) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
      labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+     facet_grid(CHR ~ .) */
+
+
+plot_bz_chr1 <- ggplot(xqtl_bz_fst_chr1, aes(POS/10^6, -log10(QVALUE), colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_hline(yintercept = -log10(0.05/nrow(xqtl_bz_fst)), linetype = "dashed", col = "black") +
+     geom_vline(xintercept = 7029790/10^6, linetype = "dashed", col = "black") +                  
+     geom_point() +
+     facet_grid(CHR~.) +
+     scale_color_identity() + scale_size_identity() +
+     ylim(0, 80) + xlim(0,50) +
+     theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
+     labs(title = "A", x = "Genomic position (Mb)", y = expression(paste("-log10(qvalue)"))) +
      facet_grid(CHR ~ .)
+
+
 
 plot_bz_chr1
 
@@ -191,7 +230,7 @@ colnames(bz_post) <- c("CHR", "POS", "R1", "R2", "R3")
 bz_post <- melt(bz_post,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 bz_data <- dplyr::full_join(bz_pre,  bz_post,  by = c("CHR", "POS", "SAMPLE_ID"))
-bz_data$TREATMENT <- "2. Benzimidazole"
+bz_data$TREATMENT <- "Fenbendazole"
 colnames(bz_data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TREATMENT", "TREATMENT")
 
 control_pre <- read.table("control_pretreatment.ADfreq")
@@ -205,7 +244,7 @@ colnames(control_post) <- c("CHR", "POS", "R1", "R2", "R3")
 control_post <- melt(control_post,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 control_data <- dplyr::full_join(control_pre,  control_post,  by = c("CHR", "POS", "SAMPLE_ID"))
-control_data$TREATMENT <- "1. Untreated"
+control_data$TREATMENT <- "Untreated"
 colnames(control_data) <- c("CHR", "POS", "SAMPLE_ID", "PRE_TREATMENT", "POST_TREATMENT", "TREATMENT")
 
 
@@ -223,8 +262,11 @@ plot <-
      geom_segment(aes(x = "1.PRE",  xend = "2.POST",  y = PRE_TREATMENT,  yend = POST_TREATMENT, col = factor(SAMPLE_ID), group = POS),  size = 1) +
      labs(title = "B", x = "Sampling time-point", y = "Resistant allele frequency", col = "Replicate") +
      ylim(0, 1) +
-     facet_grid(POS ~ TREATMENT) +
+     facet_grid(POS ~ ~factor(TREATMENT, levels=c("Untreated", "Fenbendazole"))) +
      theme_bw() + theme(text = element_text(size = 10))
+
+
+
 
 
 # perform pairwise t tests between pre/post for each SNP on BZ treated samples
@@ -241,7 +283,7 @@ bz_stat.test <-
           ) %>%
      select(-df,  -statistic,  -p) # Remove details
 
-bz_stat.test$TREATMENT <- "2. Benzimidazole"
+bz_stat.test$TREATMENT <- "Fenbendazole"
 bz_stat.test <-
      bz_stat.test %>%
      mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
@@ -261,7 +303,7 @@ control_stat.test <-
           select(-df,  -statistic,  -p) # Remove details
 
 
-control_stat.test$TREATMENT <- "1. Untreated"
+control_stat.test$TREATMENT <- "Untreated"
 control_stat.test <-
      control_stat.test %>%
      mutate(POS = str_replace(POS,  c("7029569", "7029790"),  c("Phe167Tyr", "Phe200Tyr")))
@@ -337,7 +379,7 @@ plot_btub2_EC50 <-
      geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = SAMPLE_ID), size = 2)+
      geom_text(aes(15, 0.95, label = paste('r = ', signif(af_bz_cor$estimate, 3), '\n', 'P = ', signif(af_bz_cor$p.value, 3))), size = 2.5)+
      geom_text_repel(aes(BZ_CONCENTRATION, ALLELE_FREQ, label = SAMPLE_ID, col = SAMPLE_ID), size = 3.5) +
-     labs(title = "C", y = "Variant Allele Frequency", x = "Benzimidazole EC50 (uM)", col = "US farm ID") +
+     labs(title = "C", y = "Variant Allele Frequency", x = "Thiabendazole EC50 (uM)", col = "US farm ID") +
      ylim(-0.05, 1) +
      #facet_grid(. ~ POS) +
      facet_grid(POS ~ "US farm") +

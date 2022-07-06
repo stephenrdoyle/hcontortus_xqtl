@@ -1,4 +1,32 @@
+# X-QTL - graphical abstract
 
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
+### Overview
+- need to make a graphical abstract for Cell Reports that provides an overview of the entire paper in a single, simple figure
+- plan is to split it into three parts
+     1. show a schematic of the cross and drug selection
+     2. show QTL peaks for each drug class
+     3. show a key result for each drug classes
+          - BZ: isotype 2 dose response
+          - LEV: protein structure and S168T variant
+          - IVM: RT-qPCR data of cky-1 expression
+
+
+
+### Working directory
+
+```bash
+
+cd /nfs/users/nfs_s/sd21/lustre118_link/haemonchus_contortus/XQTL/05_ANALYSIS/COVER_PIC
+
+```
+
+
+### PLot of genome-wide Fst data for the different drug classes
+
+```R
 library(tidyverse)
 library(zoo)
 library(ggridges)
@@ -67,15 +95,16 @@ ggplot(data) + geom_point(aes(ROW_ID,as.numeric(LABEL2)+FST_ROLLMEAN,col=FST_ROL
      theme_classic() +
      theme(axis.title.x=element_blank(), axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.y=element_blank(), axis.text.y=element_blank(), axis.ticks.y=element_blank())
 
-ggsave()
+ggsave("coverpic_genomewide_QTL.pdf", height=4.5, width=11, useDingbats=F)
+```
 
 
 
 
 
+### Plot of beta-tubulin isotype 2 data
 
-
-
+```R
 # load required libraries
 library(tidyverse)
 library(rstatix)
@@ -83,13 +112,18 @@ library(ggrepel)
 library(reshape2)
 library(patchwork)
 
-us_btub2 <- read.table("/nfs/users/nfs_s/sd21/lustre118_link/haemonchus_contortus/XQTL/04_VARIANTS/US_FIELD/VCF/us_farms_btub2.ADfreq")
+us_btub2 <- read.table("us_farms_btub2.ADfreq")
+
+# original data : /nfs/users/nfs_s/sd21/lustre118_link/haemonchus_contortus/XQTL/04_VARIANTS/US_FIELD/VCF/us_farms_btub2.ADfreq
+
 colnames(us_btub2) <- c("CHR", "POS", "Farm 1", "Farm 2", "Farm 3", "Farm 4", "Farm 5", "Farm 6", "Farm 7", "Farm 8", "Farm 9", "Farm 10")
+
 us_btub2 <- melt(us_btub2,  id = c("CHR",  "POS"),  variable.name = "SAMPLE_ID")
 
 bz_conc <- c(0.05, 19.93, 15, 7.71, 15, 61.57, 29.6, 18.47, 9.67, 29.6)
 
 us_btub2$BZ_CONCENTRATION <- bz_conc
+
 colnames(us_btub2) <- c("CHR", "POS", "SAMPLE_ID", "ALLELE_FREQ", "BZ_CONCENTRATION")
 
 us_btub2 <-
@@ -105,7 +139,55 @@ plot_btub2_EC50 <-
      geom_smooth(aes(BZ_CONCENTRATION, ALLELE_FREQ), method = 'lm', col = 'grey')+
      geom_jitter(aes(BZ_CONCENTRATION, ALLELE_FREQ, col = BZ_CONCENTRATION), size = 4)+
      ylim(-0.05, 1) +
+     labs(x="Allele Frequency", y="Drug concentration", title="Thiabendazole") +
      scale_colour_gradient(low = "royalblue", high = "red", na.value = NA, guide="none") +
-     theme_bw() + theme(legend.position = "none", text = element_text(size = 10))
+     theme_bw() + theme(legend.position = "none",
+          axis.ticks.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank())
 
 plot_btub2_EC50
+
+ggsave("coverpic_btub_iso2_correlation.pdf", height=3.5, width=3.5, useDingbats=F)
+```
+
+
+### Plot of levamisole receptor
+- structure as in the main levamisole figure
+
+
+
+### PLot of cky-1 expression by RT-qPCR
+
+```R
+# libraries
+library(tidyverse)
+
+
+# read data
+cky_RTqpcr <- read.table("RTQs_cky1_v2.txt", header=T, sep="\t")
+cky_RTqpcr <- filter(cky_RTqpcr, Normaliser != "B-tubulin")
+
+# make plot
+plot_RTqpcr <-
+     ggplot(cky_RTqpcr, aes(x = factor(Strain, level = c('MHco3(ISE)', 'MHco18(UGA)', 'MHco4(WRS)', 'MHco10(CAVR)', 'MTci2', 'MTci5')), y = LogFoldChange, col=Response, fill=Response)) +
+     geom_boxplot(outlier.size=0.5, outlier.color="black") +
+     geom_point(position=position_jitterdodge(jitter.width=0.1),size=1) +
+     #facet_grid(~Species, drop = TRUE,scales = "free", space = "free") +
+     theme_bw() +
+     theme(text = element_text(size = 10), axis.text.x = element_text(angle = 30, vjust = 1, hjust=1)) +
+     labs(title = "Ivermectin", x = "Strain", y = "Normalised cky-1 expression", col="Ivermectin\nphenotype") +
+     theme(legend.position = "none",
+          axis.ticks.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank())
+
+plot_RTqpcr
+
+ggsave("coverpic_ivermectin_rt-qpcr.pdf", height=3.5, width=3.5, useDingbats=F)
+
+
+
+```

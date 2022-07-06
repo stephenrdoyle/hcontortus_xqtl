@@ -78,13 +78,27 @@ library(data.table)
 library(patchwork)
 library(viridis)
 library(zoo)
+library(qvalue)
+
+
 
 
 # load and reformat the data
 xqtl_ivm_fst <- read.table("XQTL_IVM.merged.fst", header = F)
 xqtl_ivm_fst <- dplyr::select(xqtl_ivm_fst, V1, V2, V13, V39, V49)
-xqtl_ivm_fst <- xqtl_ivm_fst %>% mutate(mean_FST = rowMeans(select(.,V13)))
-colnames(xqtl_ivm_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN")
+xqtl_ivm_fst <- xqtl_ivm_fst %>% mutate(mean_FST = rowMeans(select(.,V13,V39,V49)))
+
+calculate zscore
+xqtl_ivm_fst <- xqtl_ivm_fst %>% mutate(ZSCORE = (mean_FST - mean(mean_FST))/sd(mean_FST))
+
+# convert zscore into a pvalue
+xqtl_ivm_fst <- xqtl_ivm_fst %>% mutate(PNORM = 2*pnorm(-abs(xqtl_ivm_fst$ZSCORE)))
+
+# calculated a FDR adjusted qvalue
+xqtl_ivm_fst_q_data <- qvalue(xqtl_ivm_fst$PNORM, fdr.level=0.05, pi0.method="bootstrap")
+xqtl_ivm_fst$QVALUE <- xqtl_ivm_fst_q_data$qvalues
+
+colnames(xqtl_ivm_fst) <- c("CHR",  "POS",  "FST_R1", "FST_R2", "FST_R3", "FST_MEAN", "ZSCORE", "PNORM", "QVALUE")
 
 
 # calculate a genome wide significance cutoff
@@ -124,16 +138,17 @@ ivm_chr5_data <-
      (FST_R1 > gw_r1 & FST_R2 > gw_r2 & FST_R3 > gw_r3) ~ "#FF0000FF",))
 
 # make the plot
-plot_chr5 <-
-     ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-     geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black") +
-     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
-     geom_point() + facet_grid(CHR~.) +
+plot_chr5 <- ggplot(ivm_chr5_data, aes(POS/10^6, -log10(QVALUE), colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_hline(yintercept = -log10(0.05/nrow(ivm_chr5_data)), linetype = "dashed", col = "black") +
+     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982/10^6), linetype = "dashed", col = "black") +
+     geom_point() +
+     facet_grid(CHR~.) +
      scale_color_identity() + scale_size_identity() +
-     xlim(0, 50e6) +
+     ylim(0, 70) +
      theme_bw() + theme(legend.position = "none", text = element_text(size = 10)) +
-     labs(title = "A", x = "Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
+     labs(title = "A", x = "Genomic position (Mb)", y = expression(paste("-log10(q-value)"))) +
      facet_grid(CHR ~ .)
+
 
 plot_chr5
 
@@ -192,28 +207,111 @@ us_farm_data_chr5 <- us_farm_data_chr5 %>%
  mutate(chr = str_replace_all(chr, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
 
 
+ - originally planned to show RNA-seq data highlighting DE of genes in the chromosome 5 peak and that cky-1 was the most obviously differentially over expressed, however, we decided in the end to no do this and keep the RNa-seq data in the RNA-seq paper
+ - here is the code we didtn end up using, saved for future reference
+
+
+
+
+
+
+
+ # pulling gene coordinates out of the annotation. Note, most of the command is to remove irrelevant information, easily done with "sed"
+ grep "gene" ANNOTATION.gff | sed -e 's/owner=irisadmin@local.host;//g' -e 's/date_last_modified=[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9];//g' | awk -F '[\t=;]' '{print $12,$1,$4,$5,$7}' OFS="\t" > genes.positions
+ ```
+ - make some plots of the RNA-seq data, with subsets of genes that are DE labelled
+ ```R
+ genes <- read.table("genes.positions",header=F)
+ colnames(genes) <- c("name_PUGAxPISE","chr","start","end","dir")
+
+ rnaseq <- read.table("summary_DESEQ_WBPS15gff_alpha0.01_males_all3IVMcomps.tabular", header=T)
+
+ rnaseq_data <- dplyr::full_join(genes,rnaseq,by="name_PUGAxPISE")
+
+ rnaseq_data_chr5 <- rnaseq_data[rnaseq_data$chr == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
+ rnaseq_data_chr5 <- rnaseq_data_chr5 %>%
+  mutate(chr = str_replace_all(chr, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
+
+
+ # parental ISE vs parent UGA
+ rnaseq_plot1 <-
+      ggplot(rnaseq_data_chr5) +
+      geom_point(aes(start,log2FoldChange),size=0.5,col="lightgrey")+
+      geom_point(aes(start,log2FoldChange, col=-log10(padj), size=-log10(padj)))+
+      geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange > 2 | log2FoldChange < -2),aes(start,log2FoldChange, label=name_PUGAxPISE)) +
+      scale_colour_viridis(direction=-1, limits = c(0, 30))+
+      scale_size_continuous(limits = c(0, 30)) +
+      theme_bw()+
+      xlim(36e6,39e6)+
+      labs(title="parental ISE vs parent UGA", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+
+ # parental ISE vs post treatment F3
+ rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
+       geom_point(aes(start,log2FoldChange.2),size=0.5,col="lightgrey")+
+       geom_point(aes(start,log2FoldChange.2,col=-log10(padj.2),size=-log10(padj.2)))+
+       geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.2 > 2 | log2FoldChange.2 < -2),aes(start,log2FoldChange.2, label=name_PUGAxPISE)) +
+       scale_colour_viridis(direction=-1,limits = c(0, 30))+
+       scale_size_continuous(limits = c(0, 30)) +
+       theme_bw()+
+       xlim(36e6,39e6)+
+       labs(title="parental ISE vs post treatment F3", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+
+ # pre vs post treatment
+ rnaseq_plot3 <-      
+      ggplot(rnaseq_data_chr5) +
+      geom_point(aes(start,log2FoldChange.1),size=0.5,col="lightgrey")+
+      geom_point(aes(start,log2FoldChange.1,col=-log10(padj.1),size=-log10(padj.1)))+
+      geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.1 > 2 | log2FoldChange.1 < -2),aes(start,log2FoldChange.1, label=name_PUGAxPISE)) +
+      scale_colour_viridis(direction=-1,limits = c(0, 30))+
+      scale_size_continuous(limits = c(0, 30)) +
+      theme_bw()+
+      xlim(36e6,39e6)+
+      labs(title="pre vs post treatment", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+ rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
+
+
+
+
+
+
+
 # make plots
 plot_fst <-
-     ggplot(ivm_chr5_data, aes(POS, FST_MEAN, colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
-     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
+     ggplot(ivm_chr5_data, aes(POS/10^6, -log10(QVALUE), colour=point_colour, size=ifelse(FST_MEAN>gw_mean,0.6,0.3))) +
+     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982/10^6), linetype = "dashed", col = "black") +
      geom_point(size=0.25) +
      scale_color_identity() +
      scale_size_identity() +
      geom_hline(yintercept = gw_mean, linetype = "dashed", col = "black")+
-     xlim(36e6,39e6)+
+     xlim(36.5e6/10^6,38.5e6/10^6)+
+     ylim(0, 70) +
      labs(title = "B", x="Genomic position (bp)", y = expression(paste("Genetic differentiation between\n pre- and post-treatment", " (",~italic(F)[ST],")"))) +
      theme_bw() + theme(text = element_text(size = 10))
 
 plot_pi <-
-     ggplot(us_farm_data_chr5, aes((window*10000)-5000,Pi, group=ivm_EC50, colour=as.numeric(ivm_EC50))) +
-     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982), linetype = "dashed", col = "black") +
+     ggplot(us_farm_data_chr5, aes(((window*10000)-5000)/10^6,Pi, group=ivm_EC50, colour=as.numeric(ivm_EC50))) +
+     geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982/10^6), linetype = "dashed", col = "black") +
      geom_point(size=0.25) +
-     xlim(36e6,39e6) +
-     scale_colour_viridis(direction=-1,limits = c(0, 620), option="magma") +
+     xlim(36.5e6/10^6,38.5e6/10^6)+
+     scale_colour_viridis(direction=-1,limits = c(0, 620)) +
      labs(title = "C", x="Genomic position (bp)", y="Nucleotide diversity on\nUS Farms (log10[Pi])", colour="Ivermectin\nEC50\n(uM)")+
      theme_bw() + theme(text = element_text(size = 10))
 
-plot_fst + plot_pi
+rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
+      geom_point(aes(start/10^6, log2FoldChange.2),size = 0.5 , col = "lightgrey")+
+      geom_point(aes(start/10^6,log2FoldChange.2, col = -log10(padj.2), size = -log10(padj.2)))+
+      geom_vline(data=filter(ivm_chr5_data, CHR=="Chromosome 5"), aes(xintercept=37487982/10^6), linetype = "dashed", col = "black") +
+      geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.2 > 2 | log2FoldChange.2 < -2),aes(start,log2FoldChange.2, label=name_PUGAxPISE)) +
+      scale_colour_viridis(direction=-1,limits = c(0, 30))+
+      scale_size_continuous(limits = c(0, 30)) +
+      theme_bw()+
+      xlim(36.5e6/10^6,38.5e6/10^6)+
+      labs(Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
+
+plot_fst + plot_pi + rnaseq_plot2 + plot_layout(ncol=1)
 
 # save it
 ggsave("XQTL_IVM_chr5QTL_fst_uspi.png")
@@ -346,11 +444,11 @@ ggsave("XQTL_IVM_cky-1_trans.png")
 - make the multipanel plot
 ```bash
 # using patchwork
-plot_chr5 / ((plot_fst / plot_pi / plot_RTqpcr) |  (plot_ko / plot_rnai / plot_trans)) +
+plot_chr5 / ((plot_fst / plot_pi / rnaseq_plot2) |  (plot_RTqpcr / plot_ko / plot_rnai )) +
      plot_layout(ncol=1, heights = c(2, 6))
 
 # save
-ggsave("XQTL_IVM_Figure.pdf", useDingbats = FALSE, width = 250, height = 260, units = "mm")
+ggsave("XQTL_IVM_Figure.pdf", useDingbats = FALSE, width = 300, height = 260, units = "mm")
 ggsave("XQTL_IVM_Figure.png")
 ```
 ![](../04_analysis/XQTL_IVM_Figure.png)
@@ -911,66 +1009,7 @@ ggsave("XQTL_SupplementaryFigureX_male_doseresponse.png")
 
 ## Other
 
-- originally planned to show RNA-seq data highlighting DE of genes in the chromosome 5 peak and that cky-1 was the most obviously differentially over expressed, however, we decided in the end to no do this and keep the RNa-seq data in the RNA-seq paper
-- here is the code we didtn end up using, saved for future reference
 
-```bash
-# pulling gene coordinates out of the annotation. Note, most of the command is to remove irrelevant information, easily done with "sed"
-grep "gene" ANNOTATION.gff | sed -e 's/owner=irisadmin@local.host;//g' -e 's/date_last_modified=[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9];//g' | awk -F '[\t=;]' '{print $12,$1,$4,$5,$7}' OFS="\t" > genes.positions
-```
-- make some plots of the RNA-seq data, with subsets of genes that are DE labelled
-```R
-genes <- read.table("genes.positions",header=F)
-colnames(genes) <- c("name_PUGAxPISE","chr","start","end","dir")
-
-rnaseq <- read.table("summary_DESEQ_WBPS15gff_alpha0.01_males_all3IVMcomps.tabular", header=T)
-
-rnaseq_data <- dplyr::full_join(genes,rnaseq,by="name_PUGAxPISE")
-
-rnaseq_data_chr5 <- rnaseq_data[rnaseq_data$chr == "hcontortus_chr5_Celeg_TT_arrow_pilon", ]
-rnaseq_data_chr5 <- rnaseq_data_chr5 %>%
- mutate(chr = str_replace_all(chr, c("hcontortus_chr5_Celeg_TT_arrow_pilon" = "Chromosome 5")))
-
-
-# parental ISE vs parent UGA
-rnaseq_plot1 <-
-     ggplot(rnaseq_data_chr5) +
-     geom_point(aes(start,log2FoldChange),size=0.5,col="lightgrey")+
-     geom_point(aes(start,log2FoldChange, col=-log10(padj), size=-log10(padj)))+
-     geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange > 2 | log2FoldChange < -2),aes(start,log2FoldChange, label=name_PUGAxPISE)) +
-     scale_colour_viridis(direction=-1, limits = c(0, 30))+
-     scale_size_continuous(limits = c(0, 30)) +
-     theme_bw()+
-     xlim(36e6,39e6)+
-     labs(title="parental ISE vs parent UGA", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
-
-
-# parental ISE vs post treatment F3
-rnaseq_plot2 <- ggplot(rnaseq_data_chr5) +
-      geom_point(aes(start,log2FoldChange.2),size=0.5,col="lightgrey")+
-      geom_point(aes(start,log2FoldChange.2,col=-log10(padj.2),size=-log10(padj.2)))+
-      geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.2 > 2 | log2FoldChange.2 < -2),aes(start,log2FoldChange.2, label=name_PUGAxPISE)) +
-      scale_colour_viridis(direction=-1,limits = c(0, 30))+
-      scale_size_continuous(limits = c(0, 30)) +
-      theme_bw()+
-      xlim(36e6,39e6)+
-      labs(title="parental ISE vs post treatment F3", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
-
-
-# pre vs post treatment
-rnaseq_plot3 <-      
-     ggplot(rnaseq_data_chr5) +
-     geom_point(aes(start,log2FoldChange.1),size=0.5,col="lightgrey")+
-     geom_point(aes(start,log2FoldChange.1,col=-log10(padj.1),size=-log10(padj.1)))+
-     geom_text_repel(data=subset(rnaseq_data_chr5,log2FoldChange.1 > 2 | log2FoldChange.1 < -2),aes(start,log2FoldChange.1, label=name_PUGAxPISE)) +
-     scale_colour_viridis(direction=-1,limits = c(0, 30))+
-     scale_size_continuous(limits = c(0, 30)) +
-     theme_bw()+
-     xlim(36e6,39e6)+
-     labs(title="pre vs post treatment", Colour="-log10(adjusted p-value)", Size="-log10(adjusted p-value)", x="Genomics position", y= "log2(fold change): Pre vs Post treatment")
-
-rnaseq_plot1 + rnaseq_plot2 + rnaseq_plot3 + plot_layout(ncol=1)
-```
 
 
 ```R

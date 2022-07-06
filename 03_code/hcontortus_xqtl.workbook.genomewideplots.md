@@ -15,11 +15,21 @@ Contact: stephen.doyle[at]sanger.ac.uk
 ## Download raw data
 ```
 # download data needed to make the figures
-wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
-wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/CONTROL/XQTL_CONTROL.merged.fst
-wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
-wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/LEV/XQTL_LEV.merged.fst
+
+# XQTL Parents Fst data
 wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/PARENTS/XQTL_PARENTS.merged.fst
+
+# XQTL control Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/CONTROL/XQTL_CONTROL.merged.fst
+
+# XQTL BZ Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/BZ/XQTL_BZ.merged.fst
+
+# XQTL LEV Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/LEV/XQTL_LEV.merged.fst
+
+# XQTL IVM Fst data
+wget ftp://ngs.sanger.ac.uk/production/pathogens/sd21/hcontortus_xqtl/IVM/XQTL_IVM.merged.fst
 
 ```
 
@@ -270,15 +280,14 @@ chr_colours<-c("blue", "cornflowerblue", "blue", "cornflowerblue", "blue", "corn
      facet_grid(LABEL ~ .) */
 
 
-plot_b <- ggplot(data) +
+plot_b1 <- ggplot(data) +
      geom_point(aes(POS,  -log10(QVALUE),  colour = CHR,  group = LABEL),  size = 0.1) +
      facet_grid(LABEL~CHR, space="free_x", scales="free_x", switch="x") + theme_minimal() +
-     ylim(0,60) +
+     ylim(0,80) +
      theme_bw() +  theme(panel.spacing.x = unit(0, "lines"), strip.text.x = element_text(angle = 0), legend.position = "none", axis.text.x=element_blank(), text = element_text(size = 10), strip.text.y = element_text(size = 6), axis.ticks.x=element_blank()) +
      scale_color_manual(values = chr_colours) +
-     labs(title = "B", x = "",  y = expression(paste("Genetic differentiation between pre- and post-treatment", " ("-log[10] qvalue,")"))) +
+     labs(title = "B", x = "",  y = "Genetic differentiation between pre- and post-treatment (-log10[p-value])") +
      geom_hline(yintercept=-log10(0.05/nrow(data)), linetype="dashed")
-
 
 
 
@@ -290,29 +299,6 @@ ggsave("genomewide_fst_plots.pdf", useDingbats = FALSE, width = 170, height = 20
 ggsave("genomewide_fst_plots.png")
 ```
 ![](../04_analysis/genomewide_fst_plots.png)
-
-
-
-
-
-# calculate zscore
-data <- data %>% mutate(zscore = (FST - mean(FST))/sd(FST))
-
-# convert zscore into a pvalue
-data <- data %>% mutate(pnorm = 2*pnorm(-abs(data$zscore)))
-
-# calculated a FDR adjusted qvalue
-q_data <- qvalue(data$pnorm, fdr.level=0.05, pi0.method="bootstrap")
-data$qvalue <- q_data$qvalues
-
-
-
-plot_b <- ggplot(data) +
-     geom_point(aes(POS,  -log10(QVALUE),  colour = CHR,  group = LABEL),  size = 0.1) +
-     facet_grid(LABEL~CHR, space="free_x", scales="free_x", switch="x") + theme_minimal() +
-     ylim(0,60) +
-     theme_bw() +  theme(panel.spacing.x = unit(0, "lines"), strip.text.x = element_text(angle = 0), legend.position = "none", axis.text.x=element_blank(), text = element_text(size = 10), strip.text.y = element_text(size = 6), axis.ticks.x=element_blank()) +
-     geom_hline(yintercept=-log10(0.05/nrow(data)), linetype="dashed")
 
 
 

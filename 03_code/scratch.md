@@ -1,6 +1,7 @@
 # scratch space for random code than needs a home
 
-
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
 
 
 ## playing around with correlations between EC50 and US farm Fst data
