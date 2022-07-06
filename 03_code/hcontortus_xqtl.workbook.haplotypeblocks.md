@@ -1,4 +1,8 @@
 # Estimation of haplotype blocks in the XQTL experiment
+
+Author: Stephen Doyle
+Contact: stephen.doyle[at]sanger.ac.uk
+
 - Aim: estimate average haplotype block length that would be maintained from the parental population to the sampled F3
 - Rationale: want to know what the minimum QTL size in genome, below which is likely to be noise, above which provides greater confidence of a selective sweep
 
